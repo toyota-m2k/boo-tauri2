@@ -4,19 +4,6 @@ import {createBooProtocol} from "$lib/protocol/BooProtocol";
 import {settings} from "$lib/model/Settings.svelte";
 
 class ViewModel {
-  static filterAll(mediaItem: IMediaItem): boolean {
-    return true
-  }
-  static filterImage(mediaItem: IMediaItem): boolean {
-    return mediaItem.media === "p"
-  }
-  static filterVideo(mediaItem: IMediaItem): boolean {
-    return mediaItem.media === "v"
-  }
-  static filterAudio(mediaItem: IMediaItem): boolean {
-    return mediaItem.media === "a"
-  }
-
   private rawMediaList = $state<IMediaList>(emptyMediaList())
   acceptVideo = $state(true)
   acceptAudio = $state(true)
@@ -98,6 +85,17 @@ class ViewModel {
     }
 
   }
+
+  mediaUrl(mediaItem: IMediaItem|undefined, generation:number): string|undefined {
+    if(!mediaItem) return undefined
+    return this.boo.getItemUrl(mediaItem)
+  }
+
+  async refreshAuth(): Promise<boolean> {
+    return await this.boo.noop()
+  }
+
 }
+
 
 export const viewModel = new ViewModel()

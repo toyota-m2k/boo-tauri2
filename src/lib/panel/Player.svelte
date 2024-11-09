@@ -1,9 +1,10 @@
 <script lang="ts">
 
+import AVPlayer from "$lib/component/AVPlayer.svelte";
 </script>
 
 <div class="panel">
-
+  <AVPlayer />
 </div>
 
 <style>

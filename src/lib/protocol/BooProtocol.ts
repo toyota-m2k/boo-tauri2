@@ -209,7 +209,7 @@ class BooProtocolImpl implements IBooProtocol {
     if (this.needAuth && this.authToken) {
       auth = `&auth=${this.authToken.token}`
     }
-    switch (mediaItem.type) {
+    switch (mediaItem.type as string) {
       case 'jpg':
       case 'jpeg':
       case 'png':

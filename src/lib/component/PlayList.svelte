@@ -2,11 +2,12 @@
   import {emptyMediaList} from "$lib/protocol/IBooProtocol";
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import {formatSize, formatTime} from "$lib/utils/Utils";
+  import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 
   let currentId = $state("")
   function onSelect(e:MouseEvent, i:number) {
     console.log("onSelect", i)
-    currentId = viewModel.mediaList.list[i].id
+    viewModel.currentItem = viewModel.mediaList.list[i]
   }
 </script>
 
