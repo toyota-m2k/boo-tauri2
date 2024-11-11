@@ -28,8 +28,8 @@ export interface ISettings {
   playMode: PlayMode
   slideShowInterval: number
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void
+  saveHostList(): void
   load(): Promise<void>
-  save(): Promise<void>
 }
 
 export interface IViewModel {

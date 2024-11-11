@@ -12,6 +12,7 @@ export class HostInfoList implements IHostInfoList {
   }
 
   findByHostPort(hostPort: IHostPort|undefined): HostInfo|undefined {
+    if(!hostPort) return undefined
     const index = this.findIndex(hostPort)
     return index >= 0 ? this.list[index] : undefined
   }

@@ -1,16 +1,26 @@
 <script lang="ts">
 
-  import {playerViewModel} from "$lib/model/PlayerViewModel.svelte.js";
+  import {type IPlayerCommands, playerViewModel} from "$lib/model/PlayerViewModel.svelte.js";
   import {logger} from "$lib/model/DebugLog.svelte";
+  import ZoomView from "$lib/primitive/ZoomView.svelte";
+  import {onMount} from "svelte";
 
   let rest = $props()
   let player = $state<HTMLVideoElement>() as HTMLVideoElement;
-  export function play() {
-    player.play();
+  let playerCommands:IPlayerCommands = {
+    nextChapter: ()=>{  },
+    prevChapter: ()=> { },
+    play: ()=>{ player.play() },
+    pause: ()=> { player.pause() }
   }
-  export function pause() {
-    player.pause();
-  }
+
+  onMount(()=>{
+    playerViewModel.setPlayerCommands(playerCommands)
+    return ()=>{
+      playerViewModel.resetPlayerCommands(playerCommands)
+    }
+  })
+
   function onPlay() {
     playerViewModel.playing = true;
   }
@@ -32,28 +42,30 @@
 
 </script>
 
-{#if playerViewModel.isAV}
-  <video
-    class="media-view"
-    class:fit={playerViewModel.fitMode==="fit"}
-    class:fill={playerViewModel.fitMode==="fill"}
-    class:original={playerViewModel.fitMode==="original"}
-    bind:this={player}
-    src={playerViewModel.avSource}
+{#if playerViewModel.isVideo}
+  <ZoomView onclick={()=>playerViewModel.togglePlay()}>
+    <video
+      class="media-view"
+      class:fit={playerViewModel.fitMode==="fit"}
+      class:fill={playerViewModel.fitMode==="fill"}
+      class:original={playerViewModel.fitMode==="original"}
+      bind:this={player}
+      src={playerViewModel.avSource}
 
-    bind:duration={playerViewModel.duration}
-    bind:currentTime={playerViewModel.currentPosition}
-    bind:muted={playerViewModel.muted}
-    onplay={onPlay}
-    onpause={onPause}
-    onloadeddata={onLoaded}
-    onerror={onError}
+      bind:duration={playerViewModel.duration}
+      bind:currentTime={playerViewModel.currentPosition}
+      bind:muted={playerViewModel.muted}
+      onplay={onPlay}
+      onpause={onPause}
+      onloadeddata={onLoaded}
+      onerror={onError}
 
-    {...rest}
-    autoplay
-  >
-    <track kind="captions" src="">
-  </video>
+      {...rest}
+      autoplay
+    >
+      <track kind="captions" src="">
+    </video>
+  </ZoomView>
 {:else}
   <div>
     NO PLAYER

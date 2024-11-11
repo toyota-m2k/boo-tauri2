@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
@@ -429,4 +433,17 @@
     --color-gray: var(--color-gray-500);
     --color-gray-on: var(--color-gray-200);
   }
+
+  .control_button {
+    @apply w-10;
+    @apply h-10;
+    @apply bg-primary;
+    @apply text-gray-400;
+    @apply hover:bg-background;
+    @apply hover:text-background-on;
+    @apply border;
+    @apply border-gray-400;
+  }
+
 }
+

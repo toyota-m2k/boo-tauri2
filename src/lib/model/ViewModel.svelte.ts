@@ -20,7 +20,31 @@ class ViewModel {
     }), date:this.rawMediaList.date}
   })
   currentItem = $state<IMediaItem|undefined>(undefined)
+  hasPrev = $derived(this.currentItem ? this.mediaList.list.indexOf(this.currentItem)>0 : false)
+  hasNext = $derived(this.currentItem ? this.mediaList.list.indexOf(this.currentItem)<this.mediaList.list.length-1 : false)
+  prev() {
+    if(this.currentItem) {
+      const index = this.mediaList.list.indexOf(this.currentItem)
+      if(index>0) {
+        this.currentItem = this.mediaList.list[index-1]
+      }
+    } else if(this.mediaList.list.length>0) {
+      this.currentItem = this.mediaList.list[0]
+    }
+  }
+  next() {
+    if(this.currentItem) {
+      const index = this.mediaList.list.indexOf(this.currentItem)
+      if(index<this.mediaList.list.length-1) {
+        this.currentItem = this.mediaList.list[index+1]
+      }
+    } else if(this.mediaList.list.length>0) {
+      this.currentItem = this.mediaList.list[0]
+    }
+  }
+
   isBusy = $state(false)
+
 
   boo = createBooProtocol(()=> Promise.resolve("a"))
   private listRequest: IListRequest = {type: "all", sourceType: 1}
@@ -95,6 +119,7 @@ class ViewModel {
     return await this.boo.noop()
   }
 
+  mediaScale: number = $state(1)
 }
 
 

@@ -11,6 +11,6 @@
 
 </script>
 
-<button class="icon-button {klass??''}" {onclick}>
+<button class="icon-button p-0 flex justify-center items-center {klass??''}" {onclick}>
   <SvgIcon class="icon" path={path} color={color} {...rest}/>
 </button>

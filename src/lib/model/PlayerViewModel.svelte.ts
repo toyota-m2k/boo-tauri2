@@ -4,8 +4,15 @@ import {launch} from "$lib/utils/Utils";
 
 export type FitMode = "fit" | "fill" | "original"
 
-class PlayerViewModel {
-  fitMode: FitMode = $state("fill")
+export interface IPlayerCommands {
+  play:()=>void
+  pause:()=>void
+  nextChapter:()=>void
+  prevChapter:()=>void
+}
+
+class PlayerViewModel implements IPlayerCommands {
+  fitMode: FitMode = $state("fit")
 
   isVideo = $derived(viewModel.currentItem?.media === "v")
   isAudio = $derived(viewModel.currentItem?.media === "a")
@@ -21,6 +28,7 @@ class PlayerViewModel {
   duration = $state(0)
   currentPosition = $state(0)
   muted = $state(false)
+  autoPlay = $state(true)
   playing = $state(false)
   initialSeekPosition = $state(0)
 
@@ -31,6 +39,41 @@ class PlayerViewModel {
       }
     })
   }
+
+  private playerCommands:IPlayerCommands|undefined = undefined
+
+  setPlayerCommands(playerCommands:IPlayerCommands) {
+    this.playerCommands = playerCommands
+  }
+  resetPlayerCommands(playerCommands:IPlayerCommands) {
+    if(this.playerCommands === playerCommands) {
+      this.playerCommands = undefined
+    }
+  }
+
+  play() {
+    this.autoPlay = true
+    this.playerCommands?.play()
+  }
+  pause() {
+    this.autoPlay = false
+    this.playerCommands?.pause()
+  }
+  togglePlay() {
+    if(this.playing) {
+      this.pause()
+    }
+    else {
+      this.play()
+    }
+  }
+  nextChapter() {
+    this.playerCommands?.nextChapter()
+  }
+  prevChapter() {
+    this.playerCommands?.prevChapter()
+  }
+
 }
 
 export const playerViewModel = new PlayerViewModel()

@@ -1,5 +1,7 @@
 import { defineConfig } from "vite";
 import { sveltekit } from "@sveltejs/kit/vite";
+import autoprefixer from "autoprefixer";
+import tailwindcss from "tailwindcss";
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
@@ -31,6 +33,12 @@ export default defineConfig(async () => ({
   },
   // https://stackoverflow.com/questions/78997907/the-legacy-js-api-is-deprecated-and-will-be-removed-in-dart-sass-2-0-0
   css: {
+    postcss: {
+      plugins: [
+        tailwindcss,
+        autoprefixer
+      ]
+    },
     preprocessorOptions: {
       scss: {
         api: 'modern-compiler' // or "modern"
