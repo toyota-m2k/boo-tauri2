@@ -8,6 +8,8 @@
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import {onMount} from "svelte";
   import {settings} from "$lib/model/Settings.svelte";
+  import Dialog from "$lib/dialog/Dialog.svelte";
+  import HostDialogContent from "$lib/dialog/HostDialogContent.svelte";
 
   // import { invoke } from "@tauri-apps/api/core";
   // let name = $state("");
@@ -48,7 +50,14 @@
 
   onMount(async () => {
     await viewModel.prepareSettings()
-    await viewModel.setHost(settings.hostInfoList.list[0])
+    if(!settings.currentHost) {
+      viewModel.openHostDialog()
+    }
+  })
+  $effect(() => {
+    if(settings.currentHost) {
+      viewModel.setHost(settings.currentHost)
+    }
   })
 
 </script>
@@ -72,6 +81,20 @@
     <div transition:fade class="loading absolute top-0 bottom-0 left-0 right-0 h-full w-full flex items-center justify-center bg-gray text-gray-on">
       <div class="spinner fill-gray-200">Loading ...</div>
     </div>
+  {/if}
+
+  {#if viewModel.dialogType}
+  <div transition:fade class="absolute top-0 bottom-0 right-0 left-0 h-full w-full bg-black bg-opacity-70 flex items-center justify-center">
+    {#if viewModel.dialogType === "host"}
+      <Dialog title="Host Settings">
+        <HostDialogContent closeDialog={()=>viewModel.closeDialog()}/>
+      </Dialog>
+    {:else if viewModel.dialogType === "system"}
+      <Dialog title="Preferences">
+        <div>not implemented yet</div>
+      </Dialog>
+    {/if}
+  </div>
   {/if}
 
   <div class="debug-panel hidden">

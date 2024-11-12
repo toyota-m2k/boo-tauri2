@@ -5,7 +5,7 @@
     class?: string;
     path: string;
     disabled?: boolean;
-    onclick?: () => void;
+    onclick?: (e:MouseEvent) => void;
   }
   let { class:klass, path, disabled, onclick, ...rest }:IconButtonProps = $props();
   // let disabledColor = $derived(getComputedStyle(document.documentElement).getPropertyValue("--color-gray-on"));

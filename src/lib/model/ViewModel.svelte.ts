@@ -1,4 +1,4 @@
-import type {IHostInfo, ISettings, IViewModel} from "$lib/model/ModelDef";
+import type {IHostInfo, ISettings, IViewModel, DialogType} from "$lib/model/ModelDef";
 import {emptyMediaList, type IListRequest, type IMediaItem, type IMediaList} from "$lib/protocol/IBooProtocol";
 import {createBooProtocol} from "$lib/protocol/BooProtocol";
 import {settings} from "$lib/model/Settings.svelte";
@@ -121,6 +121,17 @@ class ViewModel {
   }
 
   mediaScale: number = $state(1)
+
+  dialogType: DialogType|undefined = $state()
+  closeDialog() {
+    this.dialogType = undefined
+  }
+  openSystemDialog() {
+    this.dialogType = "system"
+  }
+  openHostDialog() {
+    this.dialogType = "host"
+  }
 }
 
 

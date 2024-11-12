@@ -14,7 +14,7 @@
 
 <div class="panel">
   {#if viewModel.mediaList.list.length !== 0}
-    <table>
+    <table class="w-full">
       <tbody>
       {#each viewModel.mediaList.list as item, i (item.id)}
         <tr id={item.id}>

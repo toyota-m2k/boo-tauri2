@@ -13,7 +13,7 @@
   // let transformOrigin: { x: number, y: number } = { x: 50, y: 50 }
   let translation: { x: number, y: number } = $state({ x: 0, y: 0 })
 
-  let {scaleMax=10, scaleMin=1, onclick, children}:{scaleMax:number, scaleMin:number, onclick?:(e:MouseEvent)=>void,children:Snippet} = $props()
+  let {scaleMax=10, scaleMin=1, onclick, children}:{scaleMax?:number, scaleMin?:number, onclick?:(e:MouseEvent)=>void,children:Snippet} = $props()
 
   const draggingInfo = {
     isDragging: false,

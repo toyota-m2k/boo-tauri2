@@ -43,7 +43,7 @@
       ></div>
     {/each}
     {#each chaptersViewModel.chapters as chapter (chapter.position)}
-      <SvgIcon class="absolute top-0 w-[24px] h-[24px] transform -translate-x-1/2 focus:outline-0 {(chapter.skip)?'text-gray-100':'text-accent'}"
+      <SvgIcon class="absolute top-0 w-[24px] h-[24px] -translate-x-1/2 focus:outline-0 {(chapter.skip)?'text-gray-100 cursor-default':'text-accent cursor-pointer'}"
                path={chapter.skip ? ICON_PIN_OFF : ICON_PIN}
                style="left: {chapter.position / 10 / playerViewModel.duration}%"
                onclick={()=>chaptersViewModel.gotoChapter(chapter)}

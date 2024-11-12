@@ -1,5 +1,4 @@
 import type {IHostInfo, IHostInfoList, IHostPort, ISettings} from "$lib/model/ModelDef";
-import type {HostInfo} from "$lib/model/HostInfo";
 import {HostInfoList} from "$lib/model/HostInfoList.svelte";
 import type {PlayMode} from "$lib/protocol/IBooProtocol";
 import {Preferences} from "$lib/model/Preferences";
@@ -11,7 +10,6 @@ class Settings implements ISettings {
   private _currentHost = $state<IHostInfo|undefined>(undefined)
   private _playMode = $state<PlayMode>("sequential")
   private _slideShowInterval = $state<number>(3000)
-  private _modified: boolean = $state(false)
 
   get currentHost(): IHostInfo|undefined {
     return this._currentHost

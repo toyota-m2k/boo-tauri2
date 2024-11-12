@@ -3,7 +3,10 @@ import type {IMediaItem, IMediaList, PlayMode} from "$lib/protocol/IBooProtocol"
 export interface IHostPort {
   host: string,
   port: number
-  isEquals(hostInfo: IHostInfo): boolean
+}
+
+export function isEqualHostPort(a: IHostPort|undefined, b: IHostPort|undefined): boolean {
+  return !!a && !!b && (a.host === b.host && a.port === b.port)
 }
 
 export interface IHostInfo extends IHostPort {
@@ -18,6 +21,7 @@ export interface IHostInfoList {
 
   add(hostInfo: IHostInfo): void
   remove(hostInfo: IHostInfo): void
+  update(hostInfo: IHostPort, displayName:string): void
   set(list: IHostInfo[]): void
   findByHostPort(hostPort: IHostPort|undefined): IHostInfo|undefined
 }
@@ -31,6 +35,8 @@ export interface ISettings {
   saveHostList(): void
   load(): Promise<void>
 }
+
+export type DialogType = "host" | "system"
 
 export interface IViewModel {
   mediaList: IMediaList
