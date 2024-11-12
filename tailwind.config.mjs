@@ -47,10 +47,10 @@ export default {
           DEFAULT: "var(--color-error)",
           on: "var(--color-error-on)",
         },
-        // gray: {
-        //   DEFAULT: "var(--color-gray)",
-        //   on: "var(--color-gray-on)",
-        // }
+        gray: {
+          DEFAULT: "var(--color-gray)",
+          on: "var(--color-gray-on)",
+        }
       },
     },
   },

@@ -7,7 +7,7 @@
 </script>
 
 <div class="panel">
-  <IconButton path={ICON_MENU} onclick={menu} class="h-10 w-10 p-1"/>
+  <IconButton path={ICON_MENU} onclick={menu} class="h-10 w-10 p-1 ml-1 hover:bg-secondary hover:text-secondary-on"/>
   <Viewbox text={title} class="flex-grow ml-2"/>
 </div>
 

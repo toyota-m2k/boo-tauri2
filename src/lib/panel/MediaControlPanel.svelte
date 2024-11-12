@@ -34,9 +34,9 @@
 <div class="panel">
   <div class="buttons flex p-1 justify-center gap-2">
     <IconButton class="control_button rounded-none" path={ICON_PREV} onclick={prev}/>
-    <IconButton class="control_button rounded-none" path={ICON_SKIP_PREV} onclick={prevChapter}/>
+    <IconButton class="control_button rounded-none" path={ICON_SKIP_PREV} onclick={prevChapter} disabled={true}/>
     <IconButton class="control_button rounded-none" path={playerViewModel.playing?ICON_STOP:ICON_PLAY} onclick={toggle}/>
-    <IconButton class="control_button rounded-none" path={ICON_SKIP_NEXT} onclick={nextChapter}/>
+    <IconButton class="control_button rounded-none" path={ICON_SKIP_NEXT} onclick={nextChapter} disabled={playerViewModel.isImage}/>
     <IconButton class="control_button rounded-none" path={ICON_NEXT} onclick={next}/>
   </div>
 

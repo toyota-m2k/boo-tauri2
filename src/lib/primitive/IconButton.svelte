@@ -4,13 +4,18 @@
   type IconButtonProps = {
     class?: string;
     path: string;
-    color?: string;
+    disabled?: boolean;
     onclick?: () => void;
   }
-  let { class:klass, path, color, onclick, ...rest }:IconButtonProps = $props();
+  let { class:klass, path, disabled, onclick, ...rest }:IconButtonProps = $props();
+  // let disabledColor = $derived(getComputedStyle(document.documentElement).getPropertyValue("--color-gray-on"));
+  // let color = $derived(disabled ? disabledColor : "currentColor");
 
 </script>
 
-<button class="icon-button p-0 flex justify-center items-center {klass??''}" {onclick}>
-  <SvgIcon class="icon" path={path} color={color} {...rest}/>
+<button class="p-0 flex justify-center items-center {klass??''}" class:disabled={disabled} {onclick}>
+  <SvgIcon class="icon" path={path} {...rest}/>
 </button>
+
+<style lang="scss">
+</style>

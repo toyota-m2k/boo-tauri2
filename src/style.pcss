@@ -437,13 +437,19 @@
   .control_button {
     @apply w-10;
     @apply h-10;
-    @apply bg-primary;
-    @apply text-gray-400;
-    @apply hover:bg-background;
-    @apply hover:text-background-on;
     @apply border;
     @apply border-gray-400;
+    background-color: var(--color-primary);
+    color: var(--color-primary-on);
+    &:hover {
+      background-color: var(--color-secondary);
+      color: var(--color-secondary-on);
+    }
+    &.disabled {
+      background-color: var(--color-primary);
+      color: var(--color-gray-on);
+      cursor: default;
+    }
   }
-
 }
 
