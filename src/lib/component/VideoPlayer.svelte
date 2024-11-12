@@ -4,15 +4,37 @@
   import {logger} from "$lib/model/DebugLog.svelte";
   import ZoomView from "$lib/primitive/ZoomView.svelte";
   import {onMount} from "svelte";
+  import {viewModel} from "$lib/model/ViewModel.svelte";
+  import {delay, launch} from "$lib/utils/Utils";
 
   let rest = $props()
   let player = $state<HTMLVideoElement>() as HTMLVideoElement;
+  let playRequested = playerViewModel.autoPlay
   let playerCommands:IPlayerCommands = {
     nextChapter: ()=>{  },
     prevChapter: ()=> { },
-    play: ()=>{ player.play() },
-    pause: ()=> { player.pause() }
+    play: ()=>{
+      playRequested = true
+      let count = 0
+      launch(async ()=>{
+        while(count<10&&playRequested) {
+          try {
+            await player.play()
+            return
+          } catch (e) {
+            logger.error(`play: ${e}`)
+            await delay(200)
+            count++
+          }
+        }
+      })
+    },
+    pause: ()=> {
+      playRequested = false
+      player.pause()
+    }
   }
+
 
   onMount(()=>{
     playerViewModel.setPlayerCommands(playerCommands)
@@ -35,11 +57,10 @@
       playerViewModel.initialSeekPosition = 0
     }
   }
-  function onError() {
-    logger.error(`onError`)
+  function onError(e:any) {
+    logger.error(`onError: ${e}`)
     playerViewModel.tryReAuth()
   }
-
 </script>
 
 {#if playerViewModel.isVideo}

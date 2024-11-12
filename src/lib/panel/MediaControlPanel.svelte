@@ -1,8 +1,6 @@
 <script lang="ts">
   import {
     ICON_NEXT,
-    ICON_PIN,
-    ICON_PIN_OFF,
     ICON_PLAY,
     ICON_PREV,
     ICON_SKIP_NEXT,
@@ -13,6 +11,7 @@
   import {playerViewModel} from "$lib/model/PlayerViewModel.svelte"
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import IconButton from "$lib/primitive/IconButton.svelte";
+  import PlayerSlider from "$lib/component/PlayerSlider.svelte";
   const prev = () => {
     viewModel.prev()
   }
@@ -32,6 +31,7 @@
 </script>
 
 <div class="panel">
+  <PlayerSlider/>
   <div class="buttons flex p-1 justify-center gap-2">
     <IconButton class="control_button rounded-none" path={ICON_PREV} onclick={prev}/>
     <IconButton class="control_button rounded-none" path={ICON_SKIP_PREV} onclick={prevChapter} disabled={true}/>

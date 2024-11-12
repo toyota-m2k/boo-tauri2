@@ -30,11 +30,15 @@ class PlayerViewModel implements IPlayerCommands {
   muted = $state(false)
   autoPlay = $state(true)
   playing = $state(false)
+  sliderSeeking = $state(false)
   initialSeekPosition = $state(0)
 
   tryReAuth() {
     launch( async ()=> {
+      const item = viewModel.currentItem
+      viewModel.currentItem = undefined
       if (await viewModel.refreshAuth()) {
+        viewModel.currentItem = item
         this.generation++
       }
     })

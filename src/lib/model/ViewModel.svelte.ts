@@ -2,6 +2,7 @@ import type {IHostInfo, ISettings, IViewModel} from "$lib/model/ModelDef";
 import {emptyMediaList, type IListRequest, type IMediaItem, type IMediaList} from "$lib/protocol/IBooProtocol";
 import {createBooProtocol} from "$lib/protocol/BooProtocol";
 import {settings} from "$lib/model/Settings.svelte";
+import {type IRange} from "$lib/model/ChapterUtils";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -20,6 +21,7 @@ class ViewModel {
     }), date:this.rawMediaList.date}
   })
   currentItem = $state<IMediaItem|undefined>(undefined)
+
   hasPrev = $derived(this.currentItem ? this.mediaList.list.indexOf(this.currentItem)>0 : false)
   hasNext = $derived(this.currentItem ? this.mediaList.list.indexOf(this.currentItem)<this.mediaList.list.length-1 : false)
   prev() {
@@ -44,7 +46,6 @@ class ViewModel {
   }
 
   isBusy = $state(false)
-
 
   boo = createBooProtocol(()=> Promise.resolve("a"))
   private listRequest: IListRequest = {type: "all", sourceType: 1}
