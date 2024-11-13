@@ -14,7 +14,7 @@
     }
   }
 
-  let lockControlPanel = $state(false)
+  let lockControlPanel = $state(true)
   let mouseOnControlPanel = $state(false)
   let showControlPanel = $derived(!!viewModel.currentItem && (mouseOnControlPanel||lockControlPanel||!playerViewModel.playing))
   let controlPanelTimingSwitch = new TimingSwitch(2000, ()=>{
@@ -48,7 +48,7 @@
   }
 </script>
 
-<div class="panel">
+<div class="media-player w-full h-full relative">
   {#if playerViewModel.isVideo}
     <VideoPlayer {onended}/>
   {:else if playerViewModel.isImage}
@@ -56,7 +56,7 @@
   {/if}
 
   <!-- マウスオーバーで、コントロールパネルを出し入れする仕掛け -->
-  <div class="absolute bottom-0 left-0 right-0 h-[95px]"
+  <div class="absolute bottom-0 left-0 right-0 h-[95px] bg-transparent"
        onmouseenter={onMouseEnterToPanel}
        onmousemove={onMouseMoveOnPanel}
        onmouseleave={onMouseLeaveFromPanel}
@@ -65,8 +65,8 @@
   {#if showControlPanel}
     <div class="absolute left-0 right-0 bottom-0" transition:fade>
       <div class="w-full flex flex-col">
-        <div class="w-full h-8 flex div-gradient"></div>
-        <div class="bg-black w-full flex-1">
+        <div class="w-full h-4 flex control-panel-gradient"></div>
+        <div class="control-panel w-full flex-1 p-2">
           <MediaControlPanel/>
         </div>
     </div>
@@ -76,13 +76,4 @@
 </div>
 
 <style>
-  .panel {
-    background-color: black;
-    width: 100%;
-    height: 100%;
-    position: relative;
-  }
-  .div-gradient {
-    background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 100%);
-  }
 </style>

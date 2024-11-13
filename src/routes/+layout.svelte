@@ -1,7 +1,7 @@
 <script>
     import "../normalize.css"
     import "../app.css"
-    import "../style.pcss"
+    import "../style.scss"
     let { children } = $props();
 </script>
   

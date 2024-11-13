@@ -49,7 +49,10 @@ export default {
         },
         gray: {
           DEFAULT: "var(--color-gray)",
-          on: "var(--color-gray-on)",
+          on: {
+            DEFAULT: "var(--color-gray-on)",
+            alt: "var(--color-gray-on-alt)",    // gray-out text
+          },
         }
       },
     },

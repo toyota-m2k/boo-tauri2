@@ -30,19 +30,34 @@
 
 </script>
 
-<div class="panel mb-1 mt-1">
+<div class="relative">
   {#if playerViewModel.isAV}
     <PlayerSlider/>
   {/if}
-  <div class="buttons flex p-1 justify-center gap-2">
-    <IconButton class="control_button rounded-none" path={ICON_PREV} onclick={prev}/>
-    <IconButton class="control_button rounded-none" path={ICON_SKIP_PREV} onclick={prevChapter} disabled={playerViewModel.isImage}/>
-    <IconButton class="control_button rounded-none" path={playerViewModel.playing?ICON_STOP:ICON_PLAY} onclick={toggle}/>
-    <IconButton class="control_button rounded-none" path={ICON_SKIP_NEXT} onclick={nextChapter} disabled={playerViewModel.isImage}/>
-    <IconButton class="control_button rounded-none" path={ICON_NEXT} onclick={next}/>
+  <!-- Left Buttons Group : 現在未使用 -->
+<!--  <div class="buttons-left flex gap-2 absolute left-0 bottom-0">-->
+<!--    <IconButton class="control_button rounded-none" path={ICON_PREV} onclick={prev}/>-->
+<!--    <IconButton class="control_button rounded-none" path={ICON_NEXT} onclick={next}/>-->
+<!--  </div>-->
+
+  <!-- Center Buttons Group -->
+  <div class="buttons-center justify-center flex flex-1 gap-2">
+    <IconButton class="control-button rounded-none" path={ICON_PREV} onclick={prev}/>
+    <IconButton class="control-button rounded-none" path={ICON_SKIP_PREV} onclick={prevChapter} disabled={playerViewModel.isImage}/>
+    <IconButton class="control-button rounded-none" path={playerViewModel.playing?ICON_STOP:ICON_PLAY} onclick={toggle}/>
+    <IconButton class="control-button rounded-none" path={ICON_SKIP_NEXT} onclick={nextChapter} disabled={playerViewModel.isImage}/>
+    <IconButton class="control-button rounded-none" path={ICON_NEXT} onclick={next}/>
   </div>
+
+  <!-- Right Buttons Group -->
+  <div class="buttons-right flex gap-2 absolute right-0 bottom-0">
+    <IconButton class="control-button rounded-none" path={ICON_PREV} onclick={prev}/>
+    <IconButton class="control-button rounded-none" path={ICON_NEXT} onclick={next}/>
+    <!-- Add more buttons as needed -->
+  </div>
+
 
 </div>
 
-<style lang="postcss">
+<style lang="scss">
 </style>
