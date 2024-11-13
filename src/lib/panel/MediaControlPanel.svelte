@@ -30,7 +30,7 @@
 
 </script>
 
-<div class="panel">
+<div class="panel mb-1 mt-1">
   {#if playerViewModel.isAV}
     <PlayerSlider/>
   {/if}
@@ -45,8 +45,4 @@
 </div>
 
 <style lang="postcss">
-  .panel {
-    background-color: rgba(255,0,255,0.5);
-    width: 100%;
-  }
 </style>

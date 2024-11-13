@@ -30,7 +30,7 @@
 </script>
 
 <!-- Slider with Chapters -->
-<div class="slider-control relative w-full h-[55px]">
+<div class="slider-control relative w-full h-[55px] mb-[-10px]">
   <div class="slider-with-chapters absolute left-[12px] right-[12px] top-0 bg-pink-500">
     <div class="slider-bar absolute top-[16px] h-[8px] w-full"
          style="background: linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) {currentTimePercent}%, var(--color-secondary) {currentTimePercent}%, var(--color-secondary) 100%);"
