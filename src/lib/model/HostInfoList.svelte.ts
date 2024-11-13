@@ -27,7 +27,7 @@ export class HostInfoList implements IHostInfoList {
       this.list.splice(index, 1)
     }
   }
-  update(hostInfo: IHostPort, displayName:string): void {
+  update(hostInfo: IHostInfo, displayName:string): void {
     const index = this.findIndex(hostInfo)
     if(index >= 0) {
       this.list[index] = {...hostInfo, displayName}

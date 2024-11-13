@@ -1,10 +1,11 @@
 <script lang="ts">
 
-  import AVPlayer from "$lib/component/VideoPlayer.svelte"
+  import VideoPlayer from "$lib/component/VideoPlayer.svelte"
   import {fade} from 'svelte/transition'
   import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
   import MediaControlPanel from "$lib/panel/MediaControlPanel.svelte";
   import {viewModel} from "$lib/model/ViewModel.svelte";
+  import ImageViewer from "$lib/component/ImageViewer.svelte";
 
   let showControlPanel = $state(true)
   function onended() {
@@ -15,7 +16,11 @@
 </script>
 
 <div class="panel">
-  <AVPlayer {onended}/>
+  {#if playerViewModel.isVideo}
+    <VideoPlayer {onended}/>
+  {:else if playerViewModel.isImage}
+    <ImageViewer {onended}/>
+  {/if}
 
   {#if showControlPanel}
     <div class="absolute left-0 right-0 bottom-0 div-gradient" transition:fade>

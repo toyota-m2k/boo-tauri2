@@ -9,7 +9,7 @@
   import {formatTime} from "$lib/utils/Utils";
 
   chaptersViewModel.attach()
-  let currentTimePercent = $derived(100*playerViewModel.currentPosition/playerViewModel.duration)
+  let currentTimePercent = $derived(playerViewModel.duration>0 ? 100*playerViewModel.safeCurrentPosition/playerViewModel.duration : 0)
 
   let playingOnSeekStart = false
   function onDragStart(_: MouseEvent) {
@@ -38,22 +38,22 @@
     {#each chaptersViewModel.disabledRanges as range (range.start)}
       <div class="gray-zone absolute top-[16px] h-[8px]"
            style="background: var(--color-gray-500);
-             left: {range.start / 10 / playerViewModel.duration}%;
-             right: {range.end>0 ? (100 - range.end / 10 / playerViewModel.duration) : 0}%;"
+             left: {range.start / 10 / playerViewModel.safeDuration}%;
+             right: {range.end>0 ? (100 - range.end / 10 / playerViewModel.safeDuration) : 0}%;"
       ></div>
     {/each}
     {#each chaptersViewModel.chapters as chapter (chapter.position)}
       <SvgIcon class="absolute top-0 w-[24px] h-[24px] -translate-x-1/2 focus:outline-0 {(chapter.skip)?'text-gray-100 cursor-default':'text-accent cursor-pointer'}"
                path={chapter.skip ? ICON_PIN_OFF : ICON_PIN}
-               style="left: {chapter.position / 10 / playerViewModel.duration}%"
+               style="left: {chapter.position / 10 / playerViewModel.safeDuration}%"
                onclick={()=>chaptersViewModel.gotoChapter(chapter)}
       />
     {/each}
   </div>
-  <span class="absolute top-[24px] left-[12px] text-gray-200">{formatTime(playerViewModel.currentPosition)}</span>
-  <span class="absolute top-[24px] right-[12px] text-gray-200">{formatTime(playerViewModel.duration)}</span>
+  <span class="absolute top-[24px] left-[12px] text-gray-200">{formatTime(playerViewModel.safeCurrentPosition)}</span>
+  <span class="absolute top-[24px] right-[12px] text-gray-200">{formatTime(playerViewModel.safeDuration)}</span>
 
-  <input class="slider absolute w-full h-[28px] top-[14px] left-0 right-0 bg-transparent appearance-none cursor-pointer focus:outline-0 shadow-none" type="range" min="0" max={playerViewModel.duration}
+  <input class="slider absolute w-full h-[28px] top-[14px] left-0 right-0 bg-transparent appearance-none cursor-pointer focus:outline-0 shadow-none" type="range" min="0" max={playerViewModel.safeDuration}
          onmousedown={onDragStart} onmouseup={onDragEnd}
          bind:value={playerViewModel.currentPosition} step="any"/>
 </div>

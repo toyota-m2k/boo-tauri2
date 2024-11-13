@@ -22,10 +22,10 @@
     playerViewModel.togglePlay()
   }
   const nextChapter = () => {
-    console.log("nextChapter")
+    playerViewModel.nextChapter()
   }
   const prevChapter = () => {
-    console.log("prevChapter")
+    playerViewModel.prevChapter()
   }
 
 </script>

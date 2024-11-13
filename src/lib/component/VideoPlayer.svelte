@@ -6,13 +6,18 @@
   import {onMount} from "svelte";
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import {delay, launch} from "$lib/utils/Utils";
+  import {chaptersViewModel} from "$lib/model/ChaptersViewModel.svelte";
 
   let rest = $props()
   let player = $state<HTMLVideoElement>() as HTMLVideoElement;
   let playRequested = playerViewModel.autoPlay
   let playerCommands:IPlayerCommands = {
-    nextChapter: ()=>{  },
-    prevChapter: ()=> { },
+    nextChapter: ()=>{
+      chaptersViewModel.nextChapter()
+    },
+    prevChapter: ()=> {
+      chaptersViewModel.prevChapter()
+    },
     play: ()=>{
       playRequested = true
       let count = 0
@@ -47,7 +52,9 @@
     playerViewModel.playing = true;
   }
   function onPause() {
-    playerViewModel.playing = false;
+    if(playerViewModel.isVideo) {
+      playerViewModel.playing = false;
+    }
   }
   function onLoaded() {
     logger.info("onLoaded")
@@ -89,7 +96,7 @@
   </ZoomView>
 {:else}
   <div>
-    NO PLAYER
+    Video Player
   </div>
 {/if}
 

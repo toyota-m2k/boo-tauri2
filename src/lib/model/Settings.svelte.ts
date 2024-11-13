@@ -4,12 +4,17 @@ import type {PlayMode} from "$lib/protocol/IBooProtocol";
 import {Preferences} from "$lib/model/Preferences";
 import {launch} from "$lib/utils/Utils";
 
+export type ColorVariation = 'default' | 'orange' | 'melon' | 'cherry' | 'grape' | 'carrot' | 'blueberry' | 'soda'
+export const colorVariations: ColorVariation[] = ['default', 'orange', 'melon', 'cherry', 'grape', 'carrot', 'blueberry', 'soda']
+
 class Settings implements ISettings {
   private _preferences = new Preferences()
   readonly hostInfoList: IHostInfoList = new HostInfoList()
   private _currentHost = $state<IHostInfo|undefined>(undefined)
   private _playMode = $state<PlayMode>("sequential")
-  private _slideShowInterval = $state<number>(3000)
+  private _slideShowInterval = $state<number>(3)
+  private _colorVariation = $state<ColorVariation>('default')
+  private _isDarkMode = $state<boolean>(false)
 
   get currentHost(): IHostInfo|undefined {
     return this._currentHost
@@ -40,6 +45,22 @@ class Settings implements ISettings {
     if(this._slideShowInterval === interval) return
     this._slideShowInterval = interval
     launch(async()=>await this._preferences.set('slideShowInterval', interval))
+  }
+  get colorVariation(): ColorVariation {
+    return this._colorVariation
+  }
+  set colorVariation(colorVariation: ColorVariation) {
+    if(this._colorVariation === colorVariation) return
+    this._colorVariation = colorVariation
+    launch(async()=>await this._preferences.set('colorVariation', colorVariation))
+  }
+  get isDarkMode(): boolean {
+    return this._isDarkMode
+  }
+  set isDarkMode(isDarkMode: boolean) {
+    if(this._isDarkMode === isDarkMode) return
+    this._isDarkMode = isDarkMode
+    launch(async()=>await this._preferences.set('isDarkMode', isDarkMode))
   }
 
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void {
@@ -91,7 +112,9 @@ class Settings implements ISettings {
     this.hostInfoList.set(await this._preferences.get<[]>('hostInfoList') ?? [])
     this._currentHost = this.hostInfoList.findByHostPort(await this._preferences.get<IHostPort>('currentHost')) ?? this.hostInfoList.list[0]
     this._playMode = await this._preferences.get('playMode') ?? 'sequential'
-    this._slideShowInterval = await this._preferences.get('slideShowInterval') ?? 3000
+    this._slideShowInterval = await this._preferences.get('slideShowInterval') ?? 3
+    this._colorVariation = await this._preferences.get('colorVariation') ?? 'default'
+    this._isDarkMode = await this._preferences.get('isDarkMode') ?? false
   }
 }
 

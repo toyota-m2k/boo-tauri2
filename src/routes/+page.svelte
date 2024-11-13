@@ -10,6 +10,7 @@
   import {settings} from "$lib/model/Settings.svelte";
   import Dialog from "$lib/dialog/Dialog.svelte";
   import HostDialogContent from "$lib/dialog/HostDialogContent.svelte";
+  import SystemDialogContent from "$lib/dialog/SystemDialogContent.svelte";
 
   // import { invoke } from "@tauri-apps/api/core";
   // let name = $state("");
@@ -91,7 +92,7 @@
       </Dialog>
     {:else if viewModel.dialogType === "system"}
       <Dialog title="Preferences">
-        <div>not implemented yet</div>
+        <SystemDialogContent/>
       </Dialog>
     {/if}
   </div>

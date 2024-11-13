@@ -49,16 +49,17 @@ class ChaptersViewModel implements IChaptersViewModel {
     const cl = this.chapters
     const pos = playerViewModel.currentPosition * 1000 // ms
     this.gotoChapter(cl.find((c) => {
-      return pos < c.position
+      // return pos < c.position
+      return c.position-pos > 1 // 丸め誤差 1msを考慮
     }))
   }
   prevChapter() {
     const cl = this.chapters
-    const pos = playerViewModel.currentPosition * 1000 - (playerViewModel.playing ? 250 : 0)  // ms
+    const pos = playerViewModel.currentPosition * 1000 - (playerViewModel.playing ? 500 : 0)  // ms
     this.gotoChapter(cl?.findLast((c) => {
-      return pos > c.position
+      // return pos > c.position
+      return c.position-pos < -1 // 丸め誤差 1msを考慮
     }))
-
   }
 }
 

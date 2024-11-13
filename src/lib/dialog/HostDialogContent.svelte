@@ -63,17 +63,19 @@
   {#if !editingHost}
     <div class="flex flex-col mt-2 w-4/5">
       {#each settings.hostInfoList.list as host}
-        <div class="flex flex-row items-center justify-between p-2 border-b border-gray-200"  onclick={(e)=>setCurrent(e,host)} role="none">
-          <div class="flex">
-            {#if isCurrent(host)}
-              <SvgIcon class="w-4 h-4 mr-2 text-accent" path={ICON_CHECK}/>
-            {:else}
-              <div class="w-4 h-4 mr-2"></div>
-            {/if}
-          </div>
-          <div class="flex-1 flex-col">
-            <div class="text-sm">{host.displayName}</div>
-            <div class="text-xs text-gray-500">{host.host}:{host.port}</div>
+        <div class="flex flex-row items-center justify-center p-2 border-b border-gray-200">
+          <div class="flex flex-row flex-1 items-center justify-center cursor-pointer" onclick={(e)=>setCurrent(e,host)} role="none">
+            <div class="flex">
+              {#if isCurrent(host)}
+                <SvgIcon class="w-4 h-4 mr-2 text-accent" path={ICON_CHECK}/>
+              {:else}
+                <div class="w-4 h-4 mr-2"></div>
+              {/if}
+            </div>
+            <div class="flex-1 flex-col">
+              <div class="text-sm">{host.displayName}</div>
+              <div class="text-xs text-gray-500">{host.host}:{host.port}</div>
+            </div>
           </div>
           <IconButton class="p-1 w-6 h-6 rounded text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>editHost(e,host)} path={ICON_EDIT}/>
           <IconButton class="p-1 w-6 h-6 rounded text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>deleteHost(e,host)} path={ICON_TRASH}/>
@@ -85,24 +87,25 @@
       <div class="mr-2">Hosts</div>
     </div>
   {:else}
-    <div>Display name</div>
-    <input type="text" bind:value={newDisplayName} placeholder="Display name" class="mb-2" />
-    {#if targetHost}
-      <div>Address</div>
-      <input type="text" bind:value={newHostAddress} placeholder="IP Address" class="mb-2" readonly />
-      <div>Port</div>
-      <input type="number" bind:value={newHostPort} placeholder="IP Address" class="mb-2" />
-    {:else}
-      <div>Address</div>
-      <div>{newHostAddress}</div>
-      <div>Port</div>
-      <div>{newHostPort}</div>
-    {/if}
-    <input type="text" bind:value={newHostAddress} placeholder="IP Address" class="mb-2" />
+    <div class="flex flex-col">
+      <div>Display name</div>
+      <input type="text" bind:value={newDisplayName} placeholder="Display name" class="mb-2" />
+      {#if targetHost}
+        <div>Address</div>
+        <div>{newHostAddress}</div>
+        <div>Port</div>
+        <div>{newHostPort}</div>
+      {:else}
+        <div>Address</div>
+        <input type="text" bind:value={newHostAddress} placeholder="IP Address" class="mb-2" readonly />
+        <div>Port</div>
+        <input type="number" bind:value={newHostPort} placeholder="IP Address" class="mb-2" />
+      {/if}
 
-    <div class="flex flex-row items-center justify-center mt-4">
-      <button class="mr-4 w-20" onclick={(e)=>endEdit(e,true)}>{editingHost?"Apply":"Add"}</button>
-      <button class="w-20" onclick={(e)=>endEdit(e,false)}>Cancel</button>
+      <div class="flex flex-row items-center justify-center mt-4">
+        <button class="text-button mr-4 w-20" onclick={(e)=>endEdit(e,true)}>{editingHost?"Apply":"Add"}</button>
+        <button class="text-button w-20" onclick={(e)=>endEdit(e,false)}>Cancel</button>
+      </div>
     </div>
   {/if}
 </div>

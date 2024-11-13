@@ -27,6 +27,8 @@ class PlayerViewModel implements IPlayerCommands {
 
   duration = $state(0)
   currentPosition = $state(0)
+  safeDuration = $derived(this.duration>=0 ? this.duration : 0)
+  safeCurrentPosition = $derived(this.currentPosition>=0 ? this.currentPosition : 0)
   muted = $state(false)
   autoPlay = $state(true)
   playing = $state(false)

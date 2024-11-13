@@ -21,7 +21,7 @@ export interface IHostInfoList {
 
   add(hostInfo: IHostInfo): void
   remove(hostInfo: IHostInfo): void
-  update(hostInfo: IHostPort, displayName:string): void
+  update(hostInfo: IHostInfo, displayName:string): void
   set(list: IHostInfo[]): void
   findByHostPort(hostPort: IHostPort|undefined): IHostInfo|undefined
 }
