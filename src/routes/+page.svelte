@@ -7,7 +7,7 @@
   import DebugPanel from "$lib/panel/DebugPanel.svelte";
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import {onMount} from "svelte";
-  import {settings} from "$lib/model/Settings.svelte";
+  import {type ColorVariation, settings} from "$lib/model/Settings.svelte";
   import Dialog from "$lib/dialog/Dialog.svelte";
   import HostDialogContent from "$lib/dialog/HostDialogContent.svelte";
   import SystemDialogContent from "$lib/dialog/SystemDialogContent.svelte";
@@ -24,6 +24,8 @@
 
   let sidePanelShown = $state(true)
   let titleBarShown = $state(true)
+  let theme:ColorVariation = $state("orange")
+  let dark:boolean = $state(true)
 
 
   async function onWindowSizeChanged() {
@@ -64,7 +66,7 @@
 </script>
 
 <svelte:window on:resize={onWindowSizeChanged}/>
-<main class="root-container bg-background">
+<main class="root-container bg-background {theme}" class:dark={dark}>
   <div class="title-panel">
     <TitleBar title={title} menu={()=> sidePanelShown=!sidePanelShown}/>
   </div>

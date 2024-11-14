@@ -8,6 +8,9 @@
   } from "$lib/Icons"
   import {formatTime} from "$lib/utils/Utils";
   import {logger} from "$lib/model/DebugLog.svelte";
+  import {onMount} from "svelte";
+
+  let slider = $state<HTMLInputElement>() as HTMLInputElement
 
   chaptersViewModel.attach()
   let currentTimePercent = $derived(playerViewModel.duration>0 ? 100*playerViewModel.safeCurrentPosition/playerViewModel.duration : 0)
@@ -20,6 +23,7 @@
       playerViewModel.pause()
     }
   }
+
   function onDragEnd(_: MouseEvent) {
     if(playerViewModel.sliderSeeking) {
       playerViewModel.sliderSeeking = false
@@ -28,19 +32,49 @@
       }
     }
   }
-  // ちょっとトリッキーな方法で、つまみの色を変える
-  // つまみの色をスタイルシートだけで変えようとしたが -webkit-slider-thumb で、colorを指定しても効かなかった。
-  // もともと、svgファイルのurlを渡していたため細工できなかったが、その中味の文字列を data url にして、
-  // styleで、カスタムプロパティ(--thumb-url)経由で、<style>に渡す方法が見つかった。
-  // これにより、cssから取得した色を、文字列置換で　fill に指定することが可能になった。
-  const accentColor = getComputedStyle(document.documentElement).getPropertyValue("--color-accent").replace("#", "%23")
-  logger.info(`accentColor=${accentColor}`)
-  let thumbUrl = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="thumb-svg"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" fill="${accentColor}"/></svg>`
+
+  // つまみの色を変える ... だけのことなのに、一筋縄ではいかないｗ
+  //
+  // まず、前提条件。
+  // 1. つまみの画像は、-webkit-slider-thumb の background-image で指定する。
+  // 2. background-image には、pngやsvgなどのファイルパス url(...) を指定する。
+  //
+  // ここで、色を変えたいので pngではなく、svgを使うが、色は、svgファイルに、pathのfill属性で指定しており、それをcssで変更することができない。
+  //  ※svgファイル中に、<path ... fill="var(--color-accent)"/> と書いてみたがＮＧ（黒になった）。
+  //
+  // 次に、background-image に渡す url を data-url にすることで、scriptブロックで（文字列として）作成したurlを styleブロックに渡す方法を考えた。
+  // style ブロックに、scriptブロックの変数を直接書けたら便利なのに、svelteでは、それができないのだな。。。
+  // そこで、cssのカスタムプロパティを使って渡す方法、すなわち、scriptブロックで作成したurl文字列を、htmlブロックで、
+  // style=でカスタムプロパティをセットし、それを styleブロックで参照する、という遠大な計画。。。
+  //
+  //    let thumbUrl = `data:image/svg+xml;base64,<svg xmlns=...></svg>}`;
+  //    ...
+  //    <div style="--thumb-url: url('{thumbUrl}')"></div>
+  //    ...
+  //    --background-image: var(--thumb-url);
+  //
+  // うまくいきそうなものだが、SvelteKitが、このURLをurl-encodingしてしまうため、リソースのロードエラーになる。
+  //    let thumbUrl = `data:image/svg+xml;base64,${btoa('<svg xmlns=...></svg>')}`;
+  // のように、base64エンコードしてみたが、これもダメ。SvelteKitを使う限り、この方法は使えないようだ。
+  //
+  // --thumb-url をstyleブロック内で定義すれば、ちゃんと background-imageで使われることは確認できているので、
+  // 最後の手段として、これを、scriptブロックで取得して、変更し、書き戻す方法を試したところ、うまくいった。
+  onMount(()=> {
+    // CSSからアクセントカラーを取得 --> # は、%23 にエンコード
+    const accentColor = getComputedStyle(slider).getPropertyValue("--color-accent").replace("#", "%23")
+    // CSSからつまみの画像URL（styleブロックで定義している）を取得
+    const thumbUrl = getComputedStyle(slider).getPropertyValue("--thumb-url")
+    // つまみ画像URLの中の色指定をアクセントカラーに置換
+    const modifiedThumbUrl = thumbUrl.replace(/fill="%23[0-9A-Fa-f]{6}"/, `fill="${accentColor}"`)
+    // つまみ画像URLをCSSに書き戻す
+    slider.style.setProperty('--thumb-url', modifiedThumbUrl)
+  })
+//  logger.info(`accentColor=${accentColor}`)
+//  let thumbUrl = `data:image/svg+xml;base64,${btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="thumb-svg"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" fill="${accentColor}"/></svg>')}`;
 </script>
 
 <!-- Slider with Chapters -->
-<div class="slider-control relative w-full h-[55px] mb-[-10px]" style="--thumb-url: url('{thumbUrl}')"
->
+<div class="slider-control relative w-full h-[55px] mb-[-10px]">
   <div class="slider-with-chapters absolute left-[12px] right-[12px] top-0">
     <div class="slider-bar absolute top-[16px] h-[8px] w-full"
          style="background: linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) {currentTimePercent}%, var(--color-secondary) {currentTimePercent}%, var(--color-secondary) 100%);"
@@ -66,10 +100,14 @@
   <input class="slider absolute w-full h-[28px] top-[14px] left-0 right-0 bg-transparent appearance-none cursor-pointer focus:outline-0 shadow-none"
          type="range" min="0" max={playerViewModel.safeDuration}
          onmousedown={onDragStart} onmouseup={onDragEnd}
+         bind:this={slider}
          bind:value={playerViewModel.currentPosition} step="any"/>
 </div>
 
 <style lang="scss">
+  :root {
+    --thumb-url: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="thumb-svg"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" fill="%23FF0000"/></svg>');
+  }
   .slider {
     // つまみをSVG画像に置き換える
     &::-webkit-slider-thumb {
@@ -86,5 +124,4 @@
       background-color: transparent; // 背景色を透明に
     }
   }
-
 </style>
