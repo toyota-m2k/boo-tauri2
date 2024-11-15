@@ -24,7 +24,7 @@
 
   let sidePanelShown = $state(true)
   let titleBarShown = $state(true)
-  $inspect(settings.colorVariation)
+  // $inspect(settings.colorVariation)
 
 
   async function onWindowSizeChanged() {
@@ -65,17 +65,19 @@
 </script>
 
 <svelte:window on:resize={onWindowSizeChanged}/>
-<main class="root-container bg-background {settings.colorVariation}" class:dark={settings.isDarkMode}>
-  <div class="title-panel">
-    <TitleBar title={title} menu={()=> sidePanelShown=!sidePanelShown}/>
-  </div>
-  <div class="split-container">
-    {#if sidePanelShown}
-    <div class="side-panel" transition:slide={{axis:'x'}}>
+<main class="root-container h-screen flex flex-col bg-background {settings.colorVariation}" class:dark={settings.isDarkMode}>
+  {#if !viewModel.fullscreenPlayer}
+    <div class="title-panel h-[50px] w-full" transition:slide={{axis:'y'}}>
+      <TitleBar title={title} menu={()=> sidePanelShown=!sidePanelShown}/>
+    </div>
+  {/if}
+  <div class="split-container flex flex-1 overflow-hidden">
+    {#if sidePanelShown && !viewModel.fullscreenPlayer}
+    <div class="side-panel w-[250px] flex flex-col overflow-hidden" transition:slide={{axis:'x'}}>
       <SidePanel/>
     </div>
     {/if}
-    <div class="main-panel">
+    <div class="main-panel flex-1 overflow-hidden">
       <Player/>
     </div>
   </div>
@@ -105,30 +107,4 @@
 </main>
 
 <style lang="scss">
-  .root-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-  }
-
-  .title-panel {
-    height: 50px;
-    width: 100%;
-  }
-  .split-container {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
-  .side-panel {
-    width: 250px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-
-  }
-  .main-panel {
-    flex: 1;
-    overflow: hidden;
-  }
 </style>

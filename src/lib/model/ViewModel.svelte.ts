@@ -132,6 +132,8 @@ class ViewModel {
   openHostDialog() {
     this.dialogType = "host"
   }
+
+  fullscreenPlayer = $state(false)
 }
 
 

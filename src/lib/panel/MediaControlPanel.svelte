@@ -1,9 +1,10 @@
 <script lang="ts">
   import {
-    ICON_PLAY,　ICON_STOP,
+    ICON_PLAY, ICON_STOP,
     ICON_NEXT, ICON_PREV,
-    ICON_SKIP_NEXT,　ICON_SKIP_PREV,
+    ICON_SKIP_NEXT, ICON_SKIP_PREV,
     ICON_MODE_FILL, ICON_MODE_FIT, ICON_MODE_ORIGINAL,
+    ICON_FULLSCREEN_EXIT, ICON_FULLSCREEN,
     ICON_PIN_OFF, ICON_PIN_ON,
   } from "$lib/Icons"
   import SvgIcon from "$lib/primitive/SvgIcon.svelte"
@@ -13,6 +14,7 @@
   import PlayerSlider from "$lib/component/PlayerSlider.svelte";
 
   let pinIcon = $derived(playerViewModel.pinControlPanel ? ICON_PIN_ON : ICON_PIN_OFF)
+  let fullscreenIcon = $derived(viewModel.fullscreenPlayer ? ICON_FULLSCREEN_EXIT : ICON_FULLSCREEN)
   let fitModeIcon = $derived.by(()=>{
     switch(playerViewModel.fitMode) {
       case "fit":
@@ -43,6 +45,9 @@
 
   const togglePin = () => {
     playerViewModel.pinControlPanel = !playerViewModel.pinControlPanel
+  }
+  const toggleFullscreen = () => {
+    viewModel.fullscreenPlayer = !viewModel.fullscreenPlayer
   }
   const changeFitMode = () => {
     switch(playerViewModel.fitMode) {
@@ -83,6 +88,7 @@
   <!-- Right Buttons Group -->
   <div class="buttons-right flex gap-2 absolute right-0 bottom-0">
     <IconButton class="control-button rounded-none" path={fitModeIcon} onclick={changeFitMode}/>
+    <IconButton class="control-button rounded-none" path={fullscreenIcon} onclick={toggleFullscreen}/>
     <IconButton class="control-button rounded-none" path={pinIcon} onclick={togglePin}/>
     <!-- Add more buttons as needed -->
   </div>
