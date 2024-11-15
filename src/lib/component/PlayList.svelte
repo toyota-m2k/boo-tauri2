@@ -6,6 +6,15 @@
 
   let currentId = $derived(viewModel.currentItem?.id)
 
+  $effect(()=>{
+    if(currentId) {
+      const el = document.getElementById(currentId)
+      if(el) {
+        el.scrollIntoView({block: "nearest", inline: "nearest", behavior: "smooth"})
+      }
+    }
+  })
+
   function onSelect(e:MouseEvent, i:number) {
     console.log("onSelect", i)
     viewModel.currentItem = viewModel.mediaList.list[i]

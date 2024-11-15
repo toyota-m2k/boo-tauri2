@@ -70,11 +70,10 @@
   {#if playerViewModel.isAV}
     <PlayerSlider/>
   {/if}
-  <!-- Left Buttons Group : 現在未使用 -->
-<!--  <div class="buttons-left flex gap-2 absolute left-0 bottom-0">-->
-<!--    <IconButton class="control_button rounded-none" path={ICON_PREV} onclick={prev}/>-->
-<!--    <IconButton class="control_button rounded-none" path={ICON_NEXT} onclick={next}/>-->
-<!--  </div>-->
+  <!-- Left Buttons Group  -->
+  <div class="buttons-left flex gap-2 absolute left-0 bottom-0">
+    <IconButton class="control-button rounded-none" path={fitModeIcon} onclick={changeFitMode}/>
+  </div>
 
   <!-- Center Buttons Group -->
   <div class="buttons-center justify-center flex flex-1 gap-2">
@@ -87,7 +86,6 @@
 
   <!-- Right Buttons Group -->
   <div class="buttons-right flex gap-2 absolute right-0 bottom-0">
-    <IconButton class="control-button rounded-none" path={fitModeIcon} onclick={changeFitMode}/>
     <IconButton class="control-button rounded-none" path={fullscreenIcon} onclick={toggleFullscreen}/>
     <IconButton class="control-button rounded-none" path={pinIcon} onclick={togglePin}/>
     <!-- Add more buttons as needed -->
