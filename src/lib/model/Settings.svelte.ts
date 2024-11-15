@@ -1,11 +1,8 @@
-import type {IHostInfo, IHostInfoList, IHostPort, ISettings} from "$lib/model/ModelDef";
+import type {ColorVariation, IHostInfo, IHostInfoList, IHostPort, ISettings} from "$lib/model/ModelDef";
 import {HostInfoList} from "$lib/model/HostInfoList.svelte";
 import type {PlayMode} from "$lib/protocol/IBooProtocol";
 import {Preferences} from "$lib/model/Preferences";
 import {launch} from "$lib/utils/Utils";
-
-export type ColorVariation = 'default' | 'orange' | 'melon' | 'cherry' | 'grape' | 'carrot' | 'blueberry' | 'soda'
-export const colorVariations: ColorVariation[] = ['default', 'orange', 'melon', 'cherry', 'grape', 'carrot', 'blueberry', 'soda']
 
 class Settings implements ISettings {
   private _preferences = new Preferences()

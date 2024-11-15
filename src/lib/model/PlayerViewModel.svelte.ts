@@ -34,6 +34,7 @@ class PlayerViewModel implements IPlayerCommands {
   playing = $state(false)
   sliderSeeking = $state(false)
   initialSeekPosition = $state(0)
+  pinControlPanel = $state(false)
 
   tryReAuth() {
     launch( async ()=> {

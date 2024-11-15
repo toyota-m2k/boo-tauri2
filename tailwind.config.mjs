@@ -38,6 +38,7 @@ export default {
         },
         surface: {
           DEFAULT: "var(--color-surface)",
+          secondary: "var(--color-surface-secondary)",
           on: {
             DEFAULT: "var(--color-surface-on)",
             alt: "var(--color-surface-on-alt)",

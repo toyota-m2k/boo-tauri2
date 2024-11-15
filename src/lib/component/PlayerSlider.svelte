@@ -3,8 +3,8 @@
   import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
   import SvgIcon from "$lib/primitive/SvgIcon.svelte";
   import {
-    ICON_PIN,
-    ICON_PIN_OFF,
+    ICON_CHAPTER_ON,
+    ICON_CHAPTER_OFF,
   } from "$lib/Icons"
   import {formatTime} from "$lib/utils/Utils";
   import {logger} from "$lib/model/DebugLog.svelte";
@@ -88,7 +88,7 @@
     {/each}
     {#each chaptersViewModel.chapters as chapter (chapter.position)}
       <SvgIcon class="absolute top-0 w-[24px] h-[24px] -translate-x-1/2 focus:outline-0 {(chapter.skip)?'text-gray-100 cursor-default':'text-accent cursor-pointer'}"
-               path={chapter.skip ? ICON_PIN_OFF : ICON_PIN}
+               path={chapter.skip ? ICON_CHAPTER_OFF : ICON_CHAPTER_ON}
                style="left: {chapter.position / 10 / playerViewModel.safeDuration}%"
                onclick={()=>chaptersViewModel.gotoChapter(chapter)}
       />

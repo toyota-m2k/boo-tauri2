@@ -63,7 +63,7 @@
   {#if !editingHost}
     <div class="flex flex-col mt-2 w-4/5">
       {#each settings.hostInfoList.list as host}
-        <div class="flex flex-row items-center justify-center p-2 border-b border-gray-200">
+        <div class="flex flex-row items-center justify-center p-2 border-b border-gray">
           <div class="flex flex-row flex-1 items-center justify-center cursor-pointer" onclick={(e)=>setCurrent(e,host)} role="none">
             <div class="flex">
               {#if isCurrent(host)}
@@ -73,8 +73,8 @@
               {/if}
             </div>
             <div class="flex-1 flex-col">
-              <div class="text-sm">{host.displayName}</div>
-              <div class="text-xs text-gray-500">{host.host}:{host.port}</div>
+              <div class="text-sm text-gray-on">{host.displayName}</div>
+              <div class="text-xs text-gray-on-alt">{host.host}:{host.port}</div>
             </div>
           </div>
           <IconButton class="p-1 w-6 h-6 rounded text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>editHost(e,host)} path={ICON_EDIT}/>

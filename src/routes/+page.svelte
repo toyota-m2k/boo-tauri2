@@ -7,10 +7,10 @@
   import DebugPanel from "$lib/panel/DebugPanel.svelte";
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import {onMount} from "svelte";
-  import {type ColorVariation, settings} from "$lib/model/Settings.svelte";
   import Dialog from "$lib/dialog/Dialog.svelte";
   import HostDialogContent from "$lib/dialog/HostDialogContent.svelte";
   import SystemDialogContent from "$lib/dialog/SystemDialogContent.svelte";
+  import {settings} from "$lib/model/Settings.svelte";
 
   // import { invoke } from "@tauri-apps/api/core";
   // let name = $state("");
@@ -20,12 +20,11 @@
   //   Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
   //   greetMsg = await invoke("greet", { name });
   // }
-  let title = $state("BooTauri")
+  let title = $derived(viewModel.currentItem?.name ?? "BooTauri2")
 
   let sidePanelShown = $state(true)
   let titleBarShown = $state(true)
-  let theme:ColorVariation = $state("orange")
-  let dark:boolean = $state(true)
+  $inspect(settings.colorVariation)
 
 
   async function onWindowSizeChanged() {
@@ -66,7 +65,7 @@
 </script>
 
 <svelte:window on:resize={onWindowSizeChanged}/>
-<main class="root-container bg-background {theme}" class:dark={dark}>
+<main class="root-container bg-background {settings.colorVariation}" class:dark={settings.isDarkMode}>
   <div class="title-panel">
     <TitleBar title={title} menu={()=> sidePanelShown=!sidePanelShown}/>
   </div>

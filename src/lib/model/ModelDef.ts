@@ -26,11 +26,15 @@ export interface IHostInfoList {
   findByHostPort(hostPort: IHostPort|undefined): IHostInfo|undefined
 }
 
+export type ColorVariation = 'default' | 'orange' | 'melon' | 'cherry' | 'grape' | 'carrot' | 'blueberry' | 'soda'
+
 export interface ISettings {
   readonly hostInfoList: IHostInfoList
   currentHost: IHostInfo | undefined
   playMode: PlayMode
   slideShowInterval: number
+  colorVariation: ColorVariation
+  isDarkMode: boolean
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void
   saveHostList(): void
   load(): Promise<void>

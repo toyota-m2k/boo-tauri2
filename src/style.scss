@@ -322,10 +322,11 @@
   --color-gray-on: var(--color-gray-700);
   --color-gray-on-alt: var(--color-gray-500);
 
-  --color-background: var(--color-purple-50);
-  --color-background-on: var(--color-gray-700);
+  --color-background: var(--color-gray-50);
+  --color-background-on: var(--color-gray-900);
 
-  --color-surface: var(--color-light-green-50);
+  --color-surface: var(--color-purple-50);
+  --color-surface-secondary: var(--color-light-green-50);
   --color-surface-on: var(--color-gray-800);
   --color-surface-on-alt: var(--color-gray-500);
 
@@ -335,6 +336,8 @@
   .orange {
     --color-primary: var(--color-amber-800);
     --color-primary-variant: var(--color-yellow-200);
+    --color-primary-on: var(--color-white);
+    --color-primary-variant-on: var(--color-gray-700);
 
     --color-secondary: var(--color-lime-a400);
     --color-secondary-on: var(--color-gray-700);
@@ -342,33 +345,45 @@
     --color-secondary-variant: var(--color-lime-200);
 
     --color-accent: var(--color-teal-a200);
-    --color-surface: var(--color-light-green-50);
-    --color-background: var(--color-yellow-50);
+    --color-accent-on: var(--color-gray-700);
+    --color-surface: var(--color-yellow-50);
+    --color-surface-secondary: var(--color-light-green-50);
   }
 
   .melon {
     --color-primary: var(--color-light-green-600);
     --color-primary-variant: var(--color-light-green-200);
+    --color-primary-on: var(--color-white);
+    --color-primary-variant-on: var(--color-gray-800);
 
     --color-secondary: var(--color-amber-700);
     --color-secondary-variant: var(--color-yellow-200);
+    --color-secondary-on: var(--color-gray-700);
+    --color-secondary-on-alt: var(--color-gray-500);
 
     --color-accent: var(--color-teal-a200);
-    --color-background: var(--color-green-50);
-    --color-surface: var(--color-yellow-50);
+    --color-accent-on: var(--color-gray-700);
+
+    --color-surface: var(--color-green-50);
+    --color-surface-secondary: var(--color-yellow-50);
   }
 
   .cherry  {
     --color-primary: var(--color-pink-200);
     --color-primary-variant: var(--color-pink-50);
-    --color-primary-on: var(--color-gray-700);
+    --color-primary-on: var(--color-gray-800);
+    --color-primary-variant-on: var(--color-gray-700);
 
     --color-secondary: var(--color-lime-a400);
-    --color-secondary-variant: var(--color-lime-a100);
     --color-secondary-on: var(--color-gray-700);
     --color-secondary-on-alt: var(--color-gray-500);
+    --color-secondary-variant: var(--color-lime-a100);
 
     --color-accent: var(--color-teal-a200);
+    --color-accent-on: var(--color-gray-700);
+
+    --color-surface: var(--color-pink-50);
+    --color-surface-secondary: var(--color-lime-50);
   }
 
   .grape {
@@ -379,57 +394,73 @@
     --color-primary-variant-on: var(--color-gray-700);
 
     --color-secondary: var(--color-green-600);
+    --color-secondary-variant: var(--color-light-green-200);
     --color-secondary-on: var(--color-white);
     --color-secondary-on-alt: var(--color-gray-300);
-    --color-secondary-variant: var(--color-light-green-200);
     --color-secondary-variant-on: var(--color-gray-700);
 
     --color-accent: var(--color-lime-a200);
+    --color-accent-on: var(--color-gray-700);
 
-    --color-background: var(--color-deep-purple-50);
-    --color-surface: var(--color-green-50);
+    --color-surface: var(--color-deep-purple-50);
+    --color-surface-secondary: var(--color-green-50);
   }
 
   .carrot  {
     --color-primary: var(--color-green-700);
     --color-primary-variant: var(--color-green-a100);
+    --color-primary-on: var(--color-white);
+    --color-primary-variant-on: var(--color-gray-800);
 
     --color-secondary: var(--color-red-500);
     --color-secondary-variant: var(--color-amber-100);
+    --color-secondary-on: var(--color-white);
+    --color-secondary-on-alt: var(--color-gray-300);
+    --color-secondary-variant-on: var(--color-gray-700);
 
     --color-accent: var(--color-deep-purple-a200);
+    --color-accent-on: var(--color-white);
 
-    --color-background: var(--color-green-50);
+    --color-surface-secondary: var(--color-green-50);
     --color-surface: var(--color-amber-50);
   }
 
   .blueberry {
     --color-primary: var(--color-indigo-900);
     --color-primary-variant: var(--color-indigo-200);
+    --color-primary-on: var(--color-white);
+    --color-primary-variant-on: var(--color-gray-800);
 
     --color-secondary: var(--color-deep-purple-600);
     --color-secondary-variant: var(--color-deep-purple-200);
+    --color-secondary-on: var(--color-white);
+    --color-secondary-on-alt: var(--color-gray-300);
+    --color-secondary-variant-on: var(--color-gray-700);
 
     --color-accent: var(--color-light-green-a200);
+    --color-accent-on: var(--color-gray-700);
 
-    --color-background: var(--color-indigo-50);
-    --color-surface: var(--color-deep-purple-50);
+    --color-surface: var(--color-indigo-50);
+    --color-surface-secondary: var(--color-deep-purple-50);
   }
 
   .soda {
     --color-primary: var(--color-teal-a200);
-    --color-primary-on: var(--color-gray-600);
     --color-primary-variant: var(--color-teal-100);
+    --color-primary-on: var(--color-gray-600);
+    --color-primary-variant-on: var(--color-gray-800);
 
     --color-secondary: var(--color-light-green-a200);
+    --color-secondary-variant: var(--color-light-green-100);
     --color-secondary-on: var(--color-gray-600);
     --color-secondary-on-alt: var(--color-gray-500);
-    --color-secondary-variant: var(--color-light-green-100);
+    --color-secondary-variant-on: var(--color-gray-700);
 
     --color-accent: var(--color-pink-a100);
+    --color-accent-on: var(--color-gray-700);
 
-    --color-background: var(--color-teal-50);
-    --color-surface: var(--color-light-green-50);
+    --color-surface: var(--color-light-teal-50);
+    --color-surface-secondary: var(--color-light-green-50);
   }
 
 
@@ -490,6 +521,12 @@
     border-color: #9b4dca;
     outline: 0;
   }
+
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: var(--color-accent);
+  }
+
 
   button.text-button {
     background-color: var(--color-primary);
