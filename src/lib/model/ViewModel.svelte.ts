@@ -3,6 +3,9 @@ import {emptyMediaList, type IListRequest, type IMediaItem, type IMediaList} fro
 import {createBooProtocol} from "$lib/protocol/BooProtocol";
 import {settings} from "$lib/model/Settings.svelte";
 import {type IRange} from "$lib/model/ChapterUtils";
+import {globalKeyEvents, keyFor} from "$lib/utils/KeyEvents";
+import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
+import {logger} from "$lib/model/DebugLog.svelte";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -63,9 +66,25 @@ class ViewModel {
 
   async prepareSettings() {
     if(this.isPrepared) return
+    this.initKeyMap()
+    this.initEventListeners()
     await settings.load()
     this.isPrepared = true
   }
+
+  private initKeyMap() {
+    globalKeyEvents
+      .register(keyFor({key: "ArrowUp", asCode: true}, {}), () => { viewModel.prev(); return true })
+      .register(keyFor({key: "ArrowDown", asCode: true}, {}), () => { viewModel.next(); return true})
+      .activate()
+  }
+  private initEventListeners() {
+    // document.addEventListener('fullscreenchange', () => {
+    //   logger.info('initEventListeners')
+    //   this.fullscreenPlayer = !!document.fullscreenElement;
+    // })
+  }
+
 
 
   async onHostChanged() {

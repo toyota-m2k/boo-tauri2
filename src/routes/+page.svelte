@@ -27,8 +27,28 @@
   // $inspect(settings.colorVariation)
 
 
+  let fullscreen = false
   async function onWindowSizeChanged() {
     logger.info(`SizeChanged: w=${window.innerWidth}}`)
+
+    // fullscreenchangeイベントが発生しないので、画面サイズで判定する
+    // https://stackoverflow.com/questions/22662128/how-to-detect-when-a-fullscreen-event-happens-on-f11-key-press
+    const maxHeight = window.screen.height,
+      maxWidth = window.screen.width,
+      curHeight = window.innerHeight,
+      curWidth = window.innerWidth;
+
+    if (maxWidth == curWidth && maxHeight == curHeight) {
+      if(!fullscreen) {
+        fullscreen = true
+        viewModel.fullscreenPlayer = true
+      }
+    } else {
+      if(fullscreen) {
+        fullscreen = false
+        viewModel.fullscreenPlayer = false
+      }
+    }
 
     // if(!Env.isTauri || !await tauriEx.isFullscreen()) {
     //   // logger.info("!tauri || !fullscreen : innerWidth=" + window.innerWidth)
@@ -61,10 +81,10 @@
       viewModel.onHostChanged()
     }
   })
-
 </script>
 
-<svelte:window on:resize={onWindowSizeChanged}/>
+<svelte:window onresize={onWindowSizeChanged}/>
+<!--<svelte:document onfullscreenchange={onFullScreenChanged}/>-->
 <main class="root-container h-screen flex flex-col bg-background {settings.colorVariation}" class:dark={settings.isDarkMode}>
   <!-- タイトルバー -->
   {#if !viewModel.fullscreenPlayer}
