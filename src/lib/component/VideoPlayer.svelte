@@ -59,12 +59,20 @@
       playerViewModel.playing = false;
     }
   }
+  function onLoadStart() {
+    logger.info("onLoadStart")
+    playerViewModel.currentPosition = 0
+  }
+  function onLoadedMetaData() {
+    logger.info("onLoadedMetaData")
+
+  }
   function onLoaded() {
     logger.info("onLoaded")
     const pos = playerViewModel.initialSeekPosition
     if(pos>0) {
-      player.currentTime = pos/1000
       playerViewModel.initialSeekPosition = 0
+      player.currentTime = pos/1000
     }
   }
   function onError(e:any) {
@@ -88,6 +96,8 @@
       bind:muted={playerViewModel.muted}
       onplay={onPlay}
       onpause={onPause}
+      onloadstart={onLoadStart}
+      onloadedmetadata={onLoadedMetaData}
       onloadeddata={onLoaded}
       onerror={onError}
 
