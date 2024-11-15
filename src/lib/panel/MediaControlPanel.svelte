@@ -7,11 +7,10 @@
     ICON_FULLSCREEN_EXIT, ICON_FULLSCREEN,
     ICON_PIN_OFF, ICON_PIN_ON,
   } from "$lib/Icons"
-  import SvgIcon from "$lib/primitive/SvgIcon.svelte"
   import {playerViewModel} from "$lib/model/PlayerViewModel.svelte"
-  import {viewModel} from "$lib/model/ViewModel.svelte";
-  import IconButton from "$lib/primitive/IconButton.svelte";
-  import PlayerSlider from "$lib/component/PlayerSlider.svelte";
+  import {viewModel} from "$lib/model/ViewModel.svelte"
+  import IconButton from "$lib/primitive/IconButton.svelte"
+  import PlayerSlider from "$lib/component/PlayerSlider.svelte"
 
   let pinIcon = $derived(playerViewModel.pinControlPanel ? ICON_PIN_ON : ICON_PIN_OFF)
   let fullscreenIcon = $derived(viewModel.fullscreenPlayer ? ICON_FULLSCREEN_EXIT : ICON_FULLSCREEN)

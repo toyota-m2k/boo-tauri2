@@ -12,6 +12,7 @@ class Settings implements ISettings {
   private _slideShowInterval = $state<number>(3)
   private _colorVariation = $state<ColorVariation>('default')
   private _isDarkMode = $state<boolean>(false)
+  private _enableDebugLog = $state<boolean>(false)
 
   get currentHost(): IHostInfo|undefined {
     return this._currentHost
@@ -58,6 +59,14 @@ class Settings implements ISettings {
     if(this._isDarkMode === isDarkMode) return
     this._isDarkMode = isDarkMode
     launch(async()=>await this._preferences.set('isDarkMode', isDarkMode))
+  }
+  get enableDebugLog(): boolean {
+    return this._enableDebugLog
+  }
+  set enableDebugLog(enableDebugLog: boolean) {
+    if(this._enableDebugLog === enableDebugLog) return
+    this._enableDebugLog = enableDebugLog
+    launch(async()=>await this._preferences.set('enableDebugLog', enableDebugLog))
   }
 
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void {

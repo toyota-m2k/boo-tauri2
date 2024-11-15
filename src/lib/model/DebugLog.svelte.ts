@@ -1,3 +1,4 @@
+import {settings} from "$lib/model/Settings.svelte";
 
 type DevMessageLevel = "debug" | "info" | "warn" | "error"
 interface IDebugMessage {
@@ -12,7 +13,6 @@ interface IDebugLog {
     warn(message: string): void
     error(message: string): void
     clear: () => void
-    enabled: boolean
     messages: IDebugMessage[]
 }
 
@@ -27,7 +27,7 @@ class DebugLog implements IDebugLog {
             case "warn": console.warn(message); break
             case "error": console.error(message); break
         }
-        if(!this.enabled) return
+        if(!settings.enableDebugLog) return
         this.messages.push({id: this.nextId++, level, message})
     }
     debug(message: string) { this.push(message, "debug") }
@@ -35,7 +35,6 @@ class DebugLog implements IDebugLog {
     warn(message: string) { this.push(message, "warn") }
     error(message: string) { this.push(message, "error")  }
     clear() { this.messages = [] }
-    enabled = $state(false)
 }
 
 export const logger : IDebugLog = new DebugLog()

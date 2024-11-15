@@ -66,27 +66,43 @@
 
 <svelte:window on:resize={onWindowSizeChanged}/>
 <main class="root-container h-screen flex flex-col bg-background {settings.colorVariation}" class:dark={settings.isDarkMode}>
+  <!-- タイトルバー -->
   {#if !viewModel.fullscreenPlayer}
     <div class="title-panel h-[50px] w-full" transition:slide={{axis:'y'}}>
       <TitleBar title={title} menu={()=> sidePanelShown=!sidePanelShown}/>
     </div>
   {/if}
+
+  <!-- コンテンツ -->
   <div class="split-container flex flex-1 overflow-hidden">
+    <!-- サイドバー（リスト） -->
     {#if sidePanelShown && !viewModel.fullscreenPlayer}
-    <div class="side-panel w-[250px] flex flex-col overflow-hidden" transition:slide={{axis:'x'}}>
-      <SidePanel/>
-    </div>
+      <div class="side-panel w-[250px] flex flex-col overflow-hidden" transition:slide={{axis:'x'}}>
+        <SidePanel/>
+      </div>
     {/if}
+
+    <!-- プレーヤー（ビューア） -->
     <div class="main-panel flex-1 overflow-hidden">
       <Player/>
     </div>
   </div>
+
+  <!-- デバッグログ表示パネル -->
+  {#if settings.enableDebugLog}
+    <div class="h-1/4 w-full" transition:slide = {{axis:'y'}}>
+      <DebugPanel/>
+    </div>
+  {/if}
+
+  <!-- busy表示 -->
   {#if viewModel.loading}
     <div transition:fade class="loading absolute top-0 bottom-0 left-0 right-0 h-full w-full flex items-center justify-center bg-gray text-gray-on">
       <div class="spinner fill-gray-200">Loading ...</div>
     </div>
   {/if}
 
+  <!-- ダイアログ -->
   {#if viewModel.dialogType}
   <div transition:fade class="absolute top-0 bottom-0 right-0 left-0 h-full w-full bg-black bg-opacity-70 flex items-center justify-center">
     {#if viewModel.dialogType === "host"}

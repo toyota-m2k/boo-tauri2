@@ -35,6 +35,7 @@ export interface ISettings {
   slideShowInterval: number
   colorVariation: ColorVariation
   isDarkMode: boolean
+  enableDebugLog: boolean
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void
   saveHostList(): void
   load(): Promise<void>

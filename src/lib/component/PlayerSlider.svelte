@@ -7,7 +7,6 @@
     ICON_CHAPTER_OFF,
   } from "$lib/Icons"
   import {formatTime} from "$lib/utils/Utils";
-  import {logger} from "$lib/model/DebugLog.svelte";
   import {onMount} from "svelte";
 
   let slider = $state<HTMLInputElement>() as HTMLInputElement
@@ -32,6 +31,10 @@
       }
     }
   }
+
+  let durationText = $derived(formatTime(playerViewModel.safeDuration))
+  let currentPositionText = $derived(formatTime(playerViewModel.safeCurrentPosition))
+
 
   // つまみの色を変える ... だけのことなのに、一筋縄ではいかないｗ
   //
@@ -74,7 +77,7 @@
 </script>
 
 <!-- Slider with Chapters -->
-<div class="slider-control relative w-full h-[55px] mb-[-10px]">
+<div class="slider-control relative w-full h-[55px] mb-[-8px]">
   <div class="slider-with-chapters absolute left-[12px] right-[12px] top-0">
     <div class="slider-bar absolute top-[16px] h-[8px] w-full"
          style="background: linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) {currentTimePercent}%, var(--color-secondary) {currentTimePercent}%, var(--color-secondary) 100%);"
@@ -94,8 +97,8 @@
       />
     {/each}
   </div>
-  <span class="absolute top-[24px] left-[12px] text-gray-on">{formatTime(playerViewModel.safeCurrentPosition)}</span>
-  <span class="absolute top-[24px] right-[12px] text-gray-on">{formatTime(playerViewModel.safeDuration)}</span>
+  <span class="absolute top-[24px] left-[12px] text-gray-on">{currentPositionText}</span>
+  <span class="absolute top-[24px] right-[12px] text-gray-on">{durationText}</span>
 
   <input class="slider absolute w-full h-[28px] top-[14px] left-0 right-0 bg-transparent appearance-none cursor-pointer focus:outline-0 shadow-none"
          type="range" min="0" max={playerViewModel.safeDuration}

@@ -41,6 +41,10 @@
       <input type="checkbox" bind:checked={settings.isDarkMode} class="w-5 h-5 text-surface-on focus:ring-accent" />
       <label class="ml-2" for="darkMode">Dark Mode</label>
     </div>
+    <div class="flex flex-grow items-center mt-2">
+      <input type="checkbox" bind:checked={settings.enableDebugLog} class="w-5 h-5 text-surface-on focus:ring-accent" />
+      <label class="ml-2" for="darkMode">Show Debug Log</label>
+    </div>
   </div>
 <!--  <div class="flex items-center justify-start mt-2 gap-1">-->
 <!--    <span>Color Variation</span>-->
