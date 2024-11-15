@@ -40,6 +40,7 @@
     }
   }
 
+  $inspect(viewModel.currentItem?.name, playerViewModel.avSource)
 
   onMount(()=>{
     playerViewModel.setPlayerCommands(playerCommands)
@@ -49,9 +50,11 @@
   })
 
   function onPlay() {
+    logger.info("onPlay")
     playerViewModel.playing = true;
   }
   function onPause() {
+    logger.info("onPause")
     if(playerViewModel.isVideo) {
       playerViewModel.playing = false;
     }

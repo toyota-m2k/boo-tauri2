@@ -6,16 +6,23 @@ import {type IRange} from "$lib/model/ChapterUtils";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
+
+  // ホスト側のサポート状況
+  videoSupported = $state(false)
+  audioSupported = $state(false)
+  photoSupported = $state(false)
+
+  // クライアント側フィルター
   acceptVideo = $state(true)
   acceptAudio = $state(true)
-  acceptImage = $state(true)
+  acceptPhoto = $state(true)
 
   mediaList:IMediaList = $derived.by(()=>{
     return {list:this.rawMediaList.list.filter(item=>{
       switch(item.media) {
         case "v": return this.acceptVideo
         case "a": return this.acceptAudio
-        case "p": return this.acceptImage
+        case "p": return this.acceptPhoto
         default: return false
       }
     }), date:this.rawMediaList.date}
@@ -61,7 +68,10 @@ class ViewModel {
   }
 
 
-  async setHost(hostInfo:IHostInfo) {
+  async onHostChanged() {
+    const hostInfo = settings.currentHost
+    if(!hostInfo) return
+
     this.rawMediaList = emptyMediaList()
     this.currentItem = undefined
 
@@ -69,7 +79,6 @@ class ViewModel {
     try {
       if (await this.boo.setup(hostInfo)) {
         this.rawMediaList = await this.boo.list(this.listRequest)
-        settings.currentHost = hostInfo
 
         // 前回の再生位置を復元
         // let playIndex = 0
@@ -86,21 +95,10 @@ class ViewModel {
         // this.setCurrentIndex(playIndex)
         //
         // const observers = new Disposer()
-        // if(this.boo.isSupported("v")) {
-        //   this.videoSupported.set(true)
-        //   observers.add(disposableSubscribe(this.videoSelected, () => { this.onFilterChanged() }))
-        // }
-        // if(this.boo.isSupported("a")) {
-        //   this.audioSupported.set(true)
-        //   observers.add(disposableSubscribe(this.audioSelected, () => { this.onFilterChanged() }))
-        // }
-        // if(this.boo.isSupported("p")) {
-        //   this.photoSupported.set(true)
-        //   observers.add(disposableSubscribe(this.photoSelected, () => { this.onFilterChanged() }))
-        // }
-        // if(observers.count>1) {
-        //   this.typeSelectable.set(true)
-        // }
+        this.videoSupported = this.boo.isSupported("v")
+        this.audioSupported = this.boo.isSupported("a")
+        this.photoSupported = this.boo.isSupported("p")
+
         return true
       } else {
         return false

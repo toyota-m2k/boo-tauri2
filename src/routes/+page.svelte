@@ -58,7 +58,7 @@
   })
   $effect(() => {
     if(settings.currentHost) {
-      viewModel.setHost(settings.currentHost)
+      viewModel.onHostChanged()
     }
   })
 
