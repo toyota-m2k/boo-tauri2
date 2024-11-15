@@ -21,7 +21,7 @@
   }
 </script>
 
-<div class="panel">
+<div class="panel w-full h-full">
   {#if viewModel.mediaList.list.length !== 0}
     <table class="w-full">
       <tbody>
@@ -52,8 +52,4 @@
 </div>
 
 <style>
-  .panel {
-    width: 100%;
-    height: 100%;
-  }
 </style>

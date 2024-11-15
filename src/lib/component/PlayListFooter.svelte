@@ -52,21 +52,21 @@ function changeType(type:string) {
   <div class="w-full flex flex-col justify-center items-center">
     {#if typeSelectable}
       <div class="flex flex-row justify-center items-center gap-0">
-        <div  class:bg-secondary={all}>
+        <div  class:bg-secondary={all} class:text-secondary-on={all}>
           <IconButton class="w-10 h-8 p-1 border-t border-b border-r border-l" path={ICON_ALL} onclick={()=>changeType("all")}/>
         </div>
         {#if viewModel.videoSupported}
-        <div class:bg-secondary={video}>
+        <div class:bg-secondary={video} class:text-secondary-on={video}>
           <IconButton class="w-10 h-8 p-2 border-t border-b border-r" path={ICON_VIDEO} onclick={()=>changeType("video")}/>
         </div>
         {/if}
         {#if viewModel.photoSupported}
-        <div class:bg-secondary={photo}>
+        <div class:bg-secondary={photo} class:text-secondary-on={photo}>
           <IconButton class="w-10 h-8 p-2 border-t border-b border-r" path={ICON_PHOTO} onclick={()=>changeType("photo")}/>
         </div>
         {/if}
         {#if viewModel.audioSupported}
-        <div class:bg-secondary={audio}>
+        <div class:bg-secondary={audio} class:text-secondary-on={audio}>
           <IconButton class="w-10 h-8 p-2 border-t border-b border-r" path={ICON_AUDIO} onclick={()=>changeType("audio")}/>
         </div>
         {/if}

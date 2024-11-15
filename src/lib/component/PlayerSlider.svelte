@@ -8,6 +8,9 @@
   } from "$lib/Icons"
   import {formatTime} from "$lib/utils/Utils";
   import {onMount} from "svelte";
+  import {viewModel} from "$lib/model/ViewModel.svelte";
+  import {settings} from "$lib/model/Settings.svelte";
+  import type {ColorVariation} from "$lib/model/ModelDef";
 
   let slider = $state<HTMLInputElement>() as HTMLInputElement
 
@@ -62,15 +65,19 @@
   //
   // --thumb-url をstyleブロック内で定義すれば、ちゃんと background-imageで使われることは確認できているので、
   // 最後の手段として、これを、scriptブロックで取得して、変更し、書き戻す方法を試したところ、うまくいった。
-  onMount(()=> {
-    // CSSからアクセントカラーを取得 --> # は、%23 にエンコード
-    const accentColor = getComputedStyle(slider).getPropertyValue("--color-accent").replace("#", "%23")
-    // CSSからつまみの画像URL（styleブロックで定義している）を取得
-    const thumbUrl = getComputedStyle(slider).getPropertyValue("--thumb-url")
-    // つまみ画像URLの中の色指定をアクセントカラーに置換
-    const modifiedThumbUrl = thumbUrl.replace(/fill="%23[0-9A-Fa-f]{6}"/, `fill="${accentColor}"`)
-    // つまみ画像URLをCSSに書き戻す
-    slider.style.setProperty('--thumb-url', modifiedThumbUrl)
+  let cv:ColorVariation|undefined = undefined
+  $effect(()=>{
+    if(settings.colorVariation !== cv) {
+      cv = settings.colorVariation
+      // CSSからアクセントカラーを取得 --> # は、%23 にエンコード
+      const accentColor = getComputedStyle(slider).getPropertyValue("--color-accent").replace("#", "%23")
+      // CSSからつまみの画像URL（styleブロックで定義している）を取得
+      const thumbUrl = getComputedStyle(slider).getPropertyValue("--thumb-url")
+      // つまみ画像URLの中の色指定をアクセントカラーに置換
+      const modifiedThumbUrl = thumbUrl.replace(/fill="%23[0-9A-Fa-f]{6}"/, `fill="${accentColor}"`)
+      // つまみ画像URLをCSSに書き戻す
+      slider.style.setProperty('--thumb-url', modifiedThumbUrl)
+    }
   })
 //  logger.info(`accentColor=${accentColor}`)
 //  let thumbUrl = `data:image/svg+xml;base64,${btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="thumb-svg"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" fill="${accentColor}"/></svg>')}`;
