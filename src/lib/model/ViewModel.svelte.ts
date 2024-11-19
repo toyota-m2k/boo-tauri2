@@ -6,6 +6,7 @@ import {type IRange} from "$lib/model/ChapterUtils";
 import {globalKeyEvents, keyFor} from "$lib/utils/KeyEvents";
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
+import {tauriEvent} from "$lib/tauri/TauriEvent";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -83,6 +84,20 @@ class ViewModel {
     //   logger.info('initEventListeners')
     //   this.fullscreenPlayer = !!document.fullscreenElement;
     // })
+    try {
+      tauriEvent.onFocus((e) => {
+        logger.info(`onFocus: ${e}`)
+      })
+      tauriEvent.onBlur((e) => {
+        logger.info(`onBlur: ${e}`)
+      })
+      tauriEvent.onDestroyed(() => {
+        logger.info(`onDestroyed`)
+        return Promise.resolve(true)
+      })
+    } catch(e) {
+      logger.warn(`no tauri: ${e}`)
+    }
   }
 
 

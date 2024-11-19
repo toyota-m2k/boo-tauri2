@@ -6,11 +6,12 @@
   import Player from "$lib/panel/Player.svelte";
   import DebugPanel from "$lib/panel/DebugPanel.svelte";
   import {viewModel} from "$lib/model/ViewModel.svelte";
-  import {onMount} from "svelte";
+  import {onDestroy, onMount} from "svelte";
   import Dialog from "$lib/dialog/Dialog.svelte";
   import HostDialogContent from "$lib/dialog/HostDialogContent.svelte";
   import SystemDialogContent from "$lib/dialog/SystemDialogContent.svelte";
   import {settings} from "$lib/model/Settings.svelte";
+  import {launch} from "$lib/utils/Utils";
 
   // import { invoke } from "@tauri-apps/api/core";
   // let name = $state("");
@@ -70,11 +71,23 @@
     // }
   }
 
-  onMount(async () => {
-    await viewModel.prepareSettings()
-    if(!settings.currentHost) {
-      viewModel.openHostDialog()
+  onMount( () => {
+    launch(async () => {
+      await viewModel.prepareSettings()
+      if (!settings.currentHost) {
+        viewModel.openHostDialog()
+      }
+      await viewModel.prepareSettings()
+      if(!settings.currentHost) {
+        viewModel.openHostDialog()
+      }
+    })
+    return () => {
+      logger.info("onUnmount")
     }
+  })
+  onDestroy(() => {
+    logger.info("onDestroy")
   })
   $effect(() => {
     if(settings.currentHost) {
