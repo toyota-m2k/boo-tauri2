@@ -1,53 +1,40 @@
 import { Window } from '@tauri-apps/api/window';
 import type {EventCallback, UnlistenFn} from "@tauri-apps/api/event";
-
-class Lazy<T> {
-  private _value: T | undefined = undefined;
-  private _getter: () => T;
-
-  constructor(getter: () => T) {
-    this._getter = getter;
-  }
-
-  get value(): T {
-    if(this._value === undefined) {
-      this._value = this._getter();
-    }
-    return this._value;
-  }
-}
+import {Lazy} from "$lib/utils/Lazy";
+import {tauriObject} from "$lib/tauri/TauriObject";
 
 export type QueryEndSession = () => Promise<boolean>
 
 export interface ITauriEvent {
-  onTerminating(handler:QueryEndSession) : Promise<UnlistenFn>
-  onDestroyed<T>(handler:EventCallback<T>) : Promise<UnlistenFn>
-  onFocus<T>(handler:EventCallback<T>) : Promise<UnlistenFn>
-  onBlur<T>(handler:EventCallback<T>) : Promise<UnlistenFn>
+  onTerminating(handler:QueryEndSession) : Promise<ITauriEvent>
+  // onDestroyed<T>(handler:EventCallback<T>) : Promise<UnlistenFn>
+  // onFocus<T>(handler:EventCallback<T>) : Promise<UnlistenFn>
+  // onBlur<T>(handler:EventCallback<T>) : Promise<UnlistenFn>
 }
 
 
 class TauriEvent implements ITauriEvent {
-  private _window = new Lazy(() => new Window('main'))
-  private get window(): Window { return this._window.value; }
-
-  async onTerminating(handler:QueryEndSession) : Promise<UnlistenFn> {
-    return this.window.once('tauri://close-requested', async (e) => {
+  async onTerminating(handler:QueryEndSession) : Promise<ITauriEvent> {
+    const window = tauriObject.window
+    if(!window) return this;
+    const unlisten = await window.listen('tauri://close-requested', async (e) => {
       const confirmed = await handler()
       if (confirmed) {
-        await this.window.close()
+        unlisten()
+        await window.close()
       }
     })
+    return this;
   }
-  onDestroyed<T>(handler:EventCallback<T>) : Promise<UnlistenFn> {
-    return this.window.listen('tauri://destroyed', handler);
-  }
-  onFocus<T>(handler:EventCallback<T>) : Promise<UnlistenFn> {
-    return this.window.listen('tauri://focus', handler);
-  }
-  onBlur<T>(handler:EventCallback<T>) : Promise<UnlistenFn> {
-    return this.window.listen('tauri://blur', handler);
-  }
+  // onDestroyed<T>(handler:EventCallback<T>) : Promise<UnlistenFn> {
+  //   return this.window.listen('tauri://destroyed', handler);
+  // }
+  // onFocus<T>(handler:EventCallback<T>) : Promise<UnlistenFn> {
+  //   return this.window.listen('tauri://focus', handler);
+  // }
+  // onBlur<T>(handler:EventCallback<T>) : Promise<UnlistenFn> {
+  //   return this.window.listen('tauri://blur', handler);
+  // }
 }
 
 // const window = new Window('main')

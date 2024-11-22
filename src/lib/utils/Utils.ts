@@ -1,6 +1,8 @@
-export function launch<T>(fn: () => Promise<T>) {
+export function launch<T>(fn: () => Promise<T>, silent:boolean = false) {
   fn().catch((e) => {
-    console.error(e)
+    if(!silent) {
+      console.error(e)
+    }
   })
 }
 

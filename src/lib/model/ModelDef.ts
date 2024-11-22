@@ -11,8 +11,6 @@ export function isEqualHostPort(a: IHostPort|undefined, b: IHostPort|undefined):
 
 export interface IHostInfo extends IHostPort {
   displayName: string
-  currentMediaId?: string|undefined
-  currentMediaPosition?: number|undefined
 }
 
 export interface IHostInfoList {
@@ -26,6 +24,11 @@ export interface IHostInfoList {
   findByHostPort(hostPort: IHostPort|undefined): IHostInfo|undefined
 }
 
+export interface IPlayStateOnHost {
+  currentMediaId: string,
+  currentMediaPosition: number,
+}
+
 export type ColorVariation = 'default' | 'orange' | 'melon' | 'cherry' | 'grape' | 'carrot' | 'blueberry' | 'soda'
 
 export interface ISettings {
@@ -36,6 +39,7 @@ export interface ISettings {
   colorVariation: ColorVariation
   isDarkMode: boolean
   enableDebugLog: boolean
+  getPlayStateOnHost(hostInfo: IHostPort): IPlayStateOnHost|undefined
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void
   saveHostList(): void
   load(): Promise<void>

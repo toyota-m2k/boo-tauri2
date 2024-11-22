@@ -46,7 +46,7 @@ function changeType(type:string) {
 
 <div class="w-full h-[80px] flex flex-col justify-center items-center bg-primary text-primary-on">
   <div class="flex flex-row justify-center items-center">
-    <IconButton path={ICON_RELOAD} class="w-7 h-7 p-0.5 mr-1 text-secondary hover:bg-secondary hover:text-secondary-on rounded" onclick={()=>viewModel.onHostChanged()}/>
+    <IconButton path={ICON_RELOAD} class="w-7 h-7 p-0.5 mr-1 text-secondary hover:bg-secondary hover:text-secondary-on rounded" onclick={()=>viewModel.onHostChanged(settings.currentHost)}/>
     {hostName}
   </div>
   <div class="w-full flex flex-col justify-center items-center">

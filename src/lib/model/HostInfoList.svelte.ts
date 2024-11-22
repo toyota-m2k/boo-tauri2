@@ -1,9 +1,16 @@
-import {type IHostInfo, type IHostInfoList, type IHostPort, isEqualHostPort} from "$lib/model/ModelDef";
+import {
+  type IHostInfo,
+  type IHostInfoList,
+  type IHostPort,
+  type IPlayStateOnHost,
+  isEqualHostPort
+} from "$lib/model/ModelDef";
 
 
 export class HostInfoList implements IHostInfoList {
   list = $state([] as IHostInfo[])
   modified: boolean = $state(false)
+  playStateOnHosts : Record<string,IPlayStateOnHost> = {}
 
   findIndex(hostPort: IHostPort|undefined): number {
     if(!hostPort) return -1
@@ -19,22 +26,28 @@ export class HostInfoList implements IHostInfoList {
   add(hostInfo: IHostInfo): void {
     if(this.findIndex(hostInfo)>=0) return
     this.list.push(hostInfo)
+    this.modified = true
   }
 
   remove(hostInfo: IHostInfo): void {
     const index = this.findIndex(hostInfo)
     if(index >= 0) {
+      const key = `${hostInfo.host}@${hostInfo.port}`
       this.list.splice(index, 1)
+      delete this.playStateOnHosts[key]
+      this.modified = true
     }
   }
   update(hostInfo: IHostInfo, displayName:string): void {
     const index = this.findIndex(hostInfo)
     if(index >= 0) {
       this.list[index] = {...hostInfo, displayName}
+      this.modified = true
     }
   }
 
   set(list: IHostInfo[]): void {
     this.list = list
+    this.modified = true
   }
 }

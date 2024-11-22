@@ -1,4 +1,4 @@
-import type {IHostInfo, ISettings, IViewModel, DialogType} from "$lib/model/ModelDef";
+import type {IHostInfo, ISettings, IViewModel, DialogType, IHostPort} from "$lib/model/ModelDef";
 import {emptyMediaList, type IListRequest, type IMediaItem, type IMediaList} from "$lib/protocol/IBooProtocol";
 import {createBooProtocol} from "$lib/protocol/BooProtocol";
 import {settings} from "$lib/model/Settings.svelte";
@@ -7,6 +7,9 @@ import {globalKeyEvents, keyFor} from "$lib/utils/KeyEvents";
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {tauriEvent} from "$lib/tauri/TauriEvent";
+import {launch} from "$lib/utils/Utils";
+import {untrack} from "svelte";
+import {tauriObject} from "$lib/tauri/TauriObject";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -55,6 +58,22 @@ class ViewModel {
       this.currentItem = this.mediaList.list[0]
     }
   }
+  toggleFullScreen() {
+    return tauriObject.toggleFullScreen((fullscreen:boolean) => {
+      this.fullscreenPlayer = fullscreen
+    })
+  }
+
+  emergencyMinimize() {
+    playerViewModel.pause()
+    tauriObject.minimize()
+    return true
+  }
+
+  togglePlay() {
+    playerViewModel.togglePlay()
+    return true
+  }
 
   isBusy = $state(false)
 
@@ -68,7 +87,7 @@ class ViewModel {
   async prepareSettings() {
     if(this.isPrepared) return
     this.initKeyMap()
-    this.initEventListeners()
+    await this.initEventListeners()
     await settings.load()
     this.isPrepared = true
   }
@@ -77,23 +96,39 @@ class ViewModel {
     globalKeyEvents
       .register(keyFor({key: "ArrowUp", asCode: true}, {}), () => { viewModel.prev(); return true })
       .register(keyFor({key: "ArrowDown", asCode: true}, {}), () => { viewModel.next(); return true})
+      .register([
+          keyFor({key: "F11", asCode: true}, {}, "W"),
+          keyFor({key: "KeyF", asCode: true}, {commandOrControl: true, shift: true}),],
+        () => this.toggleFullScreen())
+      .register(
+        keyFor({key: "NumpadEnter", asCode: true}),
+        () => this.emergencyMinimize())
+      .register(
+        keyFor({key: "Space", asCode: true}, {}),
+        () => this.togglePlay())
+
       .activate()
   }
-  private initEventListeners() {
+  private async initEventListeners() {
     // document.addEventListener('fullscreenchange', () => {
     //   logger.info('initEventListeners')
     //   this.fullscreenPlayer = !!document.fullscreenElement;
     // })
     try {
-      tauriEvent.onFocus((e) => {
-        logger.info(`onFocus: ${e}`)
-      })
-      tauriEvent.onBlur((e) => {
-        logger.info(`onBlur: ${e}`)
-      })
-      tauriEvent.onDestroyed(() => {
-        logger.info(`onDestroyed`)
-        return Promise.resolve(true)
+      // tauriEvent.onFocus((e) => {
+      //   logger.info(`onFocus: ${e}`)
+      // })
+      // tauriEvent.onBlur((e) => {
+      //   logger.info(`onBlur: ${e}`)
+      // })
+      await tauriEvent.onTerminating(() => {
+        logger.info(`onTerminating`)
+        if(confirm('アプリケーションを終了しますか？')) {
+          this.saveCurrentMediaInfo()
+          return Promise.resolve(true)
+        } else {
+          return Promise.resolve(false)
+        }
       })
     } catch(e) {
       logger.warn(`no tauri: ${e}`)
@@ -101,46 +136,57 @@ class ViewModel {
   }
 
 
+  private previousHostInfo: IHostPort|undefined = undefined
 
-  async onHostChanged() {
-    const hostInfo = settings.currentHost
-    if(!hostInfo) return
+  onHostChanged(newHost:IHostPort|undefined) {
+    // $effect()から呼ばれるが、このメソッド内で参照している$state/$derived、
+    //  - this.mediaList
+    //  - playState.currentMediaId
+    //  - playerViewModel.currentPosition
+    //  - this.previousHostInfo (ソースが引数で渡された $stateな値なので）
+    // がトラッキングされると、
+    // このメソッドが再帰的に呼ばれるため、untrack()でトラッキングを禁止する。
+    untrack(() => {
+      const hostPort = newHost
+      if (!hostPort) return
 
-    this.rawMediaList = emptyMediaList()
-    this.currentItem = undefined
-
-    this.isBusy = true
-    try {
-      if (await this.boo.setup(hostInfo)) {
-        this.rawMediaList = await this.boo.list(this.listRequest)
-
-        // 前回の再生位置を復元
-        // let playIndex = 0
-        // if(hostInfo.currentMediaId) {
-        //   list.list.find((item, index) => {
-        //     if(item.id === hostInfo.currentMediaId) {
-        //       playIndex = index
-        //       this.initialSeekPosition = hostInfo.currentMediaPosition ?? 0
-        //       // logger.info(`found: ${item.id} ${playIndex} -- ${playPosition}`)
-        //       return true
-        //     }
-        //   })
-        // }
-        // this.setCurrentIndex(playIndex)
-        //
-        // const observers = new Disposer()
-        this.videoSupported = this.boo.isSupported("v")
-        this.audioSupported = this.boo.isSupported("a")
-        this.photoSupported = this.boo.isSupported("p")
-
-        return true
-      } else {
-        return false
+      // 現在の再生情報を記憶
+      playerViewModel.pause()
+      if (this.previousHostInfo) {
+        settings.updateCurrentMediaInfo(this.currentItem?.id, playerViewModel.currentPosition, this.previousHostInfo)
       }
-    } finally {
-      this.isBusy = false
-    }
+      this.previousHostInfo = hostPort
 
+      // 情報更新前にクリア
+      this.rawMediaList = emptyMediaList()
+      this.currentItem = undefined
+
+      this.isBusy = true
+      launch(async () => {
+        try {
+          if (await this.boo.setup(hostPort)) {
+            this.videoSupported = this.boo.isSupported("v")
+            this.audioSupported = this.boo.isSupported("a")
+            this.photoSupported = this.boo.isSupported("p")
+            this.rawMediaList = await this.boo.list(this.listRequest)
+
+            // 前回の再生位置を復元
+            let item: IMediaItem | undefined = undefined
+            const playState = settings.getPlayStateOnHost(hostPort)
+            if (playState) {
+              item = this.mediaList.list.find((item) => item.id === playState.currentMediaId)
+              if (item) {
+                playerViewModel.initialSeekPosition = playState.currentMediaPosition ?? 0
+              }
+            }
+            this.currentItem = item ?? this.mediaList.list[0]
+            playerViewModel.play()
+          }
+        } finally {
+          this.isBusy = false
+        }
+      })
+    })
   }
 
   mediaUrl(mediaItem: IMediaItem|undefined, generation:number): string|undefined {
@@ -166,6 +212,12 @@ class ViewModel {
   }
 
   fullscreenPlayer = $state(false)
+
+  saveCurrentMediaInfo() {
+    if(this.currentItem) {
+      settings.updateCurrentMediaInfo(this.currentItem.id, playerViewModel.currentPosition)
+    }
+  }
 }
 
 

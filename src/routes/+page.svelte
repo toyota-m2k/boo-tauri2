@@ -89,10 +89,17 @@
   onDestroy(() => {
     logger.info("onDestroy")
   })
+  // $effect.pre(()=>{
+  //   if(settings.currentHost) {
+  //     logger.info(`onEffect.Pre: ${$state.snapshot(settings.currentHost.displayName)}`)
+  //   }
+  // })
+
+  $inspect(settings.currentHost?.displayName)
+
   $effect(() => {
-    if(settings.currentHost) {
-      viewModel.onHostChanged()
-    }
+    //logger.info(`onEffect: ${$state.snapshot(settings.currentHost?.displayName ?? "no host")}`)
+    viewModel.onHostChanged(settings.currentHost)
   })
 </script>
 

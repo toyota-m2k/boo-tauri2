@@ -40,7 +40,7 @@
     }
   }
 
-  $inspect(viewModel.currentItem?.name, playerViewModel.avSource)
+  // $inspect(viewModel.currentItem?.name, playerViewModel.avSource)
 
   onMount(()=>{
     playerViewModel.setPlayerCommands(playerCommands)
@@ -72,7 +72,7 @@
     const pos = playerViewModel.initialSeekPosition
     if(pos>0) {
       playerViewModel.initialSeekPosition = 0
-      player.currentTime = pos/1000
+      player.currentTime = pos
     }
   }
   function onError(e:any) {

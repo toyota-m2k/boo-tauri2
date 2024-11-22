@@ -34,17 +34,17 @@ class KeyEventHandler {
     this.action = action
   }
 
-  // static isTargetOS(targetKey:IKey): boolean {
-  //   return (!targetKey.os || targetKey.os.indexOf(Env.os[0]) >=0)
-  //
-  // }
+  static isTargetOS(targetKey:IKey): boolean {
+    return (!targetKey.os || targetKey.os.indexOf(env.osName[0]) >=0)
+
+  }
 
   private static canHandleSingle(targetKey:IKey, e: KeyboardEvent): boolean {
     // ターゲットOSか？
-    // if (!this.isTargetOS(targetKey)) {
-    //   logger.debug(`OS not matched: ${targetKey.os} !== ${Env.os}`)
-    //   return false
-    // }
+    if (!this.isTargetOS(targetKey)) {
+      logger.debug(`OS not matched: ${targetKey.os} !== ${env.osName}`)
+      return false
+    }
     // キーが一致するか？
     if (targetKey.mainKey.asCode) {
       if (e.code !== targetKey.mainKey.key) {

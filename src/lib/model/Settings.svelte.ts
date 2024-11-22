@@ -1,4 +1,11 @@
-import type {ColorVariation, IHostInfo, IHostInfoList, IHostPort, ISettings} from "$lib/model/ModelDef";
+import type {
+  ColorVariation,
+  IHostInfo,
+  IHostInfoList,
+  IHostPort,
+  IPlayStateOnHost,
+  ISettings
+} from "$lib/model/ModelDef";
 import {HostInfoList} from "$lib/model/HostInfoList.svelte";
 import type {PlayMode} from "$lib/protocol/IBooProtocol";
 import {Preferences} from "$lib/model/Preferences";
@@ -6,13 +13,17 @@ import {launch} from "$lib/utils/Utils";
 
 class Settings implements ISettings {
   private _preferences = new Preferences()
-  readonly hostInfoList: IHostInfoList = new HostInfoList()
+  private readonly _hostInfoList: HostInfoList = new HostInfoList()
   private _currentHost = $state<IHostInfo|undefined>(undefined)
   private _playMode = $state<PlayMode>("sequential")
   private _slideShowInterval = $state<number>(3)
   private _colorVariation = $state<ColorVariation>('default')
   private _isDarkMode = $state<boolean>(false)
   private _enableDebugLog = $state<boolean>(true)
+
+  get hostInfoList(): IHostInfoList {
+    return this._hostInfoList
+  }
 
   get currentHost(): IHostInfo|undefined {
     return this._currentHost
@@ -70,22 +81,28 @@ class Settings implements ISettings {
   }
 
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void {
+    if (!mediaId) return
     targetHost = targetHost || this.currentHost
     if (!targetHost) return
-    const target = this.hostInfoList.findByHostPort(targetHost)
-    if(!target) return
-    if(target.currentMediaId === mediaId && target.currentMediaPosition === position) return
-    target.currentMediaId = mediaId
-    target.currentMediaPosition = position
-    this.hostInfoList.modified = true
-    this.saveHostList()
+    const key = `${targetHost.host}@${targetHost.port}`
+    this._hostInfoList.playStateOnHosts[key] = {
+      currentMediaId: mediaId,
+      currentMediaPosition: position
+    }
+    launch(()=>this._preferences.set('playStateOnHosts', this._hostInfoList.playStateOnHosts))
   }
 
   saveHostList(): void {
     if(this.hostInfoList.modified) {
       this.hostInfoList.modified = false
       launch(()=>this._preferences.set('hostInfoList', this.hostInfoList.list))
+      launch(()=>this._preferences.set('playStateOnHosts', this._hostInfoList.playStateOnHosts))
     }
+  }
+
+  getPlayStateOnHost(hostPort: IHostPort): IPlayStateOnHost|undefined {
+    const key = `${hostPort.host}@${hostPort.port}`
+    return this._hostInfoList.playStateOnHosts[key]
   }
 
   async load(): Promise<void> {
@@ -116,6 +133,7 @@ class Settings implements ISettings {
     }
 
     this.hostInfoList.set(await this._preferences.get<[]>('hostInfoList') ?? [])
+    this._hostInfoList.playStateOnHosts = await this._preferences.get('playStateOnHosts') ?? {}
     this._currentHost = this.hostInfoList.findByHostPort(await this._preferences.get<IHostPort>('currentHost')) ?? this.hostInfoList.list[0]
     this._playMode = await this._preferences.get('playMode') ?? 'sequential'
     this._slideShowInterval = await this._preferences.get('slideShowInterval') ?? 3

@@ -11,9 +11,10 @@ import type {
 } from './IBooProtocol'
 import {fetchWithTimeout} from "../utils/Utils";
 import {logger} from "../model/DebugLog.svelte";
+import type {IHostPort} from "$lib/model/ModelDef";
 
 class BooProtocolImpl implements IBooProtocol {
-  private hostInfo: IHostInfo | undefined
+  private hostPort: IHostPort | undefined
   private capabilities: ICapabilities | undefined
   private authToken: IAuthToken | undefined
   private challenge: string | undefined
@@ -25,15 +26,15 @@ class BooProtocolImpl implements IBooProtocol {
 
   private reset() {
     this.capabilities = undefined
-    this.hostInfo = undefined
+    this.hostPort = undefined
     this.authToken = undefined
     this.challenge = undefined
   }
 
-  async setup(hostInfo: IHostInfo): Promise<boolean> {
+  async setup(hostInfo: IHostPort): Promise<boolean> {
     try {
       this.reset()
-      this.hostInfo = hostInfo
+      this.hostPort = hostInfo
       this.capabilities = await this.getCapabilities()
       this.challenge = this.capabilities?.challenge
       return this.capabilities !== undefined
@@ -54,11 +55,11 @@ class BooProtocolImpl implements IBooProtocol {
   }
 
   private get baseUri(): string {
-    if (this.hostInfo === undefined) {
+    if (this.hostPort === undefined) {
       throw new Error('hostInfo is not initialized')
     }
     // noinspection HttpUrlsUsage
-    return `http://${this.hostInfo.host}:${this.hostInfo.port}/`
+    return `http://${this.hostPort.host}:${this.hostPort.port}/`
   }
 
   private get needAuth(): boolean {
