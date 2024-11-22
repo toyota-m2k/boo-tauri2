@@ -100,8 +100,9 @@ class ViewModel {
           keyFor({key: "F11", asCode: true}, {}, "W"),
           keyFor({key: "KeyF", asCode: true}, {commandOrControl: true, shift: true}),],
         () => this.toggleFullScreen())
-      .register(
+      .register([
         keyFor({key: "NumpadEnter", asCode: true}),
+        keyFor({key: "Escape", asCode: false}),],
         () => this.emergencyMinimize())
       .register(
         keyFor({key: "Space", asCode: true}, {}),

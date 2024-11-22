@@ -19,7 +19,7 @@ class Settings implements ISettings {
   private _slideShowInterval = $state<number>(3)
   private _colorVariation = $state<ColorVariation>('default')
   private _isDarkMode = $state<boolean>(false)
-  private _enableDebugLog = $state<boolean>(true)
+  private _enableDebugLog = $state<boolean>(false)
 
   get hostInfoList(): IHostInfoList {
     return this._hostInfoList
