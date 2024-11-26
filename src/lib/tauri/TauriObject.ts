@@ -2,6 +2,9 @@ import {Window} from "@tauri-apps/api/window";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {delay, launch} from "$lib/utils/Utils";
 import {env} from "$lib/utils/Env";
+import {getCurrentWebview} from "@tauri-apps/api/webview";
+import {webview} from "@tauri-apps/api";
+import {getCurrentWebviewWindow} from "@tauri-apps/api/webviewWindow";
 
 interface ITauriObject {
   isAvailable:boolean
@@ -25,29 +28,34 @@ class TauriObject implements ITauriObject {
   }
 
   private async maximize(window:Window) {
-    if (env.isWin) {
-      await window.setFullscreen(true)
-      logger.debug("setFullscreen(true)")
-    } else {
-      await window.maximize()
-      logger.debug("maximize")
-    }
+    await window.setFullscreen(true)
+    logger.debug("setFullscreen(true)")
+    // if (env.isWin) {
+    //   await window.setFullscreen(true)
+    //   logger.debug("setFullscreen(true)")
+    // } else {
+    //   await window.maximize()
+    //   logger.debug("maximize")
+    // }
   }
   private async unmaximize(window:Window) {
-    if (env.isWin) {
-      await window.setFullscreen(false)
-      logger.debug("setFullscreen(false)")
-    } else {
-      await window.unmaximize()
-      logger.debug("unmaximize")
-    }
+    await window.setFullscreen(false)
+    logger.debug("setFullscreen(false)")
+    // if (env.isWin) {
+    //   await window.setFullscreen(false)
+    //   logger.debug("setFullscreen(false)")
+    // } else {
+    //   await window.unmaximize()
+    //   logger.debug("unmaximize")
+    // }
   }
   private async isMaximized(window:Window):Promise<boolean> {
-    if (env.isWin) {
-      return await window.isFullscreen()
-    } else {
-      return await window.isMaximized()
-    }
+    return await window.isFullscreen()
+    // if (env.isWin) {
+    //   return await window.isFullscreen()
+    // } else {
+    //   return await window.isMaximized()
+    // }
   }
   toggleFullScreen(complete?: (isFullscreen: boolean) => void): boolean {
     const window = this.window
@@ -60,6 +68,13 @@ class TauriObject implements ITauriObject {
         await this.maximize(window)
         complete?.(true)
       }
+      // const webview = await getCurrentWebview()
+      // await webview.setFocus()
+
+      // const webviewWindow = getCurrentWebviewWindow()
+      // await webviewWindow.setFocus()
+
+      // await window.setFocus();
     })
     return true
   }

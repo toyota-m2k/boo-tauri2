@@ -6,7 +6,7 @@ import {globalKeyEvents, keyFor} from "$lib/utils/KeyEvents";
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {tauriEvent} from "$lib/tauri/TauriEvent";
-import {launch} from "$lib/utils/Utils";
+import {delay, launch} from "$lib/utils/Utils";
 import {untrack} from "svelte";
 import {tauriObject} from "$lib/tauri/TauriObject";
 import {PasswordViewModel} from "$lib/model/PasswordViewModel.svelte";
@@ -65,6 +65,7 @@ class ViewModel {
   }
 
   emergencyMinimize() {
+    logger.debug("emergencyMinimize")
     playerViewModel.pause()
     tauriObject.minimize()
     return true
@@ -116,10 +117,10 @@ class ViewModel {
     //   this.fullscreenPlayer = !!document.fullscreenElement;
     // })
     try {
-      // tauriEvent.onFocus((e) => {
+      // await tauriEvent.onFocus((e) => {
       //   logger.info(`onFocus: ${e}`)
       // })
-      // tauriEvent.onBlur((e) => {
+      // await tauriEvent.onBlur((e) => {
       //   logger.info(`onBlur: ${e}`)
       // })
       await tauriEvent.onTerminating(() => {
