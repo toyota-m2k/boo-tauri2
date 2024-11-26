@@ -10,6 +10,7 @@ import {delay, launch} from "$lib/utils/Utils";
 import {untrack} from "svelte";
 import {tauriObject} from "$lib/tauri/TauriObject";
 import {PasswordViewModel} from "$lib/model/PasswordViewModel.svelte";
+import {tauriShortcut} from "$lib/tauri/TauriShortcut";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -101,14 +102,13 @@ class ViewModel {
           keyFor({key: "F11", asCode: true}, {}, "W"),
           keyFor({key: "KeyF", asCode: true}, {commandOrControl: true}),],
         () => this.toggleFullScreen())
-      .register([
-        keyFor({key: "NumpadEnter", asCode: true}),
-        keyFor({key: "Escape", asCode: false}),],
-        () => this.emergencyMinimize())
+      // .register([
+      //   keyFor({key: "NumpadEnter", asCode: true}),
+      //   keyFor({key: "Escape", asCode: false}),],
+      //   () => this.emergencyMinimize())
       .register(
         keyFor({key: "Space", asCode: true}, {}),
         () => this.togglePlay())
-
       .activate()
   }
   private async initEventListeners() {
@@ -117,12 +117,17 @@ class ViewModel {
     //   this.fullscreenPlayer = !!document.fullscreenElement;
     // })
     try {
-      // await tauriEvent.onFocus((e) => {
-      //   logger.info(`onFocus: ${e}`)
-      // })
-      // await tauriEvent.onBlur((e) => {
-      //   logger.info(`onBlur: ${e}`)
-      // })
+      await tauriEvent.onFocus((e) => {
+        logger.info(`onFocus: ${e}`)
+        tauriShortcut
+          .add(keyFor({key: "Escape", asCode: false}),
+            () => this.emergencyMinimize())
+
+      })
+      await tauriEvent.onBlur((e) => {
+        logger.info(`onBlur: ${e}`)
+        tauriShortcut.removeAll()
+      })
       await tauriEvent.onTerminating(() => {
         logger.info(`onTerminating`)
         this.saveCurrentMediaInfo()

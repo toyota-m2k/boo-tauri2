@@ -14,7 +14,7 @@ interface IModifierKey {
   commandOrControl?: boolean // Windows: Ctrl, Mac: Command  : true にすると、ctrl/meta の指定は無視する
 }
 
-interface IKey {
+export interface IKey {
   mainKey: IKeyDef
   modifierKey: IModifierKey
   os?: "W" | "M" | "L" | "WM" | "WL" | "ML" | "WML"   // W:Win / M:Mac / L:Linux の組み合わせ

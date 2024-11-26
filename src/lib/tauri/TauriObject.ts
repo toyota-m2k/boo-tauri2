@@ -2,9 +2,6 @@ import {Window} from "@tauri-apps/api/window";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {delay, launch} from "$lib/utils/Utils";
 import {env} from "$lib/utils/Env";
-import {getCurrentWebview} from "@tauri-apps/api/webview";
-import {webview} from "@tauri-apps/api";
-import {getCurrentWebviewWindow} from "@tauri-apps/api/webviewWindow";
 
 interface ITauriObject {
   isAvailable:boolean
@@ -99,6 +96,7 @@ class TauriObject implements ITauriObject {
     })
     return true
   }
+
 }
 
 export const tauriObject:ITauriObject = new TauriObject()
