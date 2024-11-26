@@ -12,6 +12,7 @@
   import SystemDialogContent from "$lib/dialog/SystemDialogContent.svelte";
   import {settings} from "$lib/model/Settings.svelte";
   import {launch} from "$lib/utils/Utils";
+  import PasswordDialogContent from "$lib/dialog/PasswordDialogContent.svelte";
 
   // import { invoke } from "@tauri-apps/api/core";
   // let name = $state("");
@@ -152,6 +153,10 @@
     {:else if viewModel.dialogType === "system"}
       <Dialog title="Preferences">
         <SystemDialogContent/>
+      </Dialog>
+      {:else if viewModel.dialogType === "password"}
+      <Dialog title="Authentication">
+        <PasswordDialogContent target={viewModel.passwordViewModel.authFor} completed={(p)=>viewModel.passwordViewModel.onCompleted(p)} closeDialog={()=>viewModel.closeDialog()}/>
       </Dialog>
     {/if}
   </div>

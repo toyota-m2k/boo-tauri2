@@ -1,9 +1,4 @@
-import type {IHostPort} from "$lib/model/ModelDef";
-
-export interface IHostInfo {
-  host: string
-  port: number
-}
+import type {IHostInfo} from "$lib/model/ModelDef";
 
 export interface IDResponse {
   id: string
@@ -111,7 +106,7 @@ export interface IRatingList {
 }
 
 export interface IBooProtocol {
-  setup(hostInfo: IHostPort): Promise<boolean>
+  setup(hostInfo: IHostInfo): Promise<boolean>
 
   noop(): Promise<boolean>
 

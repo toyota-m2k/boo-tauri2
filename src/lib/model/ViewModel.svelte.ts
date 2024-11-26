@@ -1,8 +1,7 @@
-import type {IHostInfo, ISettings, IViewModel, DialogType, IHostPort} from "$lib/model/ModelDef";
+import type {IHostInfo, DialogType, IHostPort} from "$lib/model/ModelDef";
 import {emptyMediaList, type IListRequest, type IMediaItem, type IMediaList} from "$lib/protocol/IBooProtocol";
 import {createBooProtocol} from "$lib/protocol/BooProtocol";
 import {settings} from "$lib/model/Settings.svelte";
-import {type IRange} from "$lib/model/ChapterUtils";
 import {globalKeyEvents, keyFor} from "$lib/utils/KeyEvents";
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
@@ -10,6 +9,7 @@ import {tauriEvent} from "$lib/tauri/TauriEvent";
 import {launch} from "$lib/utils/Utils";
 import {untrack} from "svelte";
 import {tauriObject} from "$lib/tauri/TauriObject";
+import {PasswordViewModel} from "$lib/model/PasswordViewModel.svelte";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -77,7 +77,7 @@ class ViewModel {
 
   isBusy = $state(false)
 
-  boo = createBooProtocol(()=> Promise.resolve("a"))
+  boo = createBooProtocol((target:string|undefined)=> this.authenticate(target))
   private listRequest: IListRequest = {type: "all", sourceType: 1}
 
   isPrepared = $state(false)
@@ -139,7 +139,7 @@ class ViewModel {
 
   private previousHostInfo: IHostPort|undefined = undefined
 
-  onHostChanged(newHost:IHostPort|undefined) {
+  onHostChanged(newHost:IHostInfo|undefined) {
     // $effect()から呼ばれるが、このメソッド内で参照している$state/$derived、
     //  - this.mediaList
     //  - playState.currentMediaId
@@ -204,12 +204,20 @@ class ViewModel {
   dialogType: DialogType|undefined = $state()
   closeDialog() {
     this.dialogType = undefined
+    this.passwordViewModel.cancel()
   }
   openSystemDialog() {
     this.dialogType = "system"
   }
   openHostDialog() {
     this.dialogType = "host"
+  }
+
+  passwordViewModel = new PasswordViewModel()
+
+  authenticate(target:string|undefined):Promise<string|undefined> {
+    this.dialogType = "password"
+    return this.passwordViewModel.waitFor(target)
   }
 
   fullscreenPlayer = $state(false)

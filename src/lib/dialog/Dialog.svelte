@@ -11,6 +11,7 @@
   }
 
   let {title,children}:Props = $props()
+
 </script>
 
 <div class="flex flex-col w-1/2 bg-background text-background-on border border-gray">

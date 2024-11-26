@@ -5,22 +5,21 @@ import type {
   IBooProtocol,
   ICapabilities, ICategory,
   IChapterList, IDResponse,
-  IHostInfo,
   IListRequest, IMark, IMediaItem,
   IMediaList, IRatingList, IReputation, MediaType
 } from './IBooProtocol'
 import {fetchWithTimeout} from "../utils/Utils";
 import {logger} from "../model/DebugLog.svelte";
-import type {IHostPort} from "$lib/model/ModelDef";
+import type {IHostInfo, IHostPort} from "$lib/model/ModelDef";
 
 class BooProtocolImpl implements IBooProtocol {
-  private hostPort: IHostPort | undefined
+  private hostPort: IHostInfo | undefined
   private capabilities: ICapabilities | undefined
   private authToken: IAuthToken | undefined
   private challenge: string | undefined
-  private readonly requirePassword: (() => Promise<string|undefined>)
+  private readonly requirePassword: ((target:string|undefined) => Promise<string|undefined>)
 
-  constructor(requirePassword: () => Promise<string|undefined>) {
+  constructor(requirePassword: (target:string|undefined) => Promise<string|undefined>) {
     this.requirePassword = requirePassword
   }
 
@@ -31,7 +30,7 @@ class BooProtocolImpl implements IBooProtocol {
     this.challenge = undefined
   }
 
-  async setup(hostInfo: IHostPort): Promise<boolean> {
+  async setup(hostInfo: IHostInfo): Promise<boolean> {
     try {
       this.reset()
       this.hostPort = hostInfo
@@ -107,7 +106,7 @@ class BooProtocolImpl implements IBooProtocol {
   private async ensureAuth(): Promise<void> {
     let password: string | undefined
     do {
-      password = await this.requirePassword()
+      password = await this.requirePassword(this.hostPort?.displayName ?? this.hostPort?.host)
       if (!password) {
         throw new BooError('cancel', 'password has not been set.')
       }
@@ -293,6 +292,6 @@ class BooProtocolImpl implements IBooProtocol {
   }
 }
 
-export function createBooProtocol(requirePassword: () => Promise<string|undefined>): IBooProtocol {
+export function createBooProtocol(requirePassword: (target:string|undefined) => Promise<string|undefined>): IBooProtocol {
   return new BooProtocolImpl(requirePassword)
 }

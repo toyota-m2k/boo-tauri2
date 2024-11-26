@@ -45,7 +45,7 @@ export interface ISettings {
   load(): Promise<void>
 }
 
-export type DialogType = "host" | "system"
+export type DialogType = "host" | "system" | "password"
 
 export interface IViewModel {
   mediaList: IMediaList
