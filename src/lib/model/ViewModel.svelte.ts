@@ -6,8 +6,8 @@ import {globalKeyEvents, keyFor} from "$lib/utils/KeyEvents";
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {tauriEvent} from "$lib/tauri/TauriEvent";
-import {launch} from "$lib/utils/Utils";
-import {untrack} from "svelte";
+import {delay, launch} from "$lib/utils/Utils";
+import {tick, untrack} from "svelte";
 import {tauriObject} from "$lib/tauri/TauriObject";
 import {PasswordViewModel} from "$lib/model/PasswordViewModel.svelte";
 
@@ -60,7 +60,7 @@ class ViewModel {
   }
   toggleFullScreen() {
     return tauriObject.toggleFullScreen((fullscreen:boolean) => {
-      this.fullscreenPlayer = fullscreen
+      // this.fullscreenPlayer = fullscreen
     })
   }
 
@@ -124,12 +124,14 @@ class ViewModel {
       // })
       await tauriEvent.onTerminating(() => {
         logger.info(`onTerminating`)
-        if(confirm('アプリケーションを終了しますか？')) {
-          this.saveCurrentMediaInfo()
-          return Promise.resolve(true)
-        } else {
-          return Promise.resolve(false)
-        }
+        this.saveCurrentMediaInfo()
+        return Promise.resolve(true)
+        // if(confirm('アプリケーションを終了しますか？')) {
+        //   this.saveCurrentMediaInfo()
+        //   return Promise.resolve(true)
+        // } else {
+        //   return Promise.resolve(false)
+        // }
       })
     } catch(e) {
       logger.warn(`no tauri: ${e}`)
