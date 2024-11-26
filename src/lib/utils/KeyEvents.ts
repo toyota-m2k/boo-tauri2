@@ -42,18 +42,18 @@ class KeyEventHandler {
   private static canHandleSingle(targetKey:IKey, e: KeyboardEvent): boolean {
     // ターゲットOSか？
     if (!this.isTargetOS(targetKey)) {
-      logger.debug(`OS not matched: ${targetKey.os} !== ${env.osName}`)
+      // logger.debug(`OS not matched: ${targetKey.os} !== ${env.osName}`)
       return false
     }
     // キーが一致するか？
     if (targetKey.mainKey.asCode) {
       if (e.code !== targetKey.mainKey.key) {
-        logger.debug(`Key(code) not matched: ${e.code} !== ${targetKey.mainKey.key}`)
+        // logger.debug(`Key(code) not matched: ${e.code} !== ${targetKey.mainKey.key}`)
         return false
       }
     } else {
       if (e.key !== targetKey.mainKey.key) {
-        logger.debug(`Key not matched: ${e.key} !== ${targetKey.mainKey.key}`)
+        // logger.debug(`Key not matched: ${e.key} !== ${targetKey.mainKey.key}`)
         return false
       }
     }
@@ -62,25 +62,25 @@ class KeyEventHandler {
     if (modifierKey.commandOrControl) {
       // commandOrControl が true なら、ctrl/meta より優先して評価する
       if (!(env.isMac ? e.metaKey : e.ctrlKey)) {
-        logger.debug(`CommandOrControl not matched: ${e.ctrlKey} !== ${modifierKey.ctrl}`)
+        // logger.debug(`CommandOrControl not matched: ${e.ctrlKey} !== ${modifierKey.ctrl}`)
         return false
       }
     } else {
       if (e.ctrlKey !== (modifierKey.ctrl===true)) {
-        logger.debug(`Ctrl not matched: ${e.ctrlKey} !== ${modifierKey.ctrl}`)
+        // logger.debug(`Ctrl not matched: ${e.ctrlKey} !== ${modifierKey.ctrl}`)
         return false
       }
       if (e.metaKey !== (modifierKey.meta===true)) {
-        logger.debug(`Meta not matched: ${e.metaKey} !== ${modifierKey.meta}`)
+        // logger.debug(`Meta not matched: ${e.metaKey} !== ${modifierKey.meta}`)
         return false
       }
     }
     if (e.shiftKey !== (modifierKey.shift===true)) {
-      logger.debug(`Shift not matched: ${e.shiftKey} !== ${modifierKey.shift}`)
+      // logger.debug(`Shift not matched: ${e.shiftKey} !== ${modifierKey.shift}`)
       return false
     }
     if (e.altKey !== (modifierKey.alt===true)) {
-      logger.debug(`Alt not matched: ${e.altKey} !== ${modifierKey.alt}`)
+      // logger.debug(`Alt not matched: ${e.altKey} !== ${modifierKey.alt}`)
       return false
     }
     logger.debug(`Matched: ${e.key} ${e.code} - shift:${e.shiftKey} ctrl:${e.ctrlKey} alt:${e.altKey} meta:${e.metaKey}`)

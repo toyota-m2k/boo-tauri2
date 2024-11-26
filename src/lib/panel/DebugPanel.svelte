@@ -2,10 +2,22 @@
   import {logger} from "$lib/model/DebugLog.svelte";
   import IconButton from "$lib/primitive/IconButton.svelte";
   import {ICON_TRASH} from "$lib/Icons";
+  import {untrack} from "svelte";
+
+  let container:HTMLDivElement = $state() as HTMLDivElement;
+  let prevCount = 0
+  $effect(()=>{
+    if(prevCount!=logger.messages.length) {
+      prevCount = logger.messages.length
+      untrack(()=>{
+        container.scrollTop = container.scrollHeight;
+      })
+    }
+  })
 </script>
 
 <div class="p-2 w-full h-full bg-white relative">
-  <div class="w-full h-full overflow-y-auto">
+  <div bind:this={container} class="w-full h-full overflow-y-auto">
     <div>
       {#each logger.messages as m (m.id)}
         <div class="{m.level}">{m.message}</div>

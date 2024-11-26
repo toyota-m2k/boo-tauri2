@@ -1,6 +1,7 @@
 import {Window} from "@tauri-apps/api/window";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {delay, launch} from "$lib/utils/Utils";
+import {env} from "$lib/utils/Env";
 
 interface ITauriObject {
   isAvailable:boolean
@@ -23,19 +24,40 @@ class TauriObject implements ITauriObject {
     }
   }
 
+  private async maximize(window:Window) {
+    if (env.isWin) {
+      await window.setFullscreen(true)
+      logger.debug("setFullscreen(true)")
+    } else {
+      await window.maximize()
+      logger.debug("maximize")
+    }
+  }
+  private async unmaximize(window:Window) {
+    if (env.isWin) {
+      await window.setFullscreen(false)
+      logger.debug("setFullscreen(false)")
+    } else {
+      await window.unmaximize()
+      logger.debug("unmaximize")
+    }
+  }
+  private async isMaximized(window:Window):Promise<boolean> {
+    if (env.isWin) {
+      return await window.isFullscreen()
+    } else {
+      return await window.isMaximized()
+    }
+  }
   toggleFullScreen(complete?: (isFullscreen: boolean) => void): boolean {
     const window = this.window
     if (!window) return false
     launch(async () => {
-      if (await window.isMaximized()) {
-        await window.unmaximize()
-        logger.debug("unmiximized")
-        // await window.setFullscreen(false)
+      if (await this.isMaximized(window)) {
+        await this.unmaximize(window)
         complete?.(false)
       } else {
-        // await window.setFullscreen(true)
-        await window.maximize()
-        logger.debug("maximized")
+        await this.maximize(window)
         complete?.(true)
       }
     })
@@ -47,13 +69,15 @@ class TauriObject implements ITauriObject {
     if (!window) return false
     logger.debug("minimize() called")
     launch(async () => {
-      if (await window.isMaximized()) {
-        logger.debug("maximized now")
-        await window.unmaximize()
-        // await window.setFullscreen(false)
-        // フルスクリーン解除後１秒待つ。。。これがないと一旦最小化して、すぐに戻ってきてしまう（Macのみ）
-        await delay(1000)
-        logger.debug("maximized-->normal")
+      if(env.isMac) {
+        if (await window.isMaximized()) {
+          logger.debug("maximized now")
+          await this.unmaximize(window)
+          // await window.setFullscreen(false)
+          // フルスクリーン解除後１秒待つ。。。これがないと一旦最小化して、すぐに戻ってきてしまう（Macのみ）
+          await delay(1000)
+          logger.debug("maximized-->normal")
+        }
       }
       await window.minimize()
       logger.debug("normal-->minimized")

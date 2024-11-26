@@ -11,6 +11,9 @@
     "store:default",
     "core:window:allow-close",
     "core:window:allow-set-fullscreen",
-    "core:window:allow-minimize"
+    "core:window:allow-minimize",
+    "core:window:allow-maximize",
+    "core:window:allow-unminimize",
+    "core:window:allow-unmaximize"
   ]
 }

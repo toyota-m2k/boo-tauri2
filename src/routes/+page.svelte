@@ -104,7 +104,7 @@
   })
 </script>
 
-<!--<svelte:window onresize={onWindowSizeChanged}/>-->
+<svelte:window onresize={onWindowSizeChanged}/>
 <!--<svelte:document onfullscreenchange={onFullScreenChanged}/>-->
 <main class="root-container h-screen flex flex-col bg-background {settings.colorVariation}" class:dark={settings.isDarkMode}>
   <!-- タイトルバー -->

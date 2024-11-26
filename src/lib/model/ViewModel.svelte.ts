@@ -6,8 +6,8 @@ import {globalKeyEvents, keyFor} from "$lib/utils/KeyEvents";
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {tauriEvent} from "$lib/tauri/TauriEvent";
-import {delay, launch} from "$lib/utils/Utils";
-import {tick, untrack} from "svelte";
+import {launch} from "$lib/utils/Utils";
+import {untrack} from "svelte";
 import {tauriObject} from "$lib/tauri/TauriObject";
 import {PasswordViewModel} from "$lib/model/PasswordViewModel.svelte";
 
@@ -98,7 +98,7 @@ class ViewModel {
       .register(keyFor({key: "ArrowDown", asCode: true}, {}), () => { viewModel.next(); return true})
       .register([
           keyFor({key: "F11", asCode: true}, {}, "W"),
-          keyFor({key: "KeyF", asCode: true}, {commandOrControl: true, shift: true}),],
+          keyFor({key: "KeyF", asCode: true}, {commandOrControl: true}),],
         () => this.toggleFullScreen())
       .register([
         keyFor({key: "NumpadEnter", asCode: true}),
