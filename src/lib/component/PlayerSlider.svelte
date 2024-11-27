@@ -7,8 +7,6 @@
     ICON_CHAPTER_OFF,
   } from "$lib/Icons"
   import {formatTime} from "$lib/utils/Utils";
-  import {onMount} from "svelte";
-  import {viewModel} from "$lib/model/ViewModel.svelte";
   import {settings} from "$lib/model/Settings.svelte";
   import type {ColorVariation} from "$lib/model/ModelDef";
 

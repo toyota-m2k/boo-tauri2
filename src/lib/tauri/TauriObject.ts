@@ -4,6 +4,7 @@ import {delay, launch} from "$lib/utils/Utils";
 import {env} from "$lib/utils/Env";
 
 interface ITauriObject {
+  prepare():Promise<boolean>
   isAvailable:boolean
   window:Window|undefined
   toggleFullScreen(complete:(isFullscreen:boolean)=>void):boolean
@@ -12,15 +13,21 @@ interface ITauriObject {
 
 class TauriObject implements ITauriObject {
   isAvailable: boolean = false
-  window: Window | undefined
+  window: Window | undefined = undefined
 
 
-  constructor() {
+  async prepare() {
+    this.window = new Window('main')
     try {
-      this.window = new Window('main')
+      await this.window.isFullscreen()
       this.isAvailable = true
-    } catch (e) {
-      logger.info(`tauri not available ${e}`)
+      logger.info("tauri not available")
+      return true
+    } catch(_) {
+      logger.info("tauri not available")
+      this.window = undefined
+      this.isAvailable = false
+      return false
     }
   }
 
