@@ -30,6 +30,12 @@ export async function delay(msec: number, signal?: AbortSignal): Promise<void> {
   }
 }
 
+export function withDelay<T>(msec:number, fn:(()=>Promise<T>)|(()=>void)) {
+  launch(async ()=>{
+    await delay(msec)
+    fn()
+  })
+}
 
 export function formatTime(time: number): string {
   const h = Math.floor(time / 3600)

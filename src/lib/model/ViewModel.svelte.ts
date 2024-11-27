@@ -60,9 +60,15 @@ class ViewModel {
       this.currentItem = this.mediaList.list[0]
     }
   }
+
+  onFullScreen: ((fullscreen:boolean)=>void)|undefined = undefined
+
   toggleFullScreen() {
     return tauriObject.toggleFullScreen((fullscreen:boolean) => {
       // this.fullscreenPlayer = fullscreen
+      launch(async ()=>{
+        this.onFullScreen?.(fullscreen)
+      })
     })
   }
 
