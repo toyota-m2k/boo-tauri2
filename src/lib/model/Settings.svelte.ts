@@ -11,6 +11,15 @@ import type {PlayMode} from "$lib/protocol/IBooProtocol";
 import {Preferences} from "$lib/model/Preferences";
 import {launch} from "$lib/utils/Utils";
 
+const KEY_CURRENT_HOST_PORT = 'currentHostPort'
+const KEY_HOST_INFO_LIST = 'hostInfoList'
+const KEY_PLAY_STATE_ON_HOSTS = 'playStateOnHosts'
+const KEY_PLAY_MODE = 'playMode'
+const KEY_SLIDE_SHOW_INTERVAL = 'slideShowInterval'
+const KEY_COLOR_VARIATION = 'colorVariation'
+const KEY_IS_DARK_MODE = 'isDarkMode'
+const KEY_ENABLE_DEBUG_LOG = 'enableDebugLog'
+
 class Settings implements ISettings {
   private _preferences = new Preferences()
   private readonly _hostInfoList: HostInfoList = new HostInfoList()
@@ -33,9 +42,9 @@ class Settings implements ISettings {
     this._currentHost = hostInfo
     launch(async ()=> {
       if(hostInfo) {
-        await this._preferences.set('currentHostPort', {host: hostInfo.host, port: hostInfo.port})
+        await this._preferences.set(KEY_CURRENT_HOST_PORT, {host: hostInfo.host, port: hostInfo.port})
       } else {
-        await this._preferences.remove('currentHostPort')
+        await this._preferences.remove(KEY_CURRENT_HOST_PORT)
       }
     })
   }
@@ -45,7 +54,7 @@ class Settings implements ISettings {
   set playMode(playMode: PlayMode) {
     if(this._playMode === playMode) return
     this._playMode = playMode
-    launch(async ()=> await this._preferences.set('playMode', playMode))
+    launch(async ()=> await this._preferences.set(KEY_PLAY_MODE, playMode))
   }
   get slideShowInterval(): number {
     return this._slideShowInterval
@@ -53,7 +62,7 @@ class Settings implements ISettings {
   set slideShowInterval(interval: number) {
     if(this._slideShowInterval === interval) return
     this._slideShowInterval = interval
-    launch(async()=>await this._preferences.set('slideShowInterval', interval))
+    launch(async()=>await this._preferences.set(KEY_SLIDE_SHOW_INTERVAL, interval))
   }
   get colorVariation(): ColorVariation {
     return this._colorVariation
@@ -61,7 +70,7 @@ class Settings implements ISettings {
   set colorVariation(colorVariation: ColorVariation) {
     if(this._colorVariation === colorVariation) return
     this._colorVariation = colorVariation
-    launch(async()=>await this._preferences.set('colorVariation', colorVariation))
+    launch(async()=>await this._preferences.set(KEY_COLOR_VARIATION, colorVariation))
   }
   get isDarkMode(): boolean {
     return this._isDarkMode
@@ -69,7 +78,7 @@ class Settings implements ISettings {
   set isDarkMode(isDarkMode: boolean) {
     if(this._isDarkMode === isDarkMode) return
     this._isDarkMode = isDarkMode
-    launch(async()=>await this._preferences.set('isDarkMode', isDarkMode))
+    launch(async()=>await this._preferences.set(KEY_IS_DARK_MODE, isDarkMode))
   }
   get enableDebugLog(): boolean {
     return this._enableDebugLog
@@ -77,7 +86,7 @@ class Settings implements ISettings {
   set enableDebugLog(enableDebugLog: boolean) {
     if(this._enableDebugLog === enableDebugLog) return
     this._enableDebugLog = enableDebugLog
-    launch(async()=>await this._preferences.set('enableDebugLog', enableDebugLog))
+    launch(async()=>await this._preferences.set(KEY_ENABLE_DEBUG_LOG, enableDebugLog))
   }
 
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void {
@@ -89,14 +98,14 @@ class Settings implements ISettings {
       currentMediaId: mediaId,
       currentMediaPosition: position
     }
-    launch(()=>this._preferences.set('playStateOnHosts', this._hostInfoList.playStateOnHosts))
+    launch(()=>this._preferences.set(KEY_PLAY_STATE_ON_HOSTS, this._hostInfoList.playStateOnHosts))
   }
 
   saveHostList(): void {
     if(this.hostInfoList.modified) {
       this.hostInfoList.modified = false
-      launch(()=>this._preferences.set('hostInfoList', this.hostInfoList.list))
-      launch(()=>this._preferences.set('playStateOnHosts', this._hostInfoList.playStateOnHosts))
+      launch(()=>this._preferences.set(KEY_HOST_INFO_LIST, this.hostInfoList.list))
+      launch(()=>this._preferences.set(KEY_PLAY_STATE_ON_HOSTS, this._hostInfoList.playStateOnHosts))
     }
   }
 
@@ -108,7 +117,7 @@ class Settings implements ISettings {
   async load(): Promise<void> {
     await this._preferences.load()
     if(!await this._preferences.isExist("hostInfoList")) {
-      await this._preferences.set('hostInfoList', [
+      await this._preferences.set(KEY_HOST_INFO_LIST, [
         {
           displayName: "2F-MakibaO-Boo",
           host: "192.168.0.151",
@@ -132,13 +141,14 @@ class Settings implements ISettings {
       ])
     }
 
-    this.hostInfoList.set(await this._preferences.get<[]>('hostInfoList') ?? [])
-    this._hostInfoList.playStateOnHosts = await this._preferences.get('playStateOnHosts') ?? {}
-    this._currentHost = this.hostInfoList.findByHostPort(await this._preferences.get<IHostPort>('currentHost')) ?? this.hostInfoList.list[0]
-    this._playMode = await this._preferences.get('playMode') ?? 'sequential'
-    this._slideShowInterval = await this._preferences.get('slideShowInterval') ?? 3
-    this._colorVariation = await this._preferences.get('colorVariation') ?? 'default'
-    this._isDarkMode = await this._preferences.get('isDarkMode') ?? false
+    this.hostInfoList.set(await this._preferences.get<[]>(KEY_HOST_INFO_LIST) ?? [])
+    this._hostInfoList.playStateOnHosts = await this._preferences.get(KEY_PLAY_STATE_ON_HOSTS) ?? {}
+    this._currentHost = this.hostInfoList.findByHostPort(await this._preferences.get<IHostPort>(KEY_CURRENT_HOST_PORT)) ?? this.hostInfoList.list[0]
+    this._playMode = await this._preferences.get(KEY_PLAY_MODE) ?? 'sequential'
+    this._slideShowInterval = await this._preferences.get(KEY_SLIDE_SHOW_INTERVAL) ?? 3
+    this._colorVariation = await this._preferences.get(KEY_COLOR_VARIATION) ?? 'default'
+    this._isDarkMode = await this._preferences.get(KEY_IS_DARK_MODE) ?? false
+    this._enableDebugLog = await this._preferences.get(KEY_ENABLE_DEBUG_LOG) ?? false
   }
 }
 
