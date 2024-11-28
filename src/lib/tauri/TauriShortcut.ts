@@ -1,8 +1,16 @@
 import type {IKey} from "$lib/utils/KeyEvents";
-import {register, type ShortcutHandler, unregister, unregisterAll} from "@tauri-apps/plugin-global-shortcut";
+import {
+  isRegistered,
+  register,
+  type ShortcutHandler,
+  unregister,
+  unregisterAll
+} from "@tauri-apps/plugin-global-shortcut";
+import {tauriObject} from "$lib/tauri/TauriObject";
+import {logger} from "$lib/model/DebugLog.svelte";
 
 export interface ITauriShortcut {
-  add(key:IKey|IKey[], callback:ShortcutHandler):Promise<ITauriShortcut>
+  add(key:IKey|IKey[], callback:()=>void):Promise<ITauriShortcut>
   remove(key:IKey|IKey[]):Promise<ITauriShortcut>
   removeAll():Promise<ITauriShortcut>
 }
@@ -22,16 +30,27 @@ class TauriShortcut implements ITauriShortcut {
     return name
   }
 
-  async add(key:IKey|IKey[], callback:ShortcutHandler):Promise<ITauriShortcut> {
+  async add(key:IKey|IKey[], callback:()=>void):Promise<ITauriShortcut> {
     // tauriのAPIでショートカットキーを登録する
     if(Array.isArray(key)) {
-      await register(key.map(k=>this.tauriKeyName(k)), callback)
+      for (const k of key) {
+        await this.add(k, callback)
+      }
     } else {
-      await register(this.tauriKeyName(key), callback)
+      // キーが登録済みなら何もしない
+      const shortcut = this.tauriKeyName(key)
+      if(!await isRegistered(shortcut)) {
+        await register(shortcut, (e)=>{
+          if(e.state=="Pressed") {
+            callback()
+          }
+        })
+      }
     }
     return this
   }
   async remove(key:IKey|IKey[]): Promise<ITauriShortcut> {
+    if(!tauriObject.isAvailable) return this
     if(Array.isArray(key)) {
       await unregister(key.map(k=>this.tauriKeyName(k)))
     } else {
@@ -40,6 +59,7 @@ class TauriShortcut implements ITauriShortcut {
     return this
   }
   async removeAll() : Promise<ITauriShortcut> {
+    if(!tauriObject.isAvailable) return this
     await unregisterAll()
     return this
   }

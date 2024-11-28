@@ -11,6 +11,7 @@ import {untrack} from "svelte";
 import {tauriObject} from "$lib/tauri/TauriObject";
 import {PasswordViewModel} from "$lib/model/PasswordViewModel.svelte";
 import {tauriShortcut} from "$lib/tauri/TauriShortcut";
+import {env} from "$lib/utils/Env";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -59,9 +60,15 @@ class ViewModel {
       this.currentItem = this.mediaList.list[0]
     }
   }
+
+  onFullScreen: ((fullscreen:boolean)=>void)|undefined = undefined
+
   toggleFullScreen() {
     return tauriObject.toggleFullScreen((fullscreen:boolean) => {
       // this.fullscreenPlayer = fullscreen
+      launch(async ()=>{
+        this.onFullScreen?.(fullscreen)
+      })
     })
   }
 
@@ -88,9 +95,9 @@ class ViewModel {
 
   async prepareSettings() {
     if(this.isPrepared) return
-    this.initKeyMap()
-    await this.initEventListeners()
     await settings.load()
+    this.initKeyMap()
+    await this.initTauri()
     this.isPrepared = true
   }
 
@@ -111,18 +118,34 @@ class ViewModel {
         () => this.togglePlay())
       .activate()
   }
-  private async initEventListeners() {
+
+  private async initTauri() {
+    if(await tauriObject.prepare()) {
+      await this.initTauriEventListeners()
+      await this.registerTauriShortcut()
+    }
+  }
+
+  private async registerTauriShortcut() {
+    if(!tauriObject.isAvailable) return
+    logger.debug("registerTauriShortcut")
+    await tauriShortcut
+      .add([
+        keyFor({key: "ESC", asCode: false}),
+        keyFor({key: "NUMENTER", asCode: false})],
+        () => this.emergencyMinimize())
+  }
+
+  private async initTauriEventListeners() {
     // document.addEventListener('fullscreenchange', () => {
     //   logger.info('initEventListeners')
     //   this.fullscreenPlayer = !!document.fullscreenElement;
     // })
+    if(!tauriObject.isAvailable) return
     try {
       await tauriEvent.onFocus((e) => {
         logger.info(`onFocus: ${e}`)
-        tauriShortcut
-          .add(keyFor({key: "Escape", asCode: false}),
-            () => this.emergencyMinimize())
-
+        this.registerTauriShortcut()
       })
       await tauriEvent.onBlur((e) => {
         logger.info(`onBlur: ${e}`)
