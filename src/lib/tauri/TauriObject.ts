@@ -1,8 +1,11 @@
 import {Window} from "@tauri-apps/api/window";
 import {logger} from "$lib/model/DebugLog.svelte";
-import {launch} from "$lib/utils/Utils";
+import {delay, launch} from "$lib/utils/Utils";
+import {env} from "$lib/utils/Env";
+import {getName, getTauriVersion, getVersion} from "@tauri-apps/api/app";
 
 interface ITauriObject {
+  prepare():Promise<boolean>
   isAvailable:boolean
   window:Window|undefined
   toggleFullScreen(complete:(isFullscreen:boolean)=>void):boolean
@@ -11,29 +14,80 @@ interface ITauriObject {
 
 class TauriObject implements ITauriObject {
   isAvailable: boolean = false
-  window: Window | undefined
+  window: Window | undefined = undefined
+  tauriVersion: string = ""
+  appVersion: string = ""
 
 
-  constructor() {
+  async prepare() {
     try {
       this.window = new Window('main')
+      this.tauriVersion = await getTauriVersion()
+      this.appVersion = await getVersion()
+      const name = await getName()
+      await this.window.setTitle(`${name} - v${this.appVersion}`)
+      await this.window.isFullscreen()
       this.isAvailable = true
-    } catch (e) {
-      logger.info(`tauri not available ${e}`)
+      logger.info(`tauri available {tauri:${this.tauriVersion}, app:${this.appVersion}}`)
+      return true
+    } catch(_) {
+      logger.info("tauri not available")
+      this.window = undefined
+      this.tauriVersion = "no tauri"
+      this.appVersion = "<uav>"
+      this.isAvailable = false
+      return false
     }
   }
 
-  toggleFullScreen(complete: (isFullscreen: boolean) => void): boolean {
+  private async maximize(window:Window) {
+    await window.setFullscreen(true)
+    logger.debug("setFullscreen(true)")
+    // if (env.isWin) {
+    //   await window.setFullscreen(true)
+    //   logger.debug("setFullscreen(true)")
+    // } else {
+    //   await window.maximize()
+    //   logger.debug("maximize")
+    // }
+  }
+  private async unmaximize(window:Window) {
+    await window.setFullscreen(false)
+    logger.debug("setFullscreen(false)")
+    // if (env.isWin) {
+    //   await window.setFullscreen(false)
+    //   logger.debug("setFullscreen(false)")
+    // } else {
+    //   await window.unmaximize()
+    //   logger.debug("unmaximize")
+    // }
+  }
+  private async isMaximized(window:Window):Promise<boolean> {
+    return await window.isFullscreen()
+    // if (env.isWin) {
+    //   return await window.isFullscreen()
+    // } else {
+    //   return await window.isMaximized()
+    // }
+  }
+  toggleFullScreen(complete?: (isFullscreen: boolean) => void): boolean {
     const window = this.window
     if (!window) return false
     launch(async () => {
-      if (await window.isFullscreen()) {
-        await window.setFullscreen(false)
-        complete(false)
+      if (await this.isMaximized(window)) {
+        await this.unmaximize(window)
+        complete?.(false)
       } else {
-        await window.setFullscreen(true)
-        complete(true)
+        await this.maximize(window)
+        complete?.(true)
       }
+      // const webview = await getCurrentWebview()
+      // await webview.setFocus()
+
+      // const webviewWindow = getCurrentWebviewWindow()
+      // await webviewWindow.setFocus()
+
+      // await window.setFocus();
     })
     return true
   }
@@ -41,14 +95,24 @@ class TauriObject implements ITauriObject {
   minimize() {
     const window = this.window
     if (!window) return false
+    logger.debug("minimize() called")
     launch(async () => {
-      if (await window.isFullscreen()) {
-        await window.setFullscreen(false)
+      if(env.isMac) {
+        if (await window.isMaximized()) {
+          logger.debug("maximized now")
+          await this.unmaximize(window)
+          // await window.setFullscreen(false)
+          // フルスクリーン解除後１秒待つ。。。これがないと一旦最小化して、すぐに戻ってきてしまう（Macのみ）
+          await delay(1000)
+          logger.debug("maximized-->normal")
+        }
       }
       await window.minimize()
+      logger.debug("normal-->minimized")
     })
     return true
   }
+
 }
 
 export const tauriObject:ITauriObject = new TauriObject()

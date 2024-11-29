@@ -8,8 +8,8 @@ export type QueryEndSession = () => Promise<boolean>
 export interface ITauriEvent {
   onTerminating(handler:QueryEndSession) : Promise<ITauriEvent>
   // onDestroyed<T>(handler:EventCallback<T>) : Promise<UnlistenFn>
-  // onFocus<T>(handler:EventCallback<T>) : Promise<UnlistenFn>
-  // onBlur<T>(handler:EventCallback<T>) : Promise<UnlistenFn>
+  onFocus<T>(handler:EventCallback<T>) : Promise<ITauriEvent>
+  onBlur<T>(handler:EventCallback<T>) : Promise<ITauriEvent>
 }
 
 
@@ -29,12 +29,18 @@ class TauriEvent implements ITauriEvent {
   // onDestroyed<T>(handler:EventCallback<T>) : Promise<UnlistenFn> {
   //   return this.window.listen('tauri://destroyed', handler);
   // }
-  // onFocus<T>(handler:EventCallback<T>) : Promise<UnlistenFn> {
-  //   return this.window.listen('tauri://focus', handler);
-  // }
-  // onBlur<T>(handler:EventCallback<T>) : Promise<UnlistenFn> {
-  //   return this.window.listen('tauri://blur', handler);
-  // }
+  async onFocus<T>(handler:EventCallback<T>) : Promise<ITauriEvent> {
+    const window = tauriObject.window
+    if(!window) return this
+    await window.listen('tauri://focus', handler)
+    return this
+  }
+  async onBlur<T>(handler:EventCallback<T>) : Promise<ITauriEvent> {
+    const window = tauriObject.window
+    if(!window) return this
+    await window.listen('tauri://blur', handler)
+    return this
+  }
 }
 
 // const window = new Window('main')

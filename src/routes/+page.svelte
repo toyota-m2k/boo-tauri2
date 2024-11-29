@@ -6,13 +6,14 @@
   import Player from "$lib/panel/Player.svelte";
   import DebugPanel from "$lib/panel/DebugPanel.svelte";
   import {viewModel} from "$lib/model/ViewModel.svelte";
-  import {onDestroy, onMount} from "svelte";
+  import {onDestroy, onMount, tick} from "svelte";
   import Dialog from "$lib/dialog/Dialog.svelte";
   import HostDialogContent from "$lib/dialog/HostDialogContent.svelte";
   import SystemDialogContent from "$lib/dialog/SystemDialogContent.svelte";
   import {settings} from "$lib/model/Settings.svelte";
-  import {launch} from "$lib/utils/Utils";
+  import {launch, withDelay} from "$lib/utils/Utils";
   import PasswordDialogContent from "$lib/dialog/PasswordDialogContent.svelte";
+  import {env} from "$lib/utils/Env";
 
   // import { invoke } from "@tauri-apps/api/core";
   // let name = $state("");
@@ -22,6 +23,7 @@
   //   Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
   //   greetMsg = await invoke("greet", { name });
   // }
+  let mainView:HTMLElement = $state() as HTMLElement
   let title = $derived(viewModel.currentItem?.name ?? "BooTauri2")
 
   let sidePanelShown = $state(true)
@@ -82,6 +84,21 @@
       if(!settings.currentHost) {
         viewModel.openHostDialog()
       }
+      if(env.isMac) {
+        // Mac（Safari)の場合に限り、Fullscreen <--> Normal 切り替え時に <main> の heightが少し（tauriのタイトルバーの分くらい）小さくなり、
+        // 下部に余白ができてしまう。<body>までは正常なので、<main> のstyle.height を少しいじってやると、正しく表示される。
+        // tauri か safariのバグっぽいが、へんてこなパッチで対応。
+        viewModel.onFullScreen = (full)=>{
+          launch(async ()=>{
+            logger.info("fullscreen:"+full)
+            await tick()
+            const org = mainView.style.display
+            mainView.style.height = "100%"
+            await tick()
+            mainView.style.display = "100vh"
+          })
+        }
+      }
     })
     return () => {
       logger.info("onUnmount")
@@ -106,7 +123,7 @@
 
 <svelte:window onresize={onWindowSizeChanged}/>
 <!--<svelte:document onfullscreenchange={onFullScreenChanged}/>-->
-<main class="root-container h-screen flex flex-col bg-background {settings.colorVariation}" class:dark={settings.isDarkMode}>
+<main bind:this={mainView} class="root-container h-screen flex flex-col bg-background {settings.colorVariation}" class:dark={settings.isDarkMode}>
   <!-- タイトルバー -->
   {#if !viewModel.fullscreenPlayer}
     <div class="title-panel h-[50px] w-full" transition:slide={{axis:'y'}}>

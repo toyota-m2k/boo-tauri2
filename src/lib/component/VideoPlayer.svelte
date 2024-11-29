@@ -19,6 +19,7 @@
       chaptersViewModel.prevChapter()
     },
     play: ()=>{
+      logger.debug("VideoPlayer:play")
       playRequested = true
       let count = 0
       launch(async ()=>{
@@ -35,6 +36,7 @@
       })
     },
     pause: ()=> {
+      logger.debug("VideoPlayer:pause")
       playRequested = false
       player.pause()
     }

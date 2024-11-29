@@ -59,14 +59,17 @@ class PlayerViewModel implements IPlayerCommands {
   }
 
   play() {
+    logger.debug("play")
     this.autoPlay = true
     this.playerCommands?.play()
   }
   pause() {
+    logger.debug("pause")
     this.autoPlay = false
     this.playerCommands?.pause()
   }
   togglePlay() {
+    logger.debug("togglePlay")
     if(this.playing) {
       this.pause()
     }
