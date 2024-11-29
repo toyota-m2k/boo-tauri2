@@ -7,13 +7,13 @@
   import DebugPanel from "$lib/panel/DebugPanel.svelte";
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import {onDestroy, onMount, tick} from "svelte";
-  import Dialog from "$lib/dialog/Dialog.svelte";
   import HostDialogContent from "$lib/dialog/HostDialogContent.svelte";
   import SystemDialogContent from "$lib/dialog/SystemDialogContent.svelte";
   import {settings} from "$lib/model/Settings.svelte";
-  import {launch, withDelay} from "$lib/utils/Utils";
+  import {launch} from "$lib/utils/Utils";
   import PasswordDialogContent from "$lib/dialog/PasswordDialogContent.svelte";
   import {env} from "$lib/utils/Env";
+  import {dialogViewModel} from "$lib/dialog/DialogViewModel.svelte";
 
   // import { invoke } from "@tauri-apps/api/core";
   // let name = $state("");
@@ -27,7 +27,7 @@
   let title = $derived(viewModel.currentItem?.name ?? "BooTauri2")
 
   let sidePanelShown = $state(true)
-  let titleBarShown = $state(true)
+  // let titleBarShown = $state(true)
   // $inspect(settings.colorVariation)
 
 
@@ -78,11 +78,11 @@
     launch(async () => {
       await viewModel.prepareSettings()
       if (!settings.currentHost) {
-        viewModel.openHostDialog()
+        dialogViewModel.openHostDialog()
       }
       await viewModel.prepareSettings()
       if(!settings.currentHost) {
-        viewModel.openHostDialog()
+        dialogViewModel.openHostDialog()
       }
       if(env.isMac) {
         // Mac（Safari)の場合に限り、Fullscreen <--> Normal 切り替え時に <main> の heightが少し（tauriのタイトルバーの分くらい）小さくなり、
@@ -92,10 +92,10 @@
           launch(async ()=>{
             logger.info("fullscreen:"+full)
             await tick()
-            const org = mainView.style.display
+            // const org = mainView.style.display
             mainView.style.height = "100%"
             await tick()
-            mainView.style.display = "100vh"
+            mainView.style.height = "100vh"
           })
         }
       }
@@ -161,21 +161,11 @@
   {/if}
 
   <!-- ダイアログ -->
-  {#if viewModel.dialogType}
+  {#if dialogViewModel.isActive}
   <div transition:fade class="absolute top-0 bottom-0 right-0 left-0 h-full w-full bg-black bg-opacity-70 flex items-center justify-center">
-    {#if viewModel.dialogType === "host"}
-      <Dialog title="Host Settings">
-        <HostDialogContent closeDialog={()=>viewModel.closeDialog()}/>
-      </Dialog>
-    {:else if viewModel.dialogType === "system"}
-      <Dialog title="Preferences">
-        <SystemDialogContent/>
-      </Dialog>
-      {:else if viewModel.dialogType === "password"}
-      <Dialog title="Authentication">
-        <PasswordDialogContent target={viewModel.passwordViewModel.authFor} completed={(p)=>viewModel.passwordViewModel.onCompleted(p)} closeDialog={()=>viewModel.closeDialog()}/>
-      </Dialog>
-    {/if}
+    <HostDialogContent bind:show={dialogViewModel.showHostDialog}/>
+    <SystemDialogContent bind:show={dialogViewModel.showSystemDialog}/>
+    <PasswordDialogContent bind:show={dialogViewModel.showPasswordDialog}/>
   </div>
   {/if}
 

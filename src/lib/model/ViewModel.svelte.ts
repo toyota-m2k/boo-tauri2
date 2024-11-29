@@ -1,4 +1,4 @@
-import type {IHostInfo, DialogType, IHostPort} from "$lib/model/ModelDef";
+import type {IHostInfo, IHostPort} from "$lib/model/ModelDef";
 import {emptyMediaList, type IListRequest, type IMediaItem, type IMediaList} from "$lib/protocol/IBooProtocol";
 import {createBooProtocol} from "$lib/protocol/BooProtocol";
 import {settings} from "$lib/model/Settings.svelte";
@@ -6,12 +6,11 @@ import {globalKeyEvents, keyFor} from "$lib/utils/KeyEvents";
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {tauriEvent} from "$lib/tauri/TauriEvent";
-import {delay, launch} from "$lib/utils/Utils";
+import {launch} from "$lib/utils/Utils";
 import {untrack} from "svelte";
 import {tauriObject} from "$lib/tauri/TauriObject";
-import {PasswordViewModel} from "$lib/model/PasswordViewModel.svelte";
 import {tauriShortcut} from "$lib/tauri/TauriShortcut";
-import {env} from "$lib/utils/Env";
+import {passwordViewModel} from "$lib/model/PasswordViewModel.svelte";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -86,7 +85,7 @@ class ViewModel {
 
   isBusy = $state(false)
 
-  boo = createBooProtocol((target:string|undefined)=> this.authenticate(target))
+  boo = createBooProtocol((target:string|undefined)=> passwordViewModel.authenticate(target))
   private listRequest: IListRequest = {type: "all", sourceType: 1}
 
   isPrepared = $state(false)
@@ -231,25 +230,6 @@ class ViewModel {
   }
 
   mediaScale: number = $state(1)
-
-  dialogType: DialogType|undefined = $state()
-  closeDialog() {
-    this.dialogType = undefined
-    this.passwordViewModel.cancel()
-  }
-  openSystemDialog() {
-    this.dialogType = "system"
-  }
-  openHostDialog() {
-    this.dialogType = "host"
-  }
-
-  passwordViewModel = new PasswordViewModel()
-
-  authenticate(target:string|undefined):Promise<string|undefined> {
-    this.dialogType = "password"
-    return this.passwordViewModel.waitFor(target)
-  }
 
   fullscreenPlayer = $state(false)
 

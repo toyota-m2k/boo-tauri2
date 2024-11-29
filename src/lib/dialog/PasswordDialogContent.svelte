@@ -1,22 +1,38 @@
 <script lang="ts">
   import {onMount} from "svelte";
   import {createKeyEvents, keyFor, switchKeyEventCaster} from "$lib/utils/KeyEvents";
+  import Dialog from "$lib/dialog/Dialog.svelte";
+  import {passwordViewModel} from "$lib/model/PasswordViewModel.svelte";
 
-  let {target,completed,closeDialog}:{target?:string|undefined, completed:(pwd:string|undefined)=>void, closeDialog:()=>void} = $props()
-  let title = $derived((target&&target.length>0)?`Password for ${target}`:"Password")
+  let {show=$bindable()}:{show:boolean} = $props()
   let password = $state("")
   let ready = $derived(password.length>0)
   let input:HTMLInputElement = $state() as HTMLInputElement
 
+  let positive = $derived({label:"OK", disabled:ready})
+
+  $effect(()=>{
+    if(!show) {
+      passwordViewModel.cancel()
+    }
+  })
+
+  function action(reason:"close"|"negative"|"positive") {
+    if(reason==="positive") {
+      onOK()
+    } else {
+      onCancel()
+    }
+    show = false
+  }
+
   function onOK() {
     if(!ready) return true
-    completed(password ?? "")
-    closeDialog()
+    passwordViewModel.complete(password ?? "")
     return true
   }
   function onCancel() {
-    completed(undefined)
-    closeDialog()
+    passwordViewModel.cancel()
     return true
   }
 
@@ -29,11 +45,14 @@
   })
 </script>
 
-<div class="flex flex-col justify-center">
-  <div>{title}</div>
-  <input bind:this={input} type="password" bind:value={password} class="w-full p-2 border border-gray rounded" placeholder="Password"/>
-  <div class="flex flex-row justify-center mt-2">
-    <button class:disabled={!ready} class="w-40 p-2 bg-primary text-primary-on rounded" onclick={onOK}>OK</button>
-<!--    <button class="w-40 p-2 bg-secondary text-secondary-on rounded" onclick={onCancel}>Cancel</button>-->
-  </div>
-</div>
+{#if show}
+<Dialog title="Authentication" {positive} {action}>
+
+  {#snippet children()}
+    <div class="flex flex-col justify-center">
+      <div>{passwordViewModel.target}</div>
+      <input bind:this={input} type="password" bind:value={password} class="w-full p-2 border border-gray rounded" placeholder="Password"/>
+    </div>
+  {/snippet}
+</Dialog>
+{/if}
