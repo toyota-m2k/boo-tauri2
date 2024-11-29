@@ -2,6 +2,7 @@ import {Window} from "@tauri-apps/api/window";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {delay, launch} from "$lib/utils/Utils";
 import {env} from "$lib/utils/Env";
+import {getName, getTauriVersion, getVersion} from "@tauri-apps/api/app";
 
 interface ITauriObject {
   prepare():Promise<boolean>
@@ -14,18 +15,26 @@ interface ITauriObject {
 class TauriObject implements ITauriObject {
   isAvailable: boolean = false
   window: Window | undefined = undefined
+  tauriVersion: string = ""
+  appVersion: string = ""
 
 
   async prepare() {
-    this.window = new Window('main')
     try {
+      this.window = new Window('main')
+      this.tauriVersion = await getTauriVersion()
+      this.appVersion = await getVersion()
+      const name = await getName()
+      await this.window.setTitle(`${name} - v${this.appVersion}`)
       await this.window.isFullscreen()
       this.isAvailable = true
-      logger.info("tauri not available")
+      logger.info(`tauri available {tauri:${this.tauriVersion}, app:${this.appVersion}}`)
       return true
     } catch(_) {
       logger.info("tauri not available")
       this.window = undefined
+      this.tauriVersion = "no tauri"
+      this.appVersion = "<uav>"
       this.isAvailable = false
       return false
     }

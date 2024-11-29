@@ -16,10 +16,6 @@
     "core:window:allow-unminimize",
     "core:window:allow-unmaximize",
     "core:window:allow-set-focus",
-    "core:webview:allow-set-webview-focus",
-    "global-shortcut:allow-is-registered",
-    "global-shortcut:allow-register",
-    "global-shortcut:allow-unregister",
-    "global-shortcut:allow-unregister-all"
+    "core:webview:allow-set-webview-focus"
   ]
 }
