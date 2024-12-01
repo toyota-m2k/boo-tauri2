@@ -12,8 +12,7 @@
 
 </script>
 
-{#if show}
-<Dialog title="Settings" action={(reason)=>{if(reason==="close") show=false }}>
+<Dialog title="Settings" action={(reason)=>{if(reason==="close"||reason==="negative") show=false }}>
   {#snippet children()}
   <div class="flex flex-col justify-center">
     <div class="flex items-center mt-2 gap-1">
@@ -82,4 +81,3 @@
   </div>
   {/snippet}
 </Dialog>
-{/if}

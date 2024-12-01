@@ -16,6 +16,8 @@
       passwordViewModel.cancel()
     }
   })
+  $inspect(show)
+
 
   function action(reason:"close"|"negative"|"positive") {
     if(reason==="positive") {
@@ -38,14 +40,13 @@
 
   onMount(()=>{
     input.focus()
-    const dlgKeyEvents = createKeyEvents()
-      .register(keyFor({key:"Enter", asCode:true}), ()=>onOK())
-      .register(keyFor({key:"Escape", asCode:true}), ()=>onCancel())
-    return switchKeyEventCaster(dlgKeyEvents)
+    // const dlgKeyEvents = createKeyEvents()
+    //   .register(keyFor({key:"Enter", asCode:true}), ()=>onOK())
+    //   .register(keyFor({key:"Escape", asCode:true}), ()=>onCancel())
+    // return switchKeyEventCaster(dlgKeyEvents)
   })
 </script>
 
-{#if show}
 <Dialog title="Authentication" {positive} {action}>
 
   {#snippet children()}
@@ -55,4 +56,3 @@
     </div>
   {/snippet}
 </Dialog>
-{/if}

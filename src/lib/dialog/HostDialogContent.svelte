@@ -59,8 +59,7 @@
   }
 </script>
 
-{#if show}
-<Dialog title="Hosts" action={(reason)=>{if(reason==="close"){show=false}}}>
+<Dialog title="Hosts" action={(reason)=>{if(reason==="close"||reason==="negative"){show=false}}}>
   {#snippet children()}
   <div class="flex flex-col items-center justify-center">
     {#if !editingHost}
@@ -112,4 +111,3 @@
   </div>
   {/snippet}
 </Dialog>
-{/if}

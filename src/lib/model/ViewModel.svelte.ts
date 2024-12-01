@@ -2,7 +2,7 @@ import type {IHostInfo, IHostPort} from "$lib/model/ModelDef";
 import {emptyMediaList, type IListRequest, type IMediaItem, type IMediaList} from "$lib/protocol/IBooProtocol";
 import {createBooProtocol} from "$lib/protocol/BooProtocol";
 import {settings} from "$lib/model/Settings.svelte";
-import {globalKeyEvents, keyFor} from "$lib/utils/KeyEvents";
+import {globalKeyEvents, type IKeyEvents, keyFor, switchKeyEventCaster} from "$lib/utils/KeyEvents";
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {tauriEvent} from "$lib/tauri/TauriEvent";
@@ -166,6 +166,14 @@ class ViewModel {
     }
   }
 
+  async switchKeyMapOnDialog(subEvents:IKeyEvents) {
+    await tauriShortcut.removeAll()
+    const revert = switchKeyEventCaster(subEvents)
+    return async () => {
+      revert()
+      await this.registerTauriShortcut()
+    }
+  }
 
   private previousHostInfo: IHostPort|undefined = undefined
 

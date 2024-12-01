@@ -162,10 +162,14 @@
 
   <!-- ダイアログ -->
   {#if dialogViewModel.isActive}
-  <div transition:fade class="absolute top-0 bottom-0 right-0 left-0 h-full w-full bg-black bg-opacity-70 flex items-center justify-center">
+  <div role="none" onclick={()=>dialogViewModel.closeAll()} transition:fade class="absolute top-0 bottom-0 right-0 left-0 h-full w-full bg-black bg-opacity-70 flex items-center justify-center">
+    {#if dialogViewModel.showHostDialog}
     <HostDialogContent bind:show={dialogViewModel.showHostDialog}/>
+    {:else if dialogViewModel.showSystemDialog}
     <SystemDialogContent bind:show={dialogViewModel.showSystemDialog}/>
+    {:else if dialogViewModel.showPasswordDialog}
     <PasswordDialogContent bind:show={dialogViewModel.showPasswordDialog}/>
+    {/if}
   </div>
   {/if}
 

@@ -1,8 +1,10 @@
 <script lang="ts">
-  import type {Snippet} from "svelte";
+  import {onDestroy, onMount, type Snippet} from "svelte";
   import IconButton from "$lib/primitive/IconButton.svelte";
   import { ICON_CLOSE } from "$lib/Icons"
   import {viewModel} from "$lib/model/ViewModel.svelte";
+  import {logger} from "$lib/model/DebugLog.svelte";
+  import {createKeyEvents, keyFor} from "$lib/utils/KeyEvents";
 
   // Snippetの型パラメータを明示的に指定
   interface Props {
@@ -15,6 +17,24 @@
 
   let {title, action, positive, negative, children}:Props = $props()
 
+  let dispose: Promise<()=>Promise<void>>|undefined = undefined
+
+  onMount(()=>{
+    const keyMap = createKeyEvents()
+      .register(keyFor({key: "Escape", asCode: false}), ()=>{action("negative"); return true})
+      .register(keyFor({key: "Enter", asCode: false}), ()=>{action("positive"); return true})
+
+    dispose = viewModel.switchKeyMapOnDialog(keyMap)
+    // // viewModel.switchKeyMapOnDialog()
+    // logger.debug("Dialog: onMount")
+    // return ()=>{
+    //   logger.debug("Dialog: onUnmount")
+    // }
+  })
+  onDestroy(()=>{
+    dispose?.then(fn=>fn())
+  })
+
 </script>
 
 <div class="flex flex-col w-1/2 bg-background text-background-on border border-gray">
@@ -22,11 +42,11 @@
     <div class="flex-1">{title}</div>
     <IconButton class="w-7 h-7 p-1 hover:bg-secondary hover:text-secondary-on rounded" path={ICON_CLOSE} onclick={()=>action("close")}/>
   </div>
-  <div class="dialog-content p-3">
+  <div class="dialog-content p-2">
     {@render children()}
   </div>
   {#if positive || negative}
-  <div class="flex flex-row justify-center my-2">
+  <div class="flex flex-row justify-center mt-1 mb-3 mx-2">
     {#if positive}
       <button class:disabled={positive.disabled} class="w-40 p-1 bg-primary text-primary-on rounded" onclick={()=>action("positive")}>{positive.label}</button>
     {/if}
