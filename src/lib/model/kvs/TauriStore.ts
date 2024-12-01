@@ -1,5 +1,4 @@
-import { Store, load } from '@tauri-apps/plugin-store'
-import {get} from "svelte/store";
+import { type Store, load } from '@tauri-apps/plugin-store'
 import type {IKVS} from "$lib/model/kvs/IKVS";
 
 class TauriStore implements IKVS {

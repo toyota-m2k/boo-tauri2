@@ -6,7 +6,7 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-   let qbuilder = tauri::Builder::default();
+   let mut builder = tauri::Builder::default();
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
         // global shortcut プラグインは、android / ios ではサポートされない

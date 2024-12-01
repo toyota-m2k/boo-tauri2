@@ -26,7 +26,7 @@
       <div>Color Variation</div>
       {#each colorVariations as c (c)}
         <div class="flex {c}">
-        <input type="radio"  class="w-5 h-5 text-surface-on focus:ring-secondary" name="colorVariation" id={c} value={c} checked={settings.colorVariation===c} on:change={()=>setColorVariation(c)} />
+        <input type="radio"  class="w-5 h-5 text-surface-on focus:ring-secondary" name="colorVariation" id={c} value={c} checked={settings.colorVariation===c} onchange={()=>setColorVariation(c)} />
           {#if c==='default'}
             <div class="flex-1 ml-1 px-1">
               <label for={c}>{c.toUpperCase()}</label>
