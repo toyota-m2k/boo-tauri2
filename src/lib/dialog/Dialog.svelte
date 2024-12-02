@@ -19,6 +19,8 @@
 
   let dispose: Promise<()=>Promise<void>>|undefined = undefined
 
+  $inspect(positive?.disabled).with((type,value)=>logger.debug(`Dialog:positive.disabled=${value}`))
+
   onMount(()=>{
     const keyMap = createKeyEvents()
       .register(keyFor({key: "Escape", asCode: false}), ()=>{action("negative"); return true})
@@ -35,9 +37,18 @@
     dispose?.then(fn=>fn())
   })
 
+  function preventDefault(e:Event) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+  function callAction(reason:"close"|"negative"|"positive") {
+    if(positive?.disabled && reason==="positive") return
+    if(negative?.disabled && reason==="negative") return
+    action(reason)
+  }
 </script>
 
-<div class="flex flex-col w-1/2 bg-background text-background-on border border-gray">
+<div class="flex flex-col w-1/2 bg-background text-background-on border border-gray" onclick={preventDefault} role="none">
   <div class="dialog-title px-2 py-1 bg-primary text-primary-on flex flex-row items-center">
     <div class="flex-1">{title}</div>
     <IconButton class="w-7 h-7 p-1 hover:bg-secondary hover:text-secondary-on rounded" path={ICON_CLOSE} onclick={()=>action("close")}/>
@@ -56,3 +67,10 @@
   </div>
   {/if}
 </div>
+
+<style lang="scss">
+  button.disabled {
+    color: var(--color-gray-on-alt);
+    background-color: var(--color-gray);
+  }
+</style>

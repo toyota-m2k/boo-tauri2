@@ -38,8 +38,7 @@ class BooProtocolImpl implements IBooProtocol {
       this.challenge = this.capabilities?.challenge
       return this.capabilities !== undefined
     } catch (e: any) {
-      logger.error(`cannot setup for ${hostInfo.host}:${hostInfo.port}`)
-      console.error(e)
+      logger.exception(e.toString(), `cannot setup for ${hostInfo.host}:${hostInfo.port}`)
       return false
     }
   }

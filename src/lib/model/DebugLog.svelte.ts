@@ -12,6 +12,7 @@ interface IDebugLog {
     info(message: string): void
     warn(message: string): void
     error(message: string): void
+    exception(e:any,message?:string): void
     clear: () => void
     messages: IDebugMessage[]
 }
@@ -34,6 +35,16 @@ class DebugLog implements IDebugLog {
     info(message: string) { this.push(message, "info") }
     warn(message: string) { this.push(message, "warn") }
     error(message: string) { this.push(message, "error")  }
+    exception(e:Error|any,message?:string) {
+        if(message) this.error(message)
+        if(e instanceof Error) {
+            this.error(e.message)
+            this.error(e.stack ?? "no stack")
+        } else {
+            this.error(e.message ?? e.toString())
+            if(e.stack) this.error(e.stack)
+        }
+    }
     clear() { this.messages = [] }
 }
 

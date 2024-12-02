@@ -113,7 +113,7 @@
   //   }
   // })
 
-  $inspect(settings.currentHost?.displayName)
+  // $inspect(settings.currentHost?.displayName)
 
   $effect(() => {
     //logger.info(`onEffect: ${$state.snapshot(settings.currentHost?.displayName ?? "no host")}`)
