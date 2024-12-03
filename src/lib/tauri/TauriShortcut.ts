@@ -31,6 +31,8 @@ class TauriShortcut implements ITauriShortcut {
   }
 
   async add(key:IKey|IKey[], callback:()=>void):Promise<ITauriShortcut> {
+    if(!tauriObject.desktop) return this
+
     // tauriのAPIでショートカットキーを登録する
     if(Array.isArray(key)) {
       for (const k of key) {
@@ -50,7 +52,7 @@ class TauriShortcut implements ITauriShortcut {
     return this
   }
   async remove(key:IKey|IKey[]): Promise<ITauriShortcut> {
-    if(!tauriObject.isAvailable) return this
+    if(!tauriObject.desktop) return this
     if(Array.isArray(key)) {
       await unregister(key.map(k=>this.tauriKeyName(k)))
     } else {
@@ -59,7 +61,7 @@ class TauriShortcut implements ITauriShortcut {
     return this
   }
   async removeAll() : Promise<ITauriShortcut> {
-    if(!tauriObject.isAvailable) return this
+    if(!tauriObject.desktop) return this
     await unregisterAll()
     return this
   }

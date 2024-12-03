@@ -3,10 +3,12 @@ import {logger} from "$lib/model/DebugLog.svelte";
 import {delay, launch} from "$lib/utils/Utils";
 import {env} from "$lib/utils/Env";
 import {getName, getTauriVersion, getVersion} from "@tauri-apps/api/app";
+import {isTauri} from "@tauri-apps/api/core";
 
 interface ITauriObject {
   prepare():Promise<boolean>
   isAvailable:boolean
+  desktop:boolean
   window:Window|undefined
   toggleFullScreen(complete:(isFullscreen:boolean)=>void):boolean
   minimize():boolean
@@ -17,6 +19,7 @@ class TauriObject implements ITauriObject {
   window: Window | undefined = undefined
   tauriVersion: string = ""
   appVersion: string = ""
+  desktop: boolean = false
 
 
   async prepare() {
@@ -24,11 +27,17 @@ class TauriObject implements ITauriObject {
       this.window = new Window('main')
       this.tauriVersion = await getTauriVersion()
       this.appVersion = await getVersion()
-      const name = await getName()
-      await this.window.setTitle(`${name} - v${this.appVersion}`)
-      await this.window.isFullscreen()
       this.isAvailable = true
       logger.info(`tauri available {tauri:${this.tauriVersion}, app:${this.appVersion}}`)
+      try {
+        const name = await getName()
+        await this.window.setTitle(`${name} - v${this.appVersion}`)
+        await this.window.isFullscreen()
+        this.desktop = true
+      } catch(_) {
+        logger.info("ios or android")
+        this.desktop = false
+      }
       return true
     } catch(_) {
       logger.info("tauri not available")
@@ -36,13 +45,16 @@ class TauriObject implements ITauriObject {
       this.tauriVersion = "no tauri"
       this.appVersion = "<uav>"
       this.isAvailable = false
+      this.desktop = false
       return false
     }
   }
 
   private async maximize(window:Window) {
-    await window.setFullscreen(true)
-    logger.debug("setFullscreen(true)")
+    // logger.debug("setFullscreen(true)")
+    if(this.desktop) {
+      await window.setFullscreen(true)
+    }
     // if (env.isWin) {
     //   await window.setFullscreen(true)
     //   logger.debug("setFullscreen(true)")
@@ -52,8 +64,10 @@ class TauriObject implements ITauriObject {
     // }
   }
   private async unmaximize(window:Window) {
-    await window.setFullscreen(false)
     logger.debug("setFullscreen(false)")
+    if(this.desktop) {
+      await window.setFullscreen(false)
+    }
     // if (env.isWin) {
     //   await window.setFullscreen(false)
     //   logger.debug("setFullscreen(false)")
@@ -63,7 +77,11 @@ class TauriObject implements ITauriObject {
     // }
   }
   private async isMaximized(window:Window):Promise<boolean> {
-    return await window.isFullscreen()
+    if(this.desktop) {
+      return await window.isFullscreen()
+    } else {
+      return false
+    }
     // if (env.isWin) {
     //   return await window.isFullscreen()
     // } else {
@@ -72,7 +90,7 @@ class TauriObject implements ITauriObject {
   }
   toggleFullScreen(complete?: (isFullscreen: boolean) => void): boolean {
     const window = this.window
-    if (!window) return false
+    if (!window||!this.desktop) return false
     launch(async () => {
       if (await this.isMaximized(window)) {
         await this.unmaximize(window)
@@ -94,7 +112,7 @@ class TauriObject implements ITauriObject {
 
   minimize() {
     const window = this.window
-    if (!window) return false
+    if (!window||!this.desktop) return false
     logger.debug("minimize() called")
     launch(async () => {
       if(env.isMac) {
