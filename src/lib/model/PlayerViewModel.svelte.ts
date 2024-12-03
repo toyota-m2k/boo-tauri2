@@ -18,11 +18,10 @@ class PlayerViewModel implements IPlayerCommands {
   isAudio = $derived(viewModel.currentItem?.media === "a")
   isImage = $derived(viewModel.currentItem?.media === "p")
   isAV = $derived(this.isVideo || this.isAudio)
-  generation = $state(0)  // 再認証によってurlが変わったときに、$derived（*Source） の値を再評価させるためのカウンタ
 
-  videoSource = $derived(this.isVideo ? viewModel.mediaUrl(viewModel.currentItem, this.generation) : undefined)
-  audioSource = $derived(this.isAudio ? viewModel.mediaUrl(viewModel.currentItem, this.generation) : undefined)
-  imageSource = $derived(this.isImage ? viewModel.mediaUrl(viewModel.currentItem, this.generation) : undefined)
+  videoSource = $derived(this.isVideo ? viewModel.mediaUrl(viewModel.currentItem) : undefined)
+  audioSource = $derived(this.isAudio ? viewModel.mediaUrl(viewModel.currentItem) : undefined)
+  imageSource = $derived(this.isImage ? viewModel.mediaUrl(viewModel.currentItem) : undefined)
   avSource = $derived(this.videoSource || this.audioSource)
 
   duration = $state(0)
@@ -36,14 +35,13 @@ class PlayerViewModel implements IPlayerCommands {
   initialSeekPosition = $state(0)
   pinControlPanel = $state(false)
 
+  async reAuthIfNeeded() {
+    await viewModel.refreshAuth()
+  }
+
   tryReAuth() {
     launch( async ()=> {
-      const item = viewModel.currentItem
-      viewModel.currentItem = undefined
-      if (await viewModel.refreshAuth()) {
-        viewModel.currentItem = item
-        this.generation++
-      }
+      await this.reAuthIfNeeded()
     })
   }
 

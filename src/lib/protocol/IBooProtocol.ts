@@ -1,4 +1,5 @@
 import type {IHostInfo} from "$lib/model/ModelDef";
+import type {IAuthInfo} from "$lib/protocol/AuthInfo.svelte";
 
 export interface IDResponse {
   id: string
@@ -106,8 +107,9 @@ export interface IRatingList {
 }
 
 export interface IBooProtocol {
-  setup(hostInfo: IHostInfo): Promise<boolean>
+  authInfo: IAuthInfo
 
+  setup(hostInfo: IHostInfo): Promise<boolean>
   noop(): Promise<boolean>
 
   list(req: IListRequest): Promise<IMediaList>

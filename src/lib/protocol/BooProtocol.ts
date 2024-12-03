@@ -11,23 +11,25 @@ import type {
 import {fetchWithTimeout} from "../utils/Utils";
 import {logger} from "../model/DebugLog.svelte";
 import type {IHostInfo, IHostPort} from "$lib/model/ModelDef";
+import {createAuthInfo, type IAuthInfo} from "$lib/protocol/AuthInfo.svelte";
 
 class BooProtocolImpl implements IBooProtocol {
   private hostPort: IHostInfo | undefined
   private capabilities: ICapabilities | undefined
-  private authToken: IAuthToken | undefined
   private challenge: string | undefined
-  private readonly requirePassword: ((target:string|undefined) => Promise<string|undefined>)
+  private secret: string | undefined
 
-  constructor(requirePassword: (target:string|undefined) => Promise<string|undefined>) {
-    this.requirePassword = requirePassword
+  authInfo: IAuthInfo = createAuthInfo()
+
+  constructor(private readonly requirePassword: (target:string|undefined) => Promise<string|undefined>) {
   }
 
   private reset() {
     this.capabilities = undefined
     this.hostPort = undefined
-    this.authToken = undefined
     this.challenge = undefined
+    this.secret = undefined
+    this.authInfo.reset()
   }
 
   async setup(hostInfo: IHostInfo): Promise<boolean> {
@@ -60,7 +62,7 @@ class BooProtocolImpl implements IBooProtocol {
     return `http://${this.hostPort.host}:${this.hostPort.port}/`
   }
 
-  private get needAuth(): boolean {
+  get needAuth(): boolean {
     return this.capabilities?.authentication === true
   }
 
@@ -68,7 +70,7 @@ class BooProtocolImpl implements IBooProtocol {
     // if(!this.needAuth) {
     //     return true // no authentication required
     // }
-
+    this.secret = undefined
     const challenge = await this.getChallenge(false)
     if (!challenge) {
       throw new BooError('generic', 'failed to get challenge')
@@ -83,9 +85,11 @@ class BooProtocolImpl implements IBooProtocol {
       body: authentication.createPassPhrase(password, challenge)
     })
     if (!r.ok) {
+      this.authInfo.failed()
       return false
     }
-    this.authToken = await r.json() as IAuthToken
+    this.authInfo.authenticated((await r.json() as IAuthToken).token)
+    this.secret = password
     return true
   }
 
@@ -105,7 +109,7 @@ class BooProtocolImpl implements IBooProtocol {
   private async ensureAuth(): Promise<void> {
     let password: string | undefined
     do {
-      password = await this.requirePassword(this.hostPort?.displayName ?? this.hostPort?.host)
+      password = this.secret ?? await this.requirePassword(this.hostPort?.displayName ?? this.hostPort?.host)
       if (!password) {
         throw new BooError('cancel', 'password has not been set.')
       }
@@ -118,8 +122,8 @@ class BooProtocolImpl implements IBooProtocol {
     }
     while (true) {
       try {
-        if (this.authToken) {
-          const ret = await fn(this.authToken.token)
+        if (this.authInfo.token) {
+          const ret = await fn(this.authInfo.token)
           logger.debug(`boo auth result = ${JSON.stringify(ret)}`)
           return ret
         } else {
@@ -151,20 +155,28 @@ class BooProtocolImpl implements IBooProtocol {
     return r
   }
 
+  /**
+   * @return true: token refreshed, false: token not refreshed
+   */
   async noop(): Promise<boolean> {
     if(this.capabilities?.authentication) {
       try {
+        const orgToken = this.authInfo.token
         return await this.withAuthToken(async (token?: string) => {
           const url = this.baseUri + 'auth/' + (token ?? '')
           const r = await fetchWithTimeout(url, 3000)
-          return (await (await this.handleResponseRaw(r)).text()).toLowerCase() === 'ok'
+          if((await (await this.handleResponseRaw(r)).text()).toLowerCase() === 'ok') {
+            return orgToken !== this.authInfo.token
+          } else {
+            return false
+          }
         })
       } catch (e) {
         logger.error(`re-auth failed: ${e}`)
         return false
       }
     } else {
-      return true
+      return false
     }
   }
 
@@ -205,8 +217,8 @@ class BooProtocolImpl implements IBooProtocol {
 
   getItemUrl(mediaItem: IMediaItem): string {
     let auth = ``
-    if (this.needAuth && this.authToken) {
-      auth = `&auth=${this.authToken.token}`
+    if (this.needAuth && this.authInfo.token) {
+      auth = `&auth=${this.authInfo.token}`
     }
     switch (mediaItem.type as string) {
       case 'jpg':

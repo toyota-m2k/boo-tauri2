@@ -25,6 +25,7 @@
       launch(async ()=>{
         while(count<10&&playRequested) {
           try {
+            await playerViewModel.reAuthIfNeeded()
             await player.play()
             return
           } catch (e) {
@@ -42,7 +43,7 @@
     }
   }
 
-  // $inspect(viewModel.currentItem?.name, playerViewModel.avSource)
+  $inspect(viewModel.currentItem?.name, playerViewModel.avSource)
 
   onMount(()=>{
     playerViewModel.setPlayerCommands(playerCommands)

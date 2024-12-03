@@ -228,7 +228,7 @@ class ViewModel {
     })
   }
 
-  mediaUrl(mediaItem: IMediaItem|undefined, generation:number): string|undefined {
+  mediaUrl(mediaItem: IMediaItem|undefined): string|undefined {
     if(!mediaItem) return undefined
     return this.boo.getItemUrl(mediaItem)
   }
