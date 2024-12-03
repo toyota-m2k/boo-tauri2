@@ -38,8 +38,8 @@
   })
 
   function preventDefault(e:Event) {
-    e.preventDefault()
-    e.stopPropagation()
+    // e.preventDefault()  // これを入れると、ダイアログ上のチェックボックスが動かなくなる
+    e.stopPropagation()    // これを入れないと、ダイアログ上をクリックしたとき（ガードビューにイベントが伝播してダイアログが閉じてしまう）
   }
   function callAction(reason:"close"|"negative"|"positive") {
     if(positive?.disabled && reason==="positive") return
