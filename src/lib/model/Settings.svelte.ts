@@ -4,7 +4,7 @@ import type {
   IHostInfoList,
   IHostPort,
   IPlayStateOnHost,
-  ISettings
+  ISettings, SortKey
 } from "$lib/model/ModelDef";
 import {HostInfoList} from "$lib/model/HostInfoList.svelte";
 import type {PlayMode} from "$lib/protocol/IBooProtocol";
@@ -94,9 +94,26 @@ class Settings implements ISettings {
     targetHost = targetHost || this.currentHost
     if (!targetHost) return
     const key = `${targetHost.host}@${targetHost.port}`
+    const current = this._hostInfoList.playStateOnHosts[key]
     this._hostInfoList.playStateOnHosts[key] = {
       currentMediaId: mediaId,
-      currentMediaPosition: position
+      currentMediaPosition: position,
+      sortKey: current?.sortKey ?? 'server',
+      descending: current?.descending ?? false
+    }
+    launch(()=>this._preferences.set(KEY_PLAY_STATE_ON_HOSTS, this._hostInfoList.playStateOnHosts))
+  }
+
+  updateSortInfo(sortKey:SortKey, descending:boolean, targetHost?: IHostPort|undefined):void {
+    targetHost = targetHost || this.currentHost
+    if (!targetHost) return
+    const key = `${targetHost.host}@${targetHost.port}`
+    const current = this._hostInfoList.playStateOnHosts[key]
+    this._hostInfoList.playStateOnHosts[key] = {
+      currentMediaId: current?.currentMediaId ?? '',
+      currentMediaPosition: current?.currentMediaPosition ?? 0,
+      sortKey,
+      descending
     }
     launch(()=>this._preferences.set(KEY_PLAY_STATE_ON_HOSTS, this._hostInfoList.playStateOnHosts))
   }

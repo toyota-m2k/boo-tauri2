@@ -3,22 +3,34 @@
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import {formatSize, formatTime} from "$lib/utils/Utils";
   import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
+  import {onMount} from "svelte";
 
   let currentId = $derived(viewModel.currentItem?.id)
 
-  $effect(()=>{
-    if(currentId) {
-      const el = document.getElementById(currentId)
+  function ensureVisible(itemId:string|undefined) {
+    if(itemId) {
+      const el = document.getElementById(itemId)
       if(el) {
         el.scrollIntoView({block: "nearest", inline: "nearest", behavior: "smooth"})
       }
     }
+  }
+
+  $effect(()=>{
+    ensureVisible(currentId)
   })
 
   function onSelect(e:MouseEvent, i:number) {
     console.log("onSelect", i)
     viewModel.currentItem = viewModel.mediaList.list[i]
   }
+
+  onMount(()=>{
+    viewModel.scrollToCurrentItem = ensureVisible
+    return ()=>{
+      viewModel.scrollToCurrentItem = undefined
+    }
+  })
 </script>
 
 <div class="panel w-full h-full">

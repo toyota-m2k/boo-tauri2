@@ -14,6 +14,7 @@
   import PasswordDialogContent from "$lib/dialog/PasswordDialogContent.svelte";
   import {env} from "$lib/utils/Env";
   import {dialogViewModel} from "$lib/dialog/DialogViewModel.svelte";
+  import SortDialogContent from "$lib/dialog/SortDialogContent.svelte";
 
   // import { invoke } from "@tauri-apps/api/core";
   // let name = $state("");
@@ -169,6 +170,8 @@
     <SystemDialogContent bind:show={dialogViewModel.showSystemDialog}/>
     {:else if dialogViewModel.showPasswordDialog}
     <PasswordDialogContent bind:show={dialogViewModel.showPasswordDialog}/>
+    {:else if dialogViewModel.showSortDialog}
+    <SortDialogContent bind:show={dialogViewModel.showSortDialog}/>
     {/if}
   </div>
   {/if}

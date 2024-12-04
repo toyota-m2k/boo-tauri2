@@ -1,4 +1,4 @@
-import type {IHostInfo, IHostPort} from "$lib/model/ModelDef";
+import type {IHostInfo, IHostPort, SortKey} from "$lib/model/ModelDef";
 import {emptyMediaList, type IListRequest, type IMediaItem, type IMediaList} from "$lib/protocol/IBooProtocol";
 import {createBooProtocol} from "$lib/protocol/BooProtocol";
 import {settings} from "$lib/model/Settings.svelte";
@@ -11,6 +11,7 @@ import {untrack} from "svelte";
 import {tauriObject} from "$lib/tauri/TauriObject";
 import {tauriShortcut} from "$lib/tauri/TauriShortcut";
 import {passwordViewModel} from "$lib/model/PasswordViewModel.svelte";
+import {sortViewModel} from "$lib/model/SortViewModel.svelte";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -25,16 +26,45 @@ class ViewModel {
   acceptAudio = $state(true)
   acceptPhoto = $state(true)
 
-  mediaList:IMediaList = $derived.by(()=>{
-    return {list:this.rawMediaList.list.filter(item=>{
-      switch(item.media) {
-        case "v": return this.acceptVideo
-        case "a": return this.acceptAudio
-        case "p": return this.acceptPhoto
-        default: return false
+  mediaList:IMediaList = $derived.by(()=> {
+    if (!this.rawMediaList || this.rawMediaList.list.length === 0) return {list:[],date:this.rawMediaList.date}
+    let list = this.rawMediaList.list.filter(item => {
+      switch (item.media) {
+        case "v":
+          return this.acceptVideo
+        case "a":
+          return this.acceptAudio
+        case "p":
+          return this.acceptPhoto
+        default:
+          return false
       }
-    }), date:this.rawMediaList.date}
+    })
+    if (sortViewModel.sortKey !== "server") {
+      const c = sortViewModel.descending ? -1 : 1
+      list.sort((a, b) => {
+        switch(sortViewModel.sortKey) {
+          case "name":
+            return a.name.localeCompare(b.name) * c
+          case "size":
+            return (a.size - b.size) * c
+          case "duration":
+            return ((a.duration ?? 0) - (b.duration ?? 0)) * c
+          default:
+            return 0
+        }
+      })
+    } else if(sortViewModel.descending) {
+      list.reverse()
+    }
+    return {list, date: this.rawMediaList.date}
   })
+
+  scrollToCurrentItem: ((item:string|undefined)=>void)|undefined = undefined
+  ensureCurrentItemVisible() {
+    this.scrollToCurrentItem?.(this.currentItem?.id)
+  }
+
   currentItem = $state<IMediaItem|undefined>(undefined)
 
   hasPrev = $derived(this.currentItem ? this.mediaList.list.indexOf(this.currentItem)>0 : false)
@@ -176,6 +206,8 @@ class ViewModel {
   }
 
   private previousHostInfo: IHostPort|undefined = undefined
+  // sortKey: SortKey = $state("server")
+  // descending: boolean = $state(false)
 
   onHostChanged(newHost:IHostInfo|undefined) {
     // $effect()から呼ばれるが、このメソッド内で参照している$state/$derived、
@@ -199,19 +231,21 @@ class ViewModel {
       // 情報更新前にクリア
       this.rawMediaList = emptyMediaList()
       this.currentItem = undefined
+      sortViewModel.reset()
 
       this.isBusy = true
       launch(async () => {
         try {
           if (await this.boo.setup(hostPort)) {
+            const playState = settings.getPlayStateOnHost(hostPort)
             this.videoSupported = this.boo.isSupported("v")
             this.audioSupported = this.boo.isSupported("a")
             this.photoSupported = this.boo.isSupported("p")
+            sortViewModel.load(playState)
             this.rawMediaList = await this.boo.list(this.listRequest)
 
             // 前回の再生位置を復元
             let item: IMediaItem | undefined = undefined
-            const playState = settings.getPlayStateOnHost(hostPort)
             if (playState) {
               item = this.mediaList.list.find((item) => item.id === playState.currentMediaId)
               if (item) {

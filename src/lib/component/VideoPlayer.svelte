@@ -46,7 +46,7 @@
     }
   }
 
-  $inspect(viewModel.currentItem?.name, playerViewModel.avSource)
+  // $inspect(viewModel.currentItem?.name, playerViewModel.avSource)
 
   onMount(()=>{
     playerViewModel.setPlayerCommands(playerCommands)

@@ -10,16 +10,17 @@
   interface Props {
     title: string
     action:(reason:"close"|"negative"|"positive")=>void
+    onClosed?:()=>void
     positive?: {label:string, disabled:boolean}
     negative?: {label:string, disabled:boolean}
     children: Snippet
   }
 
-  let {title, action, positive, negative, children}:Props = $props()
+  let {title, action, onClosed, positive, negative, children}:Props = $props()
 
   let dispose: Promise<()=>Promise<void>>|undefined = undefined
 
-  $inspect(positive?.disabled).with((type,value)=>logger.debug(`Dialog:positive.disabled=${value}`))
+  // $inspect(positive?.disabled).with((type,value)=>logger.debug(`Dialog:positive.disabled=${value}`))
 
   onMount(()=>{
     const keyMap = createKeyEvents()
@@ -34,7 +35,10 @@
     // }
   })
   onDestroy(()=>{
-    dispose?.then(fn=>fn())
+    dispose?.then(fn=>{
+      fn()
+      onClosed?.()
+    })
   })
 
   function preventDefault(e:Event) {
