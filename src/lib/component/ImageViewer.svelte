@@ -4,9 +4,12 @@
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import {TimingSwitch} from "$lib/utils/TimingSwitch";
   import {settings} from "$lib/model/Settings.svelte";
+  import {CursorConcealer} from "$lib/model/CursorConcealer.svelte";
 
   let viewer: HTMLImageElement = $state() as HTMLImageElement
   let { onended }: { onended: () => void } = $props()
+  let cursorConcealer = new CursorConcealer()
+  let hideCursor = $derived(cursorConcealer.hideCursor&&playerViewModel.playing)
 
   $effect(() => {
     if (playerViewModel.autoPlay) {
@@ -31,11 +34,13 @@
     <img
       bind:this={viewer}
       class="media-view"
+      class:cursor-none={hideCursor}
       class:fit={playerViewModel.fitMode==="fit"}
       class:fill={playerViewModel.fitMode==="fill"}
       class:original={playerViewModel.fitMode==="original"}
       src={playerViewModel.imageSource}
       alt={viewModel.currentItem?.name ?? "noname"}
+      onmousemove={()=>cursorConcealer.onMouseMove()}
     />
   </ZoomView>
 {:else}
