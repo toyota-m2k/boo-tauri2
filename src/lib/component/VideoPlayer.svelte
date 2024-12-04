@@ -7,9 +7,12 @@
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import {delay, launch} from "$lib/utils/Utils";
   import {chaptersViewModel} from "$lib/model/ChaptersViewModel.svelte";
+  import {CursorConcealer} from "$lib/model/CursorConcealer.svelte";
 
   let rest = $props()
   let player = $state<HTMLVideoElement>() as HTMLVideoElement;
+  let cursorConcealer = new CursorConcealer()
+  let hideCursor = $derived(cursorConcealer.hideCursor&&playerViewModel.playing)
   let playRequested = playerViewModel.autoPlay
   let playerCommands:IPlayerCommands = {
     nextChapter: ()=>{
@@ -88,6 +91,7 @@
   <ZoomView onclick={()=>playerViewModel.togglePlay()}>
     <video
       class="media-view"
+      class:cursor-none={hideCursor}
       class:fit={playerViewModel.fitMode==="fit"}
       class:fill={playerViewModel.fitMode==="fill"}
       class:original={playerViewModel.fitMode==="original"}
@@ -103,6 +107,7 @@
       onloadedmetadata={onLoadedMetaData}
       onloadeddata={onLoaded}
       onerror={onError}
+      onmousemove={()=>cursorConcealer.onMouseMove()}
 
       {...rest}
       autoplay

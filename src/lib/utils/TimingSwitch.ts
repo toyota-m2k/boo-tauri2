@@ -15,7 +15,7 @@ export class TimingSwitch {
     return this.timerId!==0
   }
 
-  start() {
+  start():TimingSwitch {
     // logger.debug("TimingSwitch.start: timeout="+this.interval)
     this.cancel()
     this.timerId = setTimeout(()=>{
@@ -24,6 +24,7 @@ export class TimingSwitch {
         this.start()    // リスタート
       }
     }, this.interval)
+    return this
   }
 
   cancel() {
