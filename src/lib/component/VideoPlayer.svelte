@@ -72,6 +72,11 @@
   function onLoadedMetaData() {
     logger.info("onLoadedMetaData")
 
+    // Durationはバインドしないで、onloadedmetadataで設定する。
+    // そうしないと、ランタイムに、
+    // [svelte] assignment_value_stale Assignment to `duration` property (src/​lib/​component/​VideoPlayer.svelte:101:21) will evaluate to the right-hand side, not the value of `duration` following the assignment. This may result in unexpected behaviour.
+    // というワーニングが出る。（つまり、
+    playerViewModel.duration = player?.duration || 0;
   }
   function onLoaded() {
     logger.info("onLoaded")
@@ -98,7 +103,6 @@
       bind:this={player}
       src={playerViewModel.avSource}
 
-      bind:duration={playerViewModel.duration}
       bind:currentTime={playerViewModel.currentPosition}
       bind:muted={playerViewModel.muted}
       onplay={onPlay}

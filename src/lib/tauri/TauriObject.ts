@@ -3,7 +3,7 @@ import {logger} from "$lib/model/DebugLog.svelte";
 import {delay, launch} from "$lib/utils/Utils";
 import {env} from "$lib/utils/Env";
 import {getName, getTauriVersion, getVersion} from "@tauri-apps/api/app";
-import {isTauri} from "@tauri-apps/api/core";
+// import {isTauri} from "@tauri-apps/api/core";
 
 interface ITauriObject {
   prepare():Promise<boolean>
@@ -20,7 +20,6 @@ class TauriObject implements ITauriObject {
   tauriVersion: string = ""
   appVersion: string = ""
   desktop: boolean = false
-
 
   async prepare() {
     try {

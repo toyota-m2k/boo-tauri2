@@ -24,7 +24,7 @@ class PlayerViewModel implements IPlayerCommands {
   imageSource = $derived(this.isImage ? viewModel.mediaUrl(viewModel.currentItem) : undefined)
   avSource = $derived(this.videoSource || this.audioSource)
 
-  duration = $state(0)
+  duration:number = $state(0)
   currentPosition = $state(0)
   safeDuration = $derived(this.duration>=0 ? this.duration : 0)
   safeCurrentPosition = $derived(this.currentPosition>=0 ? this.currentPosition : 0)
