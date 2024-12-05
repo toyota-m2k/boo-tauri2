@@ -5,7 +5,7 @@ import type {SortKey} from "$lib/model/ModelDef";
 import {sortViewModel} from "$lib/model/SortViewModel.svelte";
 
 let {show = $bindable()}:{show:boolean} = $props()
-const sortKeys: SortKey[] = ["server", "name", "duration", "size"];
+const sortKeys: SortKey[] = ["server", "name", "duration", "size", "date"];
 const sortOrders: string[] = ["ascending", "descending"];
 
 function capitalize(label: string): string {

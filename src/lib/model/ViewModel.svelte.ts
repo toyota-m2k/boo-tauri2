@@ -50,6 +50,12 @@ class ViewModel {
             return (a.size - b.size) * c
           case "duration":
             return ((a.duration ?? 0) - (b.duration ?? 0)) * c
+          case "date":
+            if(a.date && b.date) {
+              return (a.date - b.date) * c
+            } else {
+              return parseInt(a.id) - parseInt(b.id) * c
+            }
           default:
             return 0
         }

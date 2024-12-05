@@ -53,6 +53,7 @@ export interface IMediaItem {
   start: number | undefined,
   end: number | undefined,
   duration: number | undefined,
+  date: number,
 }
 
 export interface IMediaList {

@@ -24,7 +24,7 @@ export interface IHostInfoList {
   findByHostPort(hostPort: IHostPort|undefined): IHostInfo|undefined
 }
 
-export type SortKey = 'name' | 'size' | 'duration' | 'server'
+export type SortKey = 'name' | 'size' | 'duration' | 'date' | 'server'
 
 export interface IPlayStateOnHost {
   currentMediaId: string,

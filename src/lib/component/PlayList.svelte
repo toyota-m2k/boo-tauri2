@@ -4,6 +4,7 @@
   import {formatSize, formatTime} from "$lib/utils/Utils";
   import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
   import {onMount} from "svelte";
+  import {sortViewModel} from "$lib/model/SortViewModel.svelte";
 
   let currentId = $derived(viewModel.currentItem?.id)
 
@@ -43,12 +44,12 @@
             {#if currentId===item.id}
               <div class="px-1 py-0.5 bg-secondary">
                 <div class="text-secondary-on">{item.name}</div>
-                <div class="text-secondary-on-alt">{item.duration!==undefined ? formatTime(item.duration) : formatSize(item.size) }</div>
+                <div class="text-secondary-on-alt">{(item.duration!==undefined && sortViewModel.sortKey!=="size") ? formatTime(item.duration) : formatSize(item.size) }</div>
               </div>
             {:else}
               <div class="px-1 py-0.5 bg-surface">
                 <div class="text-surface-on">{item.name}</div>
-                <div class="text-surface-on-alt">{item.duration!==undefined ? formatTime(item.duration) : formatSize(item.size) }</div>
+                <div class="text-surface-on-alt">{(item.duration!==undefined && sortViewModel.sortKey!=="size") ? formatTime(item.duration) : formatSize(item.size) }</div>
               </div>
             {/if}
           </td>
