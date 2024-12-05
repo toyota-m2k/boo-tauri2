@@ -28,7 +28,10 @@
       launch(async ()=>{
         while(count<10&&playRequested) {
           try {
-            await playerViewModel.reAuthIfNeeded()
+            const pos = playerViewModel.currentPosition
+            if(await playerViewModel.reAuthIfNeeded()) {
+              playerViewModel.initialSeekPosition = pos
+            }
             await player.play()
             return
           } catch (e) {
@@ -45,6 +48,9 @@
       player.pause()
     }
   }
+
+  let ddd = $state(0)
+  $inspect(ddd)
 
   // $inspect(viewModel.currentItem?.name, playerViewModel.avSource)
 
@@ -68,6 +74,7 @@
   function onLoadStart() {
     logger.info("onLoadStart")
     playerViewModel.currentPosition = 0
+    playerViewModel.duration = 0
   }
   function onLoadedMetaData() {
     logger.info("onLoadedMetaData")
@@ -103,6 +110,7 @@
       bind:this={player}
       src={playerViewModel.avSource}
 
+      bind:duration={ddd}
       bind:currentTime={playerViewModel.currentPosition}
       bind:muted={playerViewModel.muted}
       onplay={onPlay}

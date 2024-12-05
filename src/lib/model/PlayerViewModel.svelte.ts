@@ -35,8 +35,8 @@ class PlayerViewModel implements IPlayerCommands {
   initialSeekPosition = $state(0)
   pinControlPanel = $state(false)
 
-  async reAuthIfNeeded() {
-    await viewModel.refreshAuth()
+  async reAuthIfNeeded():Promise<Boolean> {
+    return await viewModel.refreshAuth()
   }
 
   tryReAuth() {
