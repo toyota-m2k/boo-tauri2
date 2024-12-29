@@ -52,7 +52,7 @@
   }
 </script>
 
-<div class="flex flex-col w-1/2 bg-background text-background-on border border-gray" onclick={preventDefault} role="none">
+<div class="flex flex-col w-1/2 bg-background text-background-on border border-gray" onclick={preventDefault} onmousedown={preventDefault} role="none">
   <div class="dialog-title px-2 py-1 bg-primary text-primary-on flex flex-row items-center">
     <div class="flex-1">{title}</div>
     <IconButton class="w-7 h-7 p-1 hover:bg-secondary hover:text-secondary-on rounded" path={ICON_CLOSE} onclick={()=>action("close")}/>

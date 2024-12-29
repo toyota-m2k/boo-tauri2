@@ -97,7 +97,7 @@
           <div>{newHostPort}</div>
         {:else}
           <div>Address</div>
-          <input type="text" bind:value={newHostAddress} placeholder="IP Address" class="mb-2" readonly />
+          <input type="text" bind:value={newHostAddress} placeholder="IP Address" class="mb-2"/>
           <div>Port</div>
           <input type="number" bind:value={newHostPort} placeholder="IP Address" class="mb-2" />
         {/if}
