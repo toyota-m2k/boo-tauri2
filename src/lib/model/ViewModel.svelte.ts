@@ -73,15 +73,17 @@ class ViewModel {
 
   currentItem = $state<IMediaItem|undefined>(undefined)
 
-  hasPrev = $derived(this.currentItem ? this.mediaList.list.indexOf(this.currentItem)>0 : false)
-  hasNext = $derived(this.currentItem ? this.mediaList.list.indexOf(this.currentItem)<this.mediaList.list.length-1 : false)
+  hasPrev = $derived(this.currentItem && (settings.loopPlay || this.mediaList.list.indexOf(this.currentItem)>0))
+  hasNext = $derived(this.currentItem && (settings.loopPlay || this.mediaList.list.indexOf(this.currentItem)<this.mediaList.list.length-1))
   prev() {
     if(this.currentItem) {
       const index = this.mediaList.list.indexOf(this.currentItem)
       if(index>0) {
         this.currentItem = this.mediaList.list[index-1]
-      }
-    } else if(this.mediaList.list.length>0) {
+    } else if(settings.loopPlay && this.mediaList.list.length>0) {
+      this.currentItem = this.mediaList.list[this.mediaList.list.length-1]  // ループ再生なら最後に戻る
+    }
+  } else if(settings.loopPlay && this.mediaList.list.length>0) {
       this.currentItem = this.mediaList.list[0]
     }
   }
@@ -90,8 +92,10 @@ class ViewModel {
       const index = this.mediaList.list.indexOf(this.currentItem)
       if(index<this.mediaList.list.length-1) {
         this.currentItem = this.mediaList.list[index+1]
+      } else if(settings.loopPlay && this.mediaList.list.length>0) {
+        this.currentItem = this.mediaList.list[0] // ループ再生なら最初に戻る
       }
-    } else if(this.mediaList.list.length>0) {
+    } else if(settings.loopPlay && this.mediaList.list.length>0) {
       this.currentItem = this.mediaList.list[0]
     }
   }

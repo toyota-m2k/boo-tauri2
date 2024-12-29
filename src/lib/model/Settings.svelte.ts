@@ -19,6 +19,7 @@ const KEY_SLIDE_SHOW_INTERVAL = 'slideShowInterval'
 const KEY_COLOR_VARIATION = 'colorVariation'
 const KEY_IS_DARK_MODE = 'isDarkMode'
 const KEY_ENABLE_DEBUG_LOG = 'enableDebugLog'
+const KEY_LOOP_PLAY = 'loopPlay'
 
 class Settings implements ISettings {
   private _preferences = new Preferences()
@@ -29,6 +30,7 @@ class Settings implements ISettings {
   private _colorVariation = $state<ColorVariation>('default')
   private _isDarkMode = $state<boolean>(false)
   private _enableDebugLog = $state<boolean>(false)
+  private _loopPlay = $state<boolean>(true)
 
   get hostInfoList(): IHostInfoList {
     return this._hostInfoList
@@ -87,6 +89,14 @@ class Settings implements ISettings {
     if(this._enableDebugLog === enableDebugLog) return
     this._enableDebugLog = enableDebugLog
     launch(async()=>await this._preferences.set(KEY_ENABLE_DEBUG_LOG, enableDebugLog))
+  }
+  get loopPlay(): boolean {
+    return this._loopPlay
+  }
+  set loopPlay(loopPlay: boolean) {
+    if(this._loopPlay === loopPlay) return
+    this._loopPlay = loopPlay
+    launch(async()=>await this._preferences.set(KEY_LOOP_PLAY, loopPlay))
   }
 
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void {
@@ -166,6 +176,7 @@ class Settings implements ISettings {
     this._colorVariation = await this._preferences.get(KEY_COLOR_VARIATION) ?? 'default'
     this._isDarkMode = await this._preferences.get(KEY_IS_DARK_MODE) ?? false
     this._enableDebugLog = await this._preferences.get(KEY_ENABLE_DEBUG_LOG) ?? false
+    this._loopPlay = await this._preferences.get(KEY_LOOP_PLAY) ?? true
   }
 }
 
