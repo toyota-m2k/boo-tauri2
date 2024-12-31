@@ -19,6 +19,7 @@
   function deleteHost(e:MouseEvent, host:IHostInfo) {
     stopPropagation(e)
     settings.hostInfoList.remove(host)
+    settings.saveHostList()
   }
 
   let newDisplayName = $state("")
@@ -45,6 +46,7 @@
       } else {
         settings.hostInfoList.add({displayName:newDisplayName, host:newHostAddress, port:newHostPort})
       }
+      settings.saveHostList()
     }
     targetHost = undefined
     editingHost = false
