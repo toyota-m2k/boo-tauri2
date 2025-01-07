@@ -16,10 +16,6 @@
   {#snippet children()}
   <div class="flex flex-col justify-center">
     <div class="flex items-center mt-2 gap-1">
-      <div class="flex flex-grow items-center mt-2">
-        <input type="checkbox" bind:checked={settings.loopPlay} class="w-5 h-5 text-surface-on focus:ring-accent" />
-        <label class="ml-2" for="loopPlay">Loop Play</label>
-      </div>
       <span>Slide Show Interval</span>
       <div class="flex justify-end flex-grow items-center gap-2 pr-4">
         <input type="number" min="1" max="3600" bind:value={settings.slideShowInterval} placeholder="Slide Show Interval" class="w-1/6 h-7" />
@@ -27,6 +23,15 @@
       </div>
     </div>
     <div>
+      <div class="flex flex-grow items-center mt-2">
+        <input type="checkbox" bind:checked={settings.loopPlay} class="w-5 h-5 text-surface-on focus:ring-accent" />
+        <label class="ml-2" for="loopPlay">Loop Play</label>
+      </div>
+      <div class="flex flex-grow items-center mt-2">
+        <input type="checkbox" bind:checked={settings.autoRotation} class="w-5 h-5 text-surface-on focus:ring-accent" />
+        <label class="ml-2" for="autoRotation">Auto Rotation to fit player</label>
+      </div>
+
       <div>Color Variation</div>
       {#each colorVariations as c (c)}
         <div class="flex {c}">

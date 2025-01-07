@@ -1,6 +1,6 @@
 [package]
 name = "bootauri2"
-version = "0.5.1"
+version = "0.5.3"
 description = "Boo Player with Tauri2"
 authors = ["io.github.toyota32k"]
 edition = "2021"

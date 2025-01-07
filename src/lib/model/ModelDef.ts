@@ -44,6 +44,7 @@ export interface ISettings {
   isDarkMode: boolean
   enableDebugLog: boolean
   loopPlay: boolean
+  autoRotation: boolean
   getPlayStateOnHost(hostInfo: IHostPort): IPlayStateOnHost|undefined
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void
   updateSortInfo(sortKey:SortKey, descending:boolean, targetHost?: IHostPort|undefined):void

@@ -1,6 +1,7 @@
 import {viewModel} from "$lib/model/ViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {launch} from "$lib/utils/Utils";
+import {settings} from "$lib/model/Settings.svelte";
 
 export type FitMode = "fit" | "fill" | "original"
 
@@ -18,6 +19,34 @@ class PlayerViewModel implements IPlayerCommands {
   isAudio = $derived(viewModel.currentItem?.media === "a")
   isImage = $derived(viewModel.currentItem?.media === "p")
   isAV = $derived(this.isVideo || this.isAudio)
+
+  videoWidth = $state(0)
+  videoHeight = $state(0)
+  videoLandscape = $derived(this.videoWidth > this.videoHeight)
+  imageWidth = $state(0)
+  imageHeight = $state(0)
+  imageLandscape = $derived(this.imageWidth > this.imageHeight)
+  isContentLandscape = $derived(this.isVideo ? this.videoLandscape : this.imageLandscape)
+  playerWidth = $state(0)
+  playerHeight = $state(0)
+  isPlayerLandscape = $derived(this.playerWidth > this.playerHeight)
+  isRotationNeeded = $derived(settings.autoRotation && this.isContentLandscape !== this.isPlayerLandscape)
+  playerDisplayWidth = $derived.by(()=>{
+    if(this.fitMode==="original") {
+      return "auto"
+    }
+    if(this.isRotationNeeded) {
+      return `${this.playerWidth}px`
+    } else "100%"
+  })
+  playerDisplayHeight = $derived.by(()=>{
+    if(this.fitMode==="original") {
+      return "auto"
+    }
+    if(this.isRotationNeeded) {
+      return `${this.playerHeight}px`
+    } else "100%"
+  })
 
   videoSource = $derived(this.isVideo ? viewModel.mediaUrl(viewModel.currentItem) : undefined)
   audioSource = $derived(this.isAudio ? viewModel.mediaUrl(viewModel.currentItem) : undefined)

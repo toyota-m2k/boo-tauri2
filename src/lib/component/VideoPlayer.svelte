@@ -97,6 +97,10 @@
     logger.error(`onError: ${e}`)
     playerViewModel.tryReAuth()
   }
+
+  $inspect(playerViewModel.isVideo, playerViewModel.isPlayerLandscape, playerViewModel.videoLandscape, playerViewModel.videoWidth, playerViewModel.videoHeight).with(()=> {
+    logger.info(`isVideo=${playerViewModel.isVideo}, isPlayerLandscape=${playerViewModel.isPlayerLandscape}, videoLandscape=${playerViewModel.videoLandscape} (${playerViewModel.videoWidth}x${playerViewModel.videoHeight})`)
+  })
 </script>
 
 {#if playerViewModel.isVideo}
@@ -104,11 +108,16 @@
     <video
       class="media-view"
       class:cursor-none={hideCursor}
+      class:rotate-90={playerViewModel.isRotationNeeded}
       class:fit={playerViewModel.fitMode==="fit"}
       class:fill={playerViewModel.fitMode==="fill"}
       class:original={playerViewModel.fitMode==="original"}
       bind:this={player}
       src={playerViewModel.avSource}
+      bind:videoWidth={playerViewModel.videoWidth}
+      bind:videoHeight={playerViewModel.videoHeight}
+      style:width={playerViewModel.playerDisplayHeight}
+      style:height={playerViewModel.playerDisplayWidth}
 
       bind:duration={ddd}
       bind:currentTime={playerViewModel.currentPosition}
@@ -137,28 +146,28 @@
 
 <style>
   .media-view {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: none;
+    max-height: none;
   }
 
   .media-view.fit {
     width: 100%;
     height: 100%;
-    margin: auto; /* これによりビデオがコンテナの中央に配置されます */
+    /*margin: auto; !* これによりビデオがコンテナの中央に配置されます *!*/
     object-fit: contain; /* ビデオがコンテナの幅または高さに合わせて調整されます */
   }
 
   .media-view.fill {
     width: 100%;
     height: 100%;
-    margin: auto; /* これによりビデオがコンテナの中央に配置されます */
+    /*margin: auto; !* これによりビデオがコンテナの中央に配置されます *!*/
     object-fit: cover; /* ビデオがコンテナの幅または高さに合わせて調整されます */
   }
 
   .media-view.original {
     width: auto;
     height: auto;
-    margin: auto; /* これによりビデオがコンテナの中央に配置されます */
+    /*margin: auto; !* これによりビデオがコンテナの中央に配置されます *!*/
     object-fit: cover; /* ビデオがコンテナの幅または高さに合わせて調整されます */
   }
 

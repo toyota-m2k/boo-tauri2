@@ -20,6 +20,7 @@ const KEY_COLOR_VARIATION = 'colorVariation'
 const KEY_IS_DARK_MODE = 'isDarkMode'
 const KEY_ENABLE_DEBUG_LOG = 'enableDebugLog'
 const KEY_LOOP_PLAY = 'loopPlay'
+const KEY_AUTO_ROTATION = 'autoRotation'
 
 class Settings implements ISettings {
   private _preferences = new Preferences()
@@ -31,6 +32,7 @@ class Settings implements ISettings {
   private _isDarkMode = $state<boolean>(false)
   private _enableDebugLog = $state<boolean>(false)
   private _loopPlay = $state<boolean>(true)
+  private _autoRotation = $state<boolean>(false)
 
   get hostInfoList(): IHostInfoList {
     return this._hostInfoList
@@ -98,6 +100,14 @@ class Settings implements ISettings {
     this._loopPlay = loopPlay
     launch(async()=>await this._preferences.set(KEY_LOOP_PLAY, loopPlay))
   }
+  get autoRotation(): boolean {
+    return this._autoRotation
+  }
+  set autoRotation(autoRotation: boolean) {
+    if(this._autoRotation === autoRotation) return
+    this._autoRotation = autoRotation
+    launch(async()=>await this._preferences.set(KEY_AUTO_ROTATION, autoRotation))
+  }
 
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void {
     if (!mediaId) return
@@ -146,6 +156,11 @@ class Settings implements ISettings {
     if(!await this._preferences.isExist("hostInfoList")) {
       await this._preferences.set(KEY_HOST_INFO_LIST, [
         {
+          displayName: "A-Channel",
+          host: "192.168.0.151",
+          port: 8888
+        },
+        {
           displayName: "2F-MakibaO-Boo",
           host: "192.168.0.151",
           port: 3500
@@ -177,6 +192,7 @@ class Settings implements ISettings {
     this._isDarkMode = await this._preferences.get(KEY_IS_DARK_MODE) ?? false
     this._enableDebugLog = await this._preferences.get(KEY_ENABLE_DEBUG_LOG) ?? false
     this._loopPlay = await this._preferences.get(KEY_LOOP_PLAY) ?? true
+    this._autoRotation = await this._preferences.get(KEY_AUTO_ROTATION) ?? false
   }
 }
 
