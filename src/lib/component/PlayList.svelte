@@ -24,6 +24,7 @@
   function onSelect(e:MouseEvent, i:number) {
     console.log("onSelect", i)
     viewModel.currentItem = viewModel.mediaList.list[i]
+    // viewModel.checkUpdateIfNeed()
   }
 
   onMount(()=>{

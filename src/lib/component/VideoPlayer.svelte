@@ -49,8 +49,8 @@
     }
   }
 
-  let ddd = $state(0)
-  $inspect(ddd)
+  // let ddd = $state(0)
+  // $inspect(ddd)
 
   // $inspect(viewModel.currentItem?.name, playerViewModel.avSource)
 
@@ -119,7 +119,6 @@
       style:width={playerViewModel.playerDisplayHeight}
       style:height={playerViewModel.playerDisplayWidth}
 
-      bind:duration={ddd}
       bind:currentTime={playerViewModel.currentPosition}
       bind:muted={playerViewModel.muted}
       onplay={onPlay}

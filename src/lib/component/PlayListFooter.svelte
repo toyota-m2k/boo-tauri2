@@ -73,7 +73,7 @@ function changeType(type:string) {
 
 <div class="w-full pt-1 pb-2 flex flex-col justify-center items-center bg-primary text-primary-on">
   <div class="w-full flex flex-row justify-center items-center">
-    <IconButton path={ICON_RELOAD} class="w-7 h-7 p-0.5 mr-1 text-secondary hover:bg-secondary hover:text-secondary-on rounded" onclick={()=>viewModel.onHostChanged(settings.currentHost)}/>
+    <IconButton path={ICON_RELOAD} class="w-7 h-7 p-0.5 mr-1 text-secondary hover:bg-secondary hover:text-secondary-on rounded" onclick={()=>viewModel.reloadPlayList()}/>
     <div class="max-w-[180px] overflow-hidden">
       {hostName}
     </div>

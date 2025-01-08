@@ -64,6 +64,10 @@ export function emptyMediaList():IMediaList {
   return {list:[], date:0}
 }
 
+export interface ICheckResult {
+  update: string,
+}
+
 export interface IChapter {
   position: number,
   label: string,
@@ -109,6 +113,7 @@ export interface IRatingList {
 
 export interface IBooProtocol {
   authInfo: IAuthInfo
+  capabilities: ICapabilities | undefined
 
   setup(hostInfo: IHostInfo): Promise<boolean>
   noop(): Promise<boolean>
@@ -117,7 +122,7 @@ export interface IBooProtocol {
 
   chapters(mediaId: string): Promise<IChapterList>
 
-  checkUpdate(): Promise<boolean>
+  checkUpdate(currentList:IMediaList): Promise<boolean>
 
   getItemUrl(mediaItem: IMediaItem): string
 

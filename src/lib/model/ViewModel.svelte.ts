@@ -76,17 +76,19 @@ class ViewModel {
   hasPrev = $derived(this.currentItem && (settings.loopPlay || this.mediaList.list.indexOf(this.currentItem)>0))
   hasNext = $derived(this.currentItem && (settings.loopPlay || this.mediaList.list.indexOf(this.currentItem)<this.mediaList.list.length-1))
   prev() {
-    if(this.currentItem) {
+    if (this.currentItem) {
       const index = this.mediaList.list.indexOf(this.currentItem)
-      if(index>0) {
-        this.currentItem = this.mediaList.list[index-1]
-    } else if(settings.loopPlay && this.mediaList.list.length>0) {
-      this.currentItem = this.mediaList.list[this.mediaList.list.length-1]  // ループ再生なら最後に戻る
-    }
-  } else if(settings.loopPlay && this.mediaList.list.length>0) {
+      if (index > 0) {
+        this.currentItem = this.mediaList.list[index - 1]
+      } else if (settings.loopPlay && this.mediaList.list.length > 0) {
+        this.currentItem = this.mediaList.list[this.mediaList.list.length - 1]  // ループ再生なら最後に戻る
+      }
+    } else if (settings.loopPlay && this.mediaList.list.length > 0) {
       this.currentItem = this.mediaList.list[0]
     }
+    this.checkUpdateIfNeed()
   }
+
   next() {
     if(this.currentItem) {
       const index = this.mediaList.list.indexOf(this.currentItem)
@@ -98,6 +100,7 @@ class ViewModel {
     } else if(settings.loopPlay && this.mediaList.list.length>0) {
       this.currentItem = this.mediaList.list[0]
     }
+    this.checkUpdateIfNeed()
   }
 
   onFullScreen: ((fullscreen:boolean)=>void)|undefined = undefined
@@ -220,6 +223,7 @@ class ViewModel {
   // descending: boolean = $state(false)
 
   onHostChanged(newHost:IHostInfo|undefined) {
+    logger.info(`onHostChanged: ${newHost?.host}:${newHost?.port}`)
     // $effect()から呼ばれるが、このメソッド内で参照している$state/$derived、
     //  - this.mediaList
     //  - playState.currentMediaId
@@ -270,6 +274,23 @@ class ViewModel {
         }
       })
     })
+  }
+
+  reloadPlayList() {
+    this.onHostChanged(settings.currentHost)
+  }
+
+  checkUpdateIfNeed() {
+    if(this.boo.capabilities?.diff) {
+      // リストの自動更新をサポートしている
+      logger.info("checking update")
+      launch(async () => {
+        if (await this.boo.checkUpdate(this.rawMediaList)) {
+          logger.info("checkUpdate-->need to update")
+          this.reloadPlayList()
+        }
+      })
+    }
   }
 
   mediaUrl(mediaItem: IMediaItem|undefined): string|undefined {

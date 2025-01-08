@@ -4,7 +4,7 @@ import type {
   IAuthToken,
   IBooProtocol,
   ICapabilities, ICategory,
-  IChapterList, IDResponse,
+  IChapterList, ICheckResult, IDResponse,
   IListRequest, IMark, IMediaItem,
   IMediaList, IRatingList, IReputation, MediaType
 } from './IBooProtocol'
@@ -15,10 +15,10 @@ import {createAuthInfo, type IAuthInfo} from "$lib/protocol/AuthInfo.svelte";
 
 class BooProtocolImpl implements IBooProtocol {
   private hostPort: IHostInfo | undefined
-  private capabilities: ICapabilities | undefined
   private challenge: string | undefined
   private secret: string | undefined
 
+  capabilities: ICapabilities | undefined
   authInfo: IAuthInfo = createAuthInfo()
 
   constructor(private readonly requirePassword: (target:string|undefined) => Promise<string|undefined>) {
@@ -230,8 +230,21 @@ class BooProtocolImpl implements IBooProtocol {
     }
   }
 
-  async checkUpdate(): Promise<boolean> {
-    throw new Error("Method not implemented.")
+  async checkUpdate(currentList:IMediaList): Promise<boolean> {
+    if (!this.capabilities?.diff) {
+      return false  // not supported --> チェック不要
+    }
+    if(!currentList.date) {
+      return false
+    }
+    const url = this.baseUri + `check?date=${currentList.date}`
+    try {
+      const r = await this.handleResponse<ICheckResult>(await fetch(url))
+      return r.update === '1'
+    } catch (e) {
+      logger.error(`failed to check update: ${e}`)
+      return false
+    }
   }
 
   async getCurrent(): Promise<string> {
