@@ -43,7 +43,8 @@ class TauriShortcut implements ITauriShortcut {
       const shortcut = this.tauriKeyName(key)
       if(!await isRegistered(shortcut)) {
         await register(shortcut, (e)=>{
-          if(e.state=="Pressed") {
+          if(e.state=="Released") {
+            logger.debug(`shortcut pressed: ${e.shortcut}`)
             callback()
           }
         })

@@ -6,10 +6,10 @@ import {globalKeyEvents, type IKeyEvents, keyFor, switchKeyEventCaster} from "$l
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {tauriEvent} from "$lib/tauri/TauriEvent";
-import {launch} from "$lib/utils/Utils";
+import {delay, launch} from "$lib/utils/Utils";
 import {untrack} from "svelte";
 import {tauriObject} from "$lib/tauri/TauriObject";
-import {tauriShortcut} from "$lib/tauri/TauriShortcut";
+import {tauriShortcutMediator} from "$lib/tauri/TauriShortcutMediator";
 import {passwordViewModel} from "$lib/model/PasswordViewModel.svelte";
 import {sortViewModel} from "$lib/model/SortViewModel.svelte";
 
@@ -168,14 +168,17 @@ class ViewModel {
     }
   }
 
+
   private async registerTauriShortcut() {
     if(!tauriObject.isAvailable) return
     logger.debug("registerTauriShortcut")
-    await tauriShortcut
-      .add([
-        keyFor({key: "ESC", asCode: false}),
-        keyFor({key: "NUMENTER", asCode: false})],
-        () => this.emergencyMinimize())
+    await tauriShortcutMediator.initializer(true, async (tauriShortcut) => {
+      await tauriShortcut
+        .add([
+            keyFor({key: "Escape", asCode: false}),
+            keyFor({key: "NumpadEnter", asCode: false})],
+          () => this.emergencyMinimize())
+    })
   }
 
   private async initTauriEventListeners() {
@@ -185,13 +188,13 @@ class ViewModel {
     // })
     if(!tauriObject.isAvailable) return
     try {
-      await tauriEvent.onFocus((e) => {
+      await tauriEvent.onFocus(async (e) => {
         logger.info(`onFocus: ${e}`)
-        this.registerTauriShortcut()
+        await tauriShortcutMediator.onFocus()
       })
-      await tauriEvent.onBlur((e) => {
+      await tauriEvent.onBlur(async (e) => {
         logger.info(`onBlur: ${e}`)
-        tauriShortcut.removeAll()
+        await tauriShortcutMediator.onBlur()
       })
       await tauriEvent.onTerminating(() => {
         logger.info(`onTerminating`)
@@ -210,11 +213,11 @@ class ViewModel {
   }
 
   async switchKeyMapOnDialog(subEvents:IKeyEvents) {
-    await tauriShortcut.removeAll()
+    await tauriShortcutMediator.disable()
     const revert = switchKeyEventCaster(subEvents)
     return async () => {
       revert()
-      await this.registerTauriShortcut()
+      await tauriShortcutMediator.enable()
     }
   }
 

@@ -97,10 +97,6 @@
     logger.error(`onError: ${e}`)
     playerViewModel.tryReAuth()
   }
-
-  $inspect(playerViewModel.isVideo, playerViewModel.isPlayerLandscape, playerViewModel.videoLandscape, playerViewModel.videoWidth, playerViewModel.videoHeight).with(()=> {
-    logger.info(`isVideo=${playerViewModel.isVideo}, isPlayerLandscape=${playerViewModel.isPlayerLandscape}, videoLandscape=${playerViewModel.videoLandscape} (${playerViewModel.videoWidth}x${playerViewModel.videoHeight})`)
-  })
 </script>
 
 {#if playerViewModel.isVideo}
