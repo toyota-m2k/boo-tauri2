@@ -2,6 +2,7 @@ import { Window } from '@tauri-apps/api/window';
 import type {EventCallback, UnlistenFn} from "@tauri-apps/api/event";
 import {Lazy} from "$lib/utils/Lazy";
 import {tauriObject} from "$lib/tauri/TauriObject";
+import {logger} from "$lib/model/DebugLog.svelte";
 
 export type QueryEndSession = () => Promise<boolean>
 
@@ -21,7 +22,10 @@ class TauriEvent implements ITauriEvent {
       const confirmed = await handler()
       if (confirmed) {
         unlisten()
+        logger.info('close-request closing.')
         await window.close()
+      } else {
+        logger.info('close-request refused.')
       }
     })
     return this;

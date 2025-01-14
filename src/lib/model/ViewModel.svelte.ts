@@ -172,7 +172,7 @@ class ViewModel {
   private async registerTauriShortcut() {
     if(!tauriObject.isAvailable) return
     logger.debug("registerTauriShortcut")
-    await tauriShortcutMediator.initializer(true, async (tauriShortcut) => {
+    await tauriShortcutMediator.initialize(true, async (tauriShortcut) => {
       await tauriShortcut
         .add([
             keyFor({key: "Escape", asCode: false}),
@@ -189,23 +189,18 @@ class ViewModel {
     if(!tauriObject.isAvailable) return
     try {
       await tauriEvent.onFocus(async (e) => {
-        logger.info(`onFocus: ${e}`)
+        logger.info(`onFocus`)
         await tauriShortcutMediator.onFocus()
       })
       await tauriEvent.onBlur(async (e) => {
-        logger.info(`onBlur: ${e}`)
+        logger.info(`onBlur`)
         await tauriShortcutMediator.onBlur()
       })
-      await tauriEvent.onTerminating(() => {
+      await tauriEvent.onTerminating(async () => {
         logger.info(`onTerminating`)
         this.saveCurrentMediaInfo()
-        return Promise.resolve(true)
-        // if(confirm('アプリケーションを終了しますか？')) {
-        //   this.saveCurrentMediaInfo()
-        //   return Promise.resolve(true)
-        // } else {
-        //   return Promise.resolve(false)
-        // }
+        await tauriShortcutMediator.terminate()
+        return true
       })
     } catch(e) {
       logger.warn(`no tauri: ${e}`)
@@ -226,7 +221,6 @@ class ViewModel {
   // descending: boolean = $state(false)
 
   onHostChanged(newHost:IHostInfo|undefined) {
-    logger.info(`onHostChanged: ${newHost?.host}:${newHost?.port}`)
     // $effect()から呼ばれるが、このメソッド内で参照している$state/$derived、
     //  - this.mediaList
     //  - playState.currentMediaId
@@ -235,6 +229,7 @@ class ViewModel {
     // がトラッキングされると、
     // このメソッドが再帰的に呼ばれるため、untrack()でトラッキングを禁止する。
     untrack(() => {
+      logger.info(`onHostChanged: ${newHost?.host}:${newHost?.port}`)
       const hostPort = newHost
       if (!hostPort) return
 
@@ -280,6 +275,7 @@ class ViewModel {
   }
 
   reloadPlayList() {
+    logger.info("reloadPlayList")
     this.onHostChanged(settings.currentHost)
   }
 

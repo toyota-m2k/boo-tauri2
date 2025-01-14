@@ -108,12 +108,16 @@ class BooProtocolImpl implements IBooProtocol {
 
   private async ensureAuth(): Promise<void> {
     let password: string | undefined
-    do {
+    while (true) {
       password = this.secret ?? await this.requirePassword(this.hostPort?.displayName ?? this.hostPort?.host)
       if (!password) {
         throw new BooError('cancel', 'password has not been set.')
       }
-    } while (!await this.auth(password));
+      if(await this.auth(password)) {
+        return
+      }
+      logger.warn("password is incorrect.")
+    }
   }
 
   private async withAuthToken<T>(fn: (token?: string) => Promise<T>): Promise<T> {

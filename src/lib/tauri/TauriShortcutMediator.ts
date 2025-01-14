@@ -13,9 +13,13 @@ class TauriShortcutMediator {
   private enabled = true
   private activated = false
 
-  async initializer(activate:boolean, fn:(ts:ITauriShortcut) => Promise<void>) {
+  async initialize(activate:boolean, fn:(ts:ITauriShortcut) => Promise<void>) {
     this.scInitializer = fn
     await this.mediate()
+  }
+  async terminate() {
+    await tauriShortcut.removeAll()
+    this.scInitializer = (ts:ITauriShortcut) => { return Promise.resolve() }
   }
   async enable() {
     this.enabled = true
@@ -37,13 +41,13 @@ class TauriShortcutMediator {
     if(!tauriObject.isAvailable) return
     if(this.hasFocus && this.enabled) {
       if(!this.activated) {
-        logger.debug("TauriShortcutMediator: activate")
+        logger.info("TauriShortcutMediator: activate")
         this.activated = true
         await this.scInitializer(tauriShortcut)
       }
     } else {
       if(this.activated) {
-        logger.debug("TauriShortcutMediator: deactivate")
+        logger.info("TauriShortcutMediator: deactivate")
         this.activated = false
         await tauriShortcut.removeAll()
       }
