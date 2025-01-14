@@ -1,4 +1,5 @@
 import type {IHostInfo} from "$lib/model/ModelDef";
+import type {IAuthInfo} from "$lib/protocol/AuthInfo.svelte";
 
 export interface IDResponse {
   id: string
@@ -52,6 +53,7 @@ export interface IMediaItem {
   start: number | undefined,
   end: number | undefined,
   duration: number | undefined,
+  date: number,
 }
 
 export interface IMediaList {
@@ -60,6 +62,10 @@ export interface IMediaList {
 }
 export function emptyMediaList():IMediaList {
   return {list:[], date:0}
+}
+
+export interface ICheckResult {
+  update: string,
 }
 
 export interface IChapter {
@@ -106,15 +112,17 @@ export interface IRatingList {
 }
 
 export interface IBooProtocol {
-  setup(hostInfo: IHostInfo): Promise<boolean>
+  authInfo: IAuthInfo
+  capabilities: ICapabilities | undefined
 
+  setup(hostInfo: IHostInfo): Promise<boolean>
   noop(): Promise<boolean>
 
   list(req: IListRequest): Promise<IMediaList>
 
   chapters(mediaId: string): Promise<IChapterList>
 
-  checkUpdate(): Promise<boolean>
+  checkUpdate(currentList:IMediaList): Promise<boolean>
 
   getItemUrl(mediaItem: IMediaItem): string
 

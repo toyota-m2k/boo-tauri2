@@ -1,6 +1,7 @@
 import {viewModel} from "$lib/model/ViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {launch} from "$lib/utils/Utils";
+import {settings} from "$lib/model/Settings.svelte";
 
 export type FitMode = "fit" | "fill" | "original"
 
@@ -18,14 +19,41 @@ class PlayerViewModel implements IPlayerCommands {
   isAudio = $derived(viewModel.currentItem?.media === "a")
   isImage = $derived(viewModel.currentItem?.media === "p")
   isAV = $derived(this.isVideo || this.isAudio)
-  generation = $state(0)  // 再認証によってurlが変わったときに、$derived（*Source） の値を再評価させるためのカウンタ
 
-  videoSource = $derived(this.isVideo ? viewModel.mediaUrl(viewModel.currentItem, this.generation) : undefined)
-  audioSource = $derived(this.isAudio ? viewModel.mediaUrl(viewModel.currentItem, this.generation) : undefined)
-  imageSource = $derived(this.isImage ? viewModel.mediaUrl(viewModel.currentItem, this.generation) : undefined)
+  videoWidth = $state(0)
+  videoHeight = $state(0)
+  videoLandscape = $derived(this.videoWidth > this.videoHeight)
+  imageWidth = $state(0)
+  imageHeight = $state(0)
+  imageLandscape = $derived(this.imageWidth > this.imageHeight)
+  isContentLandscape = $derived(this.isVideo ? this.videoLandscape : this.imageLandscape)
+  playerWidth = $state(0)
+  playerHeight = $state(0)
+  isPlayerLandscape = $derived(this.playerWidth > this.playerHeight)
+  isRotationNeeded = $derived(settings.autoRotation && this.isContentLandscape !== this.isPlayerLandscape)
+  playerDisplayWidth = $derived.by(()=>{
+    if(this.fitMode==="original") {
+      return "auto"
+    }
+    if(this.isRotationNeeded) {
+      return `${this.playerWidth}px`
+    } else "100%"
+  })
+  playerDisplayHeight = $derived.by(()=>{
+    if(this.fitMode==="original") {
+      return "auto"
+    }
+    if(this.isRotationNeeded) {
+      return `${this.playerHeight}px`
+    } else "100%"
+  })
+
+  videoSource = $derived(this.isVideo ? viewModel.mediaUrl(viewModel.currentItem) : undefined)
+  audioSource = $derived(this.isAudio ? viewModel.mediaUrl(viewModel.currentItem) : undefined)
+  imageSource = $derived(this.isImage ? viewModel.mediaUrl(viewModel.currentItem) : undefined)
   avSource = $derived(this.videoSource || this.audioSource)
 
-  duration = $state(0)
+  duration:number = $state(0)
   currentPosition = $state(0)
   safeDuration = $derived(this.duration>=0 ? this.duration : 0)
   safeCurrentPosition = $derived(this.currentPosition>=0 ? this.currentPosition : 0)
@@ -36,14 +64,13 @@ class PlayerViewModel implements IPlayerCommands {
   initialSeekPosition = $state(0)
   pinControlPanel = $state(false)
 
+  async reAuthIfNeeded():Promise<Boolean> {
+    return await viewModel.refreshAuth()
+  }
+
   tryReAuth() {
     launch( async ()=> {
-      const item = viewModel.currentItem
-      viewModel.currentItem = undefined
-      if (await viewModel.refreshAuth()) {
-        viewModel.currentItem = item
-        this.generation++
-      }
+      await this.reAuthIfNeeded()
     })
   }
 

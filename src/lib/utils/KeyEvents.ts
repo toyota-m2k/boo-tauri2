@@ -146,14 +146,14 @@ class KeyEvents implements IKeyEvents {
   activate():IKeyEvents {
     if(this._activated) return this
     this._activated = true
-    window.addEventListener("keydown", this.internalKeyboardEventHandler, true)
+    window.addEventListener("keyup", this.internalKeyboardEventHandler, true)
     return this
   }
 
   deactivate(): IKeyEvents {
     if(!this._activated) return this
     this._activated = false
-    window.removeEventListener("keydown", this.internalKeyboardEventHandler, true)
+    window.removeEventListener("keyup", this.internalKeyboardEventHandler, true)
     return this
   }
 }

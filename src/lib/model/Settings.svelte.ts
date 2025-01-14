@@ -4,7 +4,7 @@ import type {
   IHostInfoList,
   IHostPort,
   IPlayStateOnHost,
-  ISettings
+  ISettings, SortKey
 } from "$lib/model/ModelDef";
 import {HostInfoList} from "$lib/model/HostInfoList.svelte";
 import type {PlayMode} from "$lib/protocol/IBooProtocol";
@@ -19,6 +19,8 @@ const KEY_SLIDE_SHOW_INTERVAL = 'slideShowInterval'
 const KEY_COLOR_VARIATION = 'colorVariation'
 const KEY_IS_DARK_MODE = 'isDarkMode'
 const KEY_ENABLE_DEBUG_LOG = 'enableDebugLog'
+const KEY_LOOP_PLAY = 'loopPlay'
+const KEY_AUTO_ROTATION = 'autoRotation'
 
 class Settings implements ISettings {
   private _preferences = new Preferences()
@@ -29,6 +31,8 @@ class Settings implements ISettings {
   private _colorVariation = $state<ColorVariation>('default')
   private _isDarkMode = $state<boolean>(false)
   private _enableDebugLog = $state<boolean>(false)
+  private _loopPlay = $state<boolean>(true)
+  private _autoRotation = $state<boolean>(false)
 
   get hostInfoList(): IHostInfoList {
     return this._hostInfoList
@@ -88,15 +92,48 @@ class Settings implements ISettings {
     this._enableDebugLog = enableDebugLog
     launch(async()=>await this._preferences.set(KEY_ENABLE_DEBUG_LOG, enableDebugLog))
   }
+  get loopPlay(): boolean {
+    return this._loopPlay
+  }
+  set loopPlay(loopPlay: boolean) {
+    if(this._loopPlay === loopPlay) return
+    this._loopPlay = loopPlay
+    launch(async()=>await this._preferences.set(KEY_LOOP_PLAY, loopPlay))
+  }
+  get autoRotation(): boolean {
+    return this._autoRotation
+  }
+  set autoRotation(autoRotation: boolean) {
+    if(this._autoRotation === autoRotation) return
+    this._autoRotation = autoRotation
+    launch(async()=>await this._preferences.set(KEY_AUTO_ROTATION, autoRotation))
+  }
 
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void {
     if (!mediaId) return
     targetHost = targetHost || this.currentHost
     if (!targetHost) return
     const key = `${targetHost.host}@${targetHost.port}`
+    const current = this._hostInfoList.playStateOnHosts[key]
     this._hostInfoList.playStateOnHosts[key] = {
       currentMediaId: mediaId,
-      currentMediaPosition: position
+      currentMediaPosition: position,
+      sortKey: current?.sortKey ?? 'server',
+      descending: current?.descending ?? false
+    }
+    launch(()=>this._preferences.set(KEY_PLAY_STATE_ON_HOSTS, this._hostInfoList.playStateOnHosts))
+  }
+
+  updateSortInfo(sortKey:SortKey, descending:boolean, targetHost?: IHostPort|undefined):void {
+    targetHost = targetHost || this.currentHost
+    if (!targetHost) return
+    const key = `${targetHost.host}@${targetHost.port}`
+    const current = this._hostInfoList.playStateOnHosts[key]
+    this._hostInfoList.playStateOnHosts[key] = {
+      currentMediaId: current?.currentMediaId ?? '',
+      currentMediaPosition: current?.currentMediaPosition ?? 0,
+      sortKey,
+      descending
     }
     launch(()=>this._preferences.set(KEY_PLAY_STATE_ON_HOSTS, this._hostInfoList.playStateOnHosts))
   }
@@ -118,6 +155,11 @@ class Settings implements ISettings {
     await this._preferences.load()
     if(!await this._preferences.isExist("hostInfoList")) {
       await this._preferences.set(KEY_HOST_INFO_LIST, [
+        {
+          displayName: "A-Channel",
+          host: "192.168.0.151",
+          port: 8888
+        },
         {
           displayName: "2F-MakibaO-Boo",
           host: "192.168.0.151",
@@ -149,6 +191,8 @@ class Settings implements ISettings {
     this._colorVariation = await this._preferences.get(KEY_COLOR_VARIATION) ?? 'default'
     this._isDarkMode = await this._preferences.get(KEY_IS_DARK_MODE) ?? false
     this._enableDebugLog = await this._preferences.get(KEY_ENABLE_DEBUG_LOG) ?? false
+    this._loopPlay = await this._preferences.get(KEY_LOOP_PLAY) ?? true
+    this._autoRotation = await this._preferences.get(KEY_AUTO_ROTATION) ?? false
   }
 }
 

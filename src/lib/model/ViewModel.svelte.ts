@@ -1,17 +1,17 @@
-import type {IHostInfo, DialogType, IHostPort} from "$lib/model/ModelDef";
+import type {IHostInfo, IHostPort, SortKey} from "$lib/model/ModelDef";
 import {emptyMediaList, type IListRequest, type IMediaItem, type IMediaList} from "$lib/protocol/IBooProtocol";
 import {createBooProtocol} from "$lib/protocol/BooProtocol";
 import {settings} from "$lib/model/Settings.svelte";
-import {globalKeyEvents, keyFor} from "$lib/utils/KeyEvents";
+import {globalKeyEvents, type IKeyEvents, keyFor, switchKeyEventCaster} from "$lib/utils/KeyEvents";
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {tauriEvent} from "$lib/tauri/TauriEvent";
 import {delay, launch} from "$lib/utils/Utils";
 import {untrack} from "svelte";
 import {tauriObject} from "$lib/tauri/TauriObject";
-import {PasswordViewModel} from "$lib/model/PasswordViewModel.svelte";
-import {tauriShortcut} from "$lib/tauri/TauriShortcut";
-import {env} from "$lib/utils/Env";
+import {tauriShortcutMediator} from "$lib/tauri/TauriShortcutMediator";
+import {passwordViewModel} from "$lib/model/PasswordViewModel.svelte";
+import {sortViewModel} from "$lib/model/SortViewModel.svelte";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -26,39 +26,81 @@ class ViewModel {
   acceptAudio = $state(true)
   acceptPhoto = $state(true)
 
-  mediaList:IMediaList = $derived.by(()=>{
-    return {list:this.rawMediaList.list.filter(item=>{
-      switch(item.media) {
-        case "v": return this.acceptVideo
-        case "a": return this.acceptAudio
-        case "p": return this.acceptPhoto
-        default: return false
+  mediaList:IMediaList = $derived.by(()=> {
+    if (!this.rawMediaList || this.rawMediaList.list.length === 0) return {list:[],date:this.rawMediaList.date}
+    let list = this.rawMediaList.list.filter(item => {
+      switch (item.media) {
+        case "v":
+          return this.acceptVideo
+        case "a":
+          return this.acceptAudio
+        case "p":
+          return this.acceptPhoto
+        default:
+          return false
       }
-    }), date:this.rawMediaList.date}
+    })
+    if (sortViewModel.sortKey !== "server") {
+      const c = sortViewModel.descending ? -1 : 1
+      list.sort((a, b) => {
+        switch(sortViewModel.sortKey) {
+          case "name":
+            return a.name.localeCompare(b.name) * c
+          case "size":
+            return (a.size - b.size) * c
+          case "duration":
+            return ((a.duration ?? 0) - (b.duration ?? 0)) * c
+          case "date":
+            if(a.date && b.date) {
+              return (a.date - b.date) * c
+            } else {
+              return parseInt(a.id) - parseInt(b.id) * c
+            }
+          default:
+            return 0
+        }
+      })
+    } else if(sortViewModel.descending) {
+      list.reverse()
+    }
+    return {list, date: this.rawMediaList.date}
   })
+
+  scrollToCurrentItem: ((item:string|undefined)=>void)|undefined = undefined
+  ensureCurrentItemVisible() {
+    this.scrollToCurrentItem?.(this.currentItem?.id)
+  }
+
   currentItem = $state<IMediaItem|undefined>(undefined)
 
-  hasPrev = $derived(this.currentItem ? this.mediaList.list.indexOf(this.currentItem)>0 : false)
-  hasNext = $derived(this.currentItem ? this.mediaList.list.indexOf(this.currentItem)<this.mediaList.list.length-1 : false)
+  hasPrev = $derived(this.currentItem && (settings.loopPlay || this.mediaList.list.indexOf(this.currentItem)>0))
+  hasNext = $derived(this.currentItem && (settings.loopPlay || this.mediaList.list.indexOf(this.currentItem)<this.mediaList.list.length-1))
   prev() {
-    if(this.currentItem) {
+    if (this.currentItem) {
       const index = this.mediaList.list.indexOf(this.currentItem)
-      if(index>0) {
-        this.currentItem = this.mediaList.list[index-1]
+      if (index > 0) {
+        this.currentItem = this.mediaList.list[index - 1]
+      } else if (settings.loopPlay && this.mediaList.list.length > 0) {
+        this.currentItem = this.mediaList.list[this.mediaList.list.length - 1]  // ループ再生なら最後に戻る
       }
-    } else if(this.mediaList.list.length>0) {
+    } else if (settings.loopPlay && this.mediaList.list.length > 0) {
       this.currentItem = this.mediaList.list[0]
     }
+    this.checkUpdateIfNeed()
   }
+
   next() {
     if(this.currentItem) {
       const index = this.mediaList.list.indexOf(this.currentItem)
       if(index<this.mediaList.list.length-1) {
         this.currentItem = this.mediaList.list[index+1]
+      } else if(settings.loopPlay && this.mediaList.list.length>0) {
+        this.currentItem = this.mediaList.list[0] // ループ再生なら最初に戻る
       }
-    } else if(this.mediaList.list.length>0) {
+    } else if(settings.loopPlay && this.mediaList.list.length>0) {
       this.currentItem = this.mediaList.list[0]
     }
+    this.checkUpdateIfNeed()
   }
 
   onFullScreen: ((fullscreen:boolean)=>void)|undefined = undefined
@@ -86,7 +128,7 @@ class ViewModel {
 
   isBusy = $state(false)
 
-  boo = createBooProtocol((target:string|undefined)=> this.authenticate(target))
+  boo = createBooProtocol((target:string|undefined)=> passwordViewModel.authenticate(target))
   private listRequest: IListRequest = {type: "all", sourceType: 1}
 
   isPrepared = $state(false)
@@ -126,14 +168,17 @@ class ViewModel {
     }
   }
 
+
   private async registerTauriShortcut() {
     if(!tauriObject.isAvailable) return
     logger.debug("registerTauriShortcut")
-    await tauriShortcut
-      .add([
-        keyFor({key: "ESC", asCode: false}),
-        keyFor({key: "NUMENTER", asCode: false})],
-        () => this.emergencyMinimize())
+    await tauriShortcutMediator.initialize(true, async (tauriShortcut) => {
+      await tauriShortcut
+        .add([
+            keyFor({key: "Escape", asCode: false}),
+            keyFor({key: "NumpadEnter", asCode: false})],
+          () => this.emergencyMinimize())
+    })
   }
 
   private async initTauriEventListeners() {
@@ -143,32 +188,37 @@ class ViewModel {
     // })
     if(!tauriObject.isAvailable) return
     try {
-      await tauriEvent.onFocus((e) => {
-        logger.info(`onFocus: ${e}`)
-        this.registerTauriShortcut()
+      await tauriEvent.onFocus(async (e) => {
+        logger.info(`onFocus`)
+        await tauriShortcutMediator.onFocus()
       })
-      await tauriEvent.onBlur((e) => {
-        logger.info(`onBlur: ${e}`)
-        tauriShortcut.removeAll()
+      await tauriEvent.onBlur(async (e) => {
+        logger.info(`onBlur`)
+        await tauriShortcutMediator.onBlur()
       })
-      await tauriEvent.onTerminating(() => {
+      await tauriEvent.onTerminating(async () => {
         logger.info(`onTerminating`)
         this.saveCurrentMediaInfo()
-        return Promise.resolve(true)
-        // if(confirm('アプリケーションを終了しますか？')) {
-        //   this.saveCurrentMediaInfo()
-        //   return Promise.resolve(true)
-        // } else {
-        //   return Promise.resolve(false)
-        // }
+        await tauriShortcutMediator.terminate()
+        return true
       })
     } catch(e) {
       logger.warn(`no tauri: ${e}`)
     }
   }
 
+  async switchKeyMapOnDialog(subEvents:IKeyEvents) {
+    await tauriShortcutMediator.disable()
+    const revert = switchKeyEventCaster(subEvents)
+    return async () => {
+      revert()
+      await tauriShortcutMediator.enable()
+    }
+  }
 
   private previousHostInfo: IHostPort|undefined = undefined
+  // sortKey: SortKey = $state("server")
+  // descending: boolean = $state(false)
 
   onHostChanged(newHost:IHostInfo|undefined) {
     // $effect()から呼ばれるが、このメソッド内で参照している$state/$derived、
@@ -179,6 +229,7 @@ class ViewModel {
     // がトラッキングされると、
     // このメソッドが再帰的に呼ばれるため、untrack()でトラッキングを禁止する。
     untrack(() => {
+      logger.info(`onHostChanged: ${newHost?.host}:${newHost?.port}`)
       const hostPort = newHost
       if (!hostPort) return
 
@@ -192,19 +243,21 @@ class ViewModel {
       // 情報更新前にクリア
       this.rawMediaList = emptyMediaList()
       this.currentItem = undefined
+      sortViewModel.reset()
 
       this.isBusy = true
       launch(async () => {
         try {
           if (await this.boo.setup(hostPort)) {
+            const playState = settings.getPlayStateOnHost(hostPort)
             this.videoSupported = this.boo.isSupported("v")
             this.audioSupported = this.boo.isSupported("a")
             this.photoSupported = this.boo.isSupported("p")
+            sortViewModel.load(playState)
             this.rawMediaList = await this.boo.list(this.listRequest)
 
             // 前回の再生位置を復元
             let item: IMediaItem | undefined = undefined
-            const playState = settings.getPlayStateOnHost(hostPort)
             if (playState) {
               item = this.mediaList.list.find((item) => item.id === playState.currentMediaId)
               if (item) {
@@ -221,7 +274,25 @@ class ViewModel {
     })
   }
 
-  mediaUrl(mediaItem: IMediaItem|undefined, generation:number): string|undefined {
+  reloadPlayList() {
+    logger.info("reloadPlayList")
+    this.onHostChanged(settings.currentHost)
+  }
+
+  checkUpdateIfNeed() {
+    if(this.boo.capabilities?.diff) {
+      // リストの自動更新をサポートしている
+      logger.info("checking update")
+      launch(async () => {
+        if (await this.boo.checkUpdate(this.rawMediaList)) {
+          logger.info("checkUpdate-->need to update")
+          this.reloadPlayList()
+        }
+      })
+    }
+  }
+
+  mediaUrl(mediaItem: IMediaItem|undefined): string|undefined {
     if(!mediaItem) return undefined
     return this.boo.getItemUrl(mediaItem)
   }
@@ -231,25 +302,6 @@ class ViewModel {
   }
 
   mediaScale: number = $state(1)
-
-  dialogType: DialogType|undefined = $state()
-  closeDialog() {
-    this.dialogType = undefined
-    this.passwordViewModel.cancel()
-  }
-  openSystemDialog() {
-    this.dialogType = "system"
-  }
-  openHostDialog() {
-    this.dialogType = "host"
-  }
-
-  passwordViewModel = new PasswordViewModel()
-
-  authenticate(target:string|undefined):Promise<string|undefined> {
-    this.dialogType = "password"
-    return this.passwordViewModel.waitFor(target)
-  }
 
   fullscreenPlayer = $state(false)
 

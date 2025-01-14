@@ -42,7 +42,7 @@
   }
 </script>
 
-<div class="media-player w-full h-full relative">
+<div class="media-player w-full h-full relative" bind:clientWidth={playerViewModel.playerWidth} bind:clientHeight={playerViewModel.playerHeight}>
   {#if playerViewModel.isVideo}
     <VideoPlayer {onended}/>
   {:else if playerViewModel.isImage}

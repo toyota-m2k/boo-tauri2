@@ -77,6 +77,8 @@
       slider.style.setProperty('--thumb-url', modifiedThumbUrl)
     }
   })
+
+  // $inspect(chaptersViewModel.chapters)
 //  logger.info(`accentColor=${accentColor}`)
 //  let thumbUrl = `data:image/svg+xml;base64,${btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="thumb-svg"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" fill="${accentColor}"/></svg>')}`;
 </script>
@@ -96,6 +98,7 @@
     {/each}
     {#each chaptersViewModel.chapters as chapter (chapter.position)}
       <SvgIcon class="absolute top-0 w-[24px] h-[24px] -translate-x-1/2 focus:outline-0 {(chapter.skip)?'text-gray-100 cursor-default':'text-accent cursor-pointer'}"
+               fullSize={false}
                path={chapter.skip ? ICON_CHAPTER_OFF : ICON_CHAPTER_ON}
                style="left: {chapter.position / 10 / playerViewModel.safeDuration}%"
                onclick={()=>chaptersViewModel.gotoChapter(chapter)}

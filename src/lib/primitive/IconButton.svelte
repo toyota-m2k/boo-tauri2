@@ -7,14 +7,15 @@
     text?: string;
     disabled?: boolean;
     onclick?: (e:MouseEvent) => void;
+    oncontextmenu?: (e:MouseEvent) => void;
   }
-  let { class:klass, path, text, disabled, onclick, ...rest }:IconButtonProps = $props();
+  let { class:klass, path, text, disabled, onclick, oncontextmenu, ...rest }:IconButtonProps = $props();
   // let disabledColor = $derived(getComputedStyle(document.documentElement).getPropertyValue("--color-gray-on"));
   // let color = $derived(disabled ? disabledColor : "currentColor");
 
 </script>
 
-<button class="p-0 flex justify-center items-center {klass??''}" class:disabled={disabled} {onclick}>
+<button class="p-0 flex justify-center items-center {klass??''}" class:disabled={disabled} {onclick} {oncontextmenu}>
   <SvgIcon class="icon" path={path} {...rest}/>
   {#if text}
     <span class="ml-1">{text}</span>

@@ -7,9 +7,12 @@
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import {delay, launch} from "$lib/utils/Utils";
   import {chaptersViewModel} from "$lib/model/ChaptersViewModel.svelte";
+  import {CursorConcealer} from "$lib/model/CursorConcealer.svelte";
 
   let rest = $props()
   let player = $state<HTMLVideoElement>() as HTMLVideoElement;
+  let cursorConcealer = new CursorConcealer()
+  let hideCursor = $derived(cursorConcealer.hideCursor&&playerViewModel.playing)
   let playRequested = playerViewModel.autoPlay
   let playerCommands:IPlayerCommands = {
     nextChapter: ()=>{
@@ -25,6 +28,10 @@
       launch(async ()=>{
         while(count<10&&playRequested) {
           try {
+            const pos = playerViewModel.currentPosition
+            if(await playerViewModel.reAuthIfNeeded()) {
+              playerViewModel.initialSeekPosition = pos
+            }
             await player.play()
             return
           } catch (e) {
@@ -41,6 +48,9 @@
       player.pause()
     }
   }
+
+  // let ddd = $state(0)
+  // $inspect(ddd)
 
   // $inspect(viewModel.currentItem?.name, playerViewModel.avSource)
 
@@ -64,10 +74,16 @@
   function onLoadStart() {
     logger.info("onLoadStart")
     playerViewModel.currentPosition = 0
+    playerViewModel.duration = 0
   }
   function onLoadedMetaData() {
     logger.info("onLoadedMetaData")
 
+    // Durationはバインドしないで、onloadedmetadataで設定する。
+    // そうしないと、ランタイムに、
+    // [svelte] assignment_value_stale Assignment to `duration` property (src/​lib/​component/​VideoPlayer.svelte:101:21) will evaluate to the right-hand side, not the value of `duration` following the assignment. This may result in unexpected behaviour.
+    // というワーニングが出る。（つまり、
+    playerViewModel.duration = player?.duration || 0;
   }
   function onLoaded() {
     logger.info("onLoaded")
@@ -87,13 +103,18 @@
   <ZoomView onclick={()=>playerViewModel.togglePlay()}>
     <video
       class="media-view"
+      class:cursor-none={hideCursor}
+      class:rotate-90={playerViewModel.isRotationNeeded}
       class:fit={playerViewModel.fitMode==="fit"}
       class:fill={playerViewModel.fitMode==="fill"}
       class:original={playerViewModel.fitMode==="original"}
       bind:this={player}
       src={playerViewModel.avSource}
+      bind:videoWidth={playerViewModel.videoWidth}
+      bind:videoHeight={playerViewModel.videoHeight}
+      style:width={playerViewModel.playerDisplayHeight}
+      style:height={playerViewModel.playerDisplayWidth}
 
-      bind:duration={playerViewModel.duration}
       bind:currentTime={playerViewModel.currentPosition}
       bind:muted={playerViewModel.muted}
       onplay={onPlay}
@@ -102,6 +123,7 @@
       onloadedmetadata={onLoadedMetaData}
       onloadeddata={onLoaded}
       onerror={onError}
+      onmousemove={()=>cursorConcealer.onMouseMove()}
 
       {...rest}
       autoplay
@@ -119,28 +141,28 @@
 
 <style>
   .media-view {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: none;
+    max-height: none;
   }
 
   .media-view.fit {
     width: 100%;
     height: 100%;
-    margin: auto; /* これによりビデオがコンテナの中央に配置されます */
+    /*margin: auto; !* これによりビデオがコンテナの中央に配置されます *!*/
     object-fit: contain; /* ビデオがコンテナの幅または高さに合わせて調整されます */
   }
 
   .media-view.fill {
     width: 100%;
     height: 100%;
-    margin: auto; /* これによりビデオがコンテナの中央に配置されます */
+    /*margin: auto; !* これによりビデオがコンテナの中央に配置されます *!*/
     object-fit: cover; /* ビデオがコンテナの幅または高さに合わせて調整されます */
   }
 
   .media-view.original {
     width: auto;
     height: auto;
-    margin: auto; /* これによりビデオがコンテナの中央に配置されます */
+    /*margin: auto; !* これによりビデオがコンテナの中央に配置されます *!*/
     object-fit: cover; /* ビデオがコンテナの幅または高さに合わせて調整されます */
   }
 

@@ -24,9 +24,13 @@ export interface IHostInfoList {
   findByHostPort(hostPort: IHostPort|undefined): IHostInfo|undefined
 }
 
+export type SortKey = 'name' | 'size' | 'duration' | 'date' | 'server'
+
 export interface IPlayStateOnHost {
   currentMediaId: string,
   currentMediaPosition: number,
+  sortKey: SortKey,
+  descending: boolean,
 }
 
 export type ColorVariation = 'default' | 'orange' | 'melon' | 'cherry' | 'grape' | 'carrot' | 'blueberry' | 'soda'
@@ -39,13 +43,14 @@ export interface ISettings {
   colorVariation: ColorVariation
   isDarkMode: boolean
   enableDebugLog: boolean
+  loopPlay: boolean
+  autoRotation: boolean
   getPlayStateOnHost(hostInfo: IHostPort): IPlayStateOnHost|undefined
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void
+  updateSortInfo(sortKey:SortKey, descending:boolean, targetHost?: IHostPort|undefined):void
   saveHostList(): void
   load(): Promise<void>
 }
-
-export type DialogType = "host" | "system" | "password"
 
 export interface IViewModel {
   mediaList: IMediaList
