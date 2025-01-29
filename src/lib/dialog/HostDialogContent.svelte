@@ -6,10 +6,12 @@
   import type {IHostInfo} from "$lib/model/ModelDef";
   import {isEqualHostPort} from "$lib/model/ModelDef.js";
   import Dialog from "$lib/dialog/Dialog.svelte";
+  import {tauriObject} from "$lib/tauri/TauriObject";
 
   let { show=$bindable() }:{show:boolean} = $props()
   let editingHost = $state(false)
   let targetHost: IHostInfo|undefined = $state()
+  const title:string = (tauriObject.isAvailable && tauriObject.appVersion) ? "Hosts - v"+ tauriObject.appVersion : "Hosts"
 
   function stopPropagation(e:MouseEvent) {
     e.stopPropagation()
@@ -61,7 +63,7 @@
   }
 </script>
 
-<Dialog title="Hosts" action={(reason)=>{if(reason==="close"||reason==="negative"){show=false}}}>
+<Dialog {title} action={(reason)=>{if(reason==="close"||reason==="negative"){show=false}}}>
   {#snippet children()}
   <div class="flex flex-col items-center justify-center">
     {#if !editingHost}

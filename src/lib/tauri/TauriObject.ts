@@ -10,6 +10,8 @@ interface ITauriObject {
   isAvailable:boolean
   desktop:boolean
   window:Window|undefined
+  tauriVersion:string
+  appVersion:string
   toggleFullScreen(complete:(isFullscreen:boolean)=>void):boolean
   minimize():boolean
 }

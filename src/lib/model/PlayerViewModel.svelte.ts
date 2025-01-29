@@ -63,6 +63,7 @@ class PlayerViewModel implements IPlayerCommands {
   sliderSeeking = $state(false)
   initialSeekPosition = $state(0)
   pinControlPanel = $state(false)
+  repeatPlay = $state(false)    // valid only for video/audio
 
   async reAuthIfNeeded():Promise<Boolean> {
     return await viewModel.refreshAuth()

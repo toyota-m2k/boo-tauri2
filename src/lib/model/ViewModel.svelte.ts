@@ -132,7 +132,7 @@ class ViewModel {
   private listRequest: IListRequest = {type: "all", sourceType: 1}
 
   isPrepared = $state(false)
-
+  supportChapter = $state(false)
   loading = $derived(this.isBusy||!this.isPrepared)
 
   async prepareSettings() {
@@ -265,6 +265,7 @@ class ViewModel {
               }
             }
             this.currentItem = item ?? this.mediaList.list[0]
+            this.supportChapter = this.boo.capabilities?.chapter ?? false
             playerViewModel.play()
           }
         } finally {
