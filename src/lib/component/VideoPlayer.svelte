@@ -4,12 +4,11 @@
   import {logger} from "$lib/model/DebugLog.svelte";
   import ZoomView from "$lib/primitive/ZoomView.svelte";
   import {onMount} from "svelte";
-  import {viewModel} from "$lib/model/ViewModel.svelte";
   import {delay, launch} from "$lib/utils/Utils";
   import {chaptersViewModel} from "$lib/model/ChaptersViewModel.svelte";
   import {CursorConcealer} from "$lib/model/CursorConcealer.svelte";
 
-  let rest = $props()
+  let { onended, ...rest }: { onended: () => void } = $props()
   let player = $state<HTMLVideoElement>() as HTMLVideoElement;
   let cursorConcealer = new CursorConcealer()
   let hideCursor = $derived(cursorConcealer.hideCursor&&playerViewModel.playing)
@@ -93,6 +92,15 @@
       player.currentTime = pos
     }
   }
+  function onEnd() {
+    logger.info("onEnd")
+    if(playerViewModel.repeatPlay && !playerViewModel.sliderSeeking) {
+      playerViewModel.currentPosition = 0
+      player.play()
+    } else {
+      onended()
+    }
+  }
   function onError(e:any) {
     logger.error(`onError: ${e}`)
     playerViewModel.tryReAuth()
@@ -124,6 +132,7 @@
       onloadeddata={onLoaded}
       onerror={onError}
       onmousemove={()=>cursorConcealer.onMouseMove()}
+      onended={onEnd}
 
       {...rest}
       autoplay

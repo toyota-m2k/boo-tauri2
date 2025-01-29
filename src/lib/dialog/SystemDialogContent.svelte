@@ -3,16 +3,18 @@
   import type {ColorVariation} from "$lib/model/ModelDef";
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import Dialog from "$lib/dialog/Dialog.svelte";
+  import {tauriObject} from "$lib/tauri/TauriObject";
 
   let { show=$bindable() }:{show:boolean} = $props()
   const colorVariations: ColorVariation[] = ['default', 'orange', 'melon', 'cherry', 'grape', 'carrot', 'blueberry', 'soda']
   function setColorVariation(c:ColorVariation) {
     settings.colorVariation = c
   }
+  const title:string = (tauriObject.isAvailable && tauriObject.appVersion) ? "Settings - v"+ tauriObject.appVersion : "Settings"
 
 </script>
 
-<Dialog title="Settings" action={(reason)=>{if(reason==="close"||reason==="negative") show=false }}>
+<Dialog {title} action={(reason)=>{if(reason==="close"||reason==="negative") show=false }}>
   {#snippet children()}
   <div class="flex flex-col justify-center">
     <div class="flex items-center mt-2 gap-1">
