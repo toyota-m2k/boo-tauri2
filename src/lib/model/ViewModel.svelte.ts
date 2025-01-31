@@ -1,17 +1,23 @@
-import type {IHostInfo, IHostPort, SortKey} from "$lib/model/ModelDef";
-import {emptyMediaList, type IListRequest, type IMediaItem, type IMediaList} from "$lib/protocol/IBooProtocol";
+import type {IHostInfo, IHostPort} from "$lib/model/ModelDef";
+import {
+  emptyMediaList,
+  type IListRequest,
+  type IMediaItem,
+  type IMediaList
+} from "$lib/protocol/IBooProtocol";
 import {createBooProtocol} from "$lib/protocol/BooProtocol";
 import {settings} from "$lib/model/Settings.svelte";
 import {globalKeyEvents, type IKeyEvents, keyFor, switchKeyEventCaster} from "$lib/utils/KeyEvents";
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {tauriEvent} from "$lib/tauri/TauriEvent";
-import {delay, launch} from "$lib/utils/Utils";
+import {launch} from "$lib/utils/Utils";
 import {untrack} from "svelte";
 import {tauriObject} from "$lib/tauri/TauriObject";
 import {tauriShortcutMediator} from "$lib/tauri/TauriShortcutMediator";
 import {passwordViewModel} from "$lib/model/PasswordViewModel.svelte";
 import {sortViewModel} from "$lib/model/SortViewModel.svelte";
+import {connectionManager} from "$lib/model/ConnectionManager";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -134,6 +140,7 @@ class ViewModel {
   isPrepared = $state(false)
   supportChapter = $state(false)
   loading = $derived(this.isBusy||!this.isPrepared)
+  get token() { return this.boo.authInfo.token }
 
   async prepareSettings() {
     if(this.isPrepared) return
@@ -233,6 +240,8 @@ class ViewModel {
       const hostPort = newHost
       if (!hostPort) return
 
+      connectionManager.stop()
+
       // 現在の再生情報を記憶
       playerViewModel.pause()
       if (this.previousHostInfo) {
@@ -248,7 +257,9 @@ class ViewModel {
       this.isBusy = true
       launch(async () => {
         try {
-          if (await this.boo.setup(hostPort)) {
+          let capabilities = await this.boo.setup(hostPort)
+          if (capabilities) {
+            connectionManager.start(hostPort, capabilities)
             const playState = settings.getPlayStateOnHost(hostPort)
             this.videoSupported = this.boo.isSupported("v")
             this.audioSupported = this.boo.isSupported("a")
@@ -283,7 +294,7 @@ class ViewModel {
   checkUpdateIfNeed() {
     if(this.boo.capabilities?.diff) {
       // リストの自動更新をサポートしている
-      logger.info("checking update")
+      // logger.info("checking update")
       launch(async () => {
         if (await this.boo.checkUpdate(this.rawMediaList)) {
           logger.info("checkUpdate-->need to update")
@@ -292,14 +303,21 @@ class ViewModel {
       })
     }
   }
-
-  mediaUrl(mediaItem: IMediaItem|undefined): string|undefined {
-    if(!mediaItem) return undefined
-    return this.boo.getItemUrl(mediaItem)
+  refreshAuthIfNeed() {
+    if(this.boo.capabilities?.authentication) {
+      launch(async () => {
+        await this.boo.touch()
+      })
+    }
+  }
+  async tryConnect(): Promise<boolean> {
+    return await this.boo.touch()
   }
 
-  async refreshAuth(): Promise<boolean> {
-    return await this.boo.noop()
+
+  mediaUrl(mediaItem: IMediaItem|undefined, token:string|undefined): string|undefined {
+    if(!mediaItem) return undefined
+    return this.boo.getItemUrl(mediaItem, token)
   }
 
   mediaScale: number = $state(1)

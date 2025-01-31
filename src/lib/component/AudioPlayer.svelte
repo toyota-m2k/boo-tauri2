@@ -5,12 +5,13 @@ import {CursorConcealer} from "$lib/model/CursorConcealer.svelte";
   import {logger} from "$lib/model/DebugLog.svelte";
   import {delay, launch} from "$lib/utils/Utils";
   import {onMount} from "svelte";
+  import {connectionManager} from "$lib/model/ConnectionManager";
 let { onended, ...rest }: { onended: () => void } = $props()
 let player = $state<HTMLAudioElement>() as HTMLAudioElement;
 //let cursorConcealer = new CursorConcealer()
 //let hideCursor = $derived(cursorConcealer.hideCursor&&playerViewModel.playing)
 
-let playRequested = playerViewModel.autoPlay
+let playRequested = playerViewModel.requestPlay
 let playerCommands:IPlayerCommands = {
   nextChapter: ()=>{
     chaptersViewModel.nextChapter()
@@ -19,24 +20,25 @@ let playerCommands:IPlayerCommands = {
     chaptersViewModel.prevChapter()
   },
   play: ()=>{
-    logger.debug("VideoPlayer:play")
+    logger.debug("AudioPlayer:play")
     playRequested = true
     let count = 0
     launch(async ()=>{
-      while(count<10&&playRequested) {
-        try {
-          const pos = playerViewModel.currentPosition
-          if(await playerViewModel.reAuthIfNeeded()) {
-            playerViewModel.initialSeekPosition = pos
-          }
-          await player.play()
-          return
-        } catch (e) {
-          logger.error(`play: ${e}`)
-          await delay(200)
-          count++
-        }
-      }
+      await player.play()
+      // while(count<10&&playRequested) {
+      //   try {
+      //     const pos = playerViewModel.currentPosition
+      //     if(await playerViewModel.reAuthIfNeeded()) {
+      //       playerViewModel.initialSeekPosition = pos
+      //     }
+      //     await player.play()
+      //     return
+      //   } catch (e) {
+      //     logger.error(`play: ${e}`)
+      //     await delay(200)
+      //     count++
+      //   }
+      // }
     })
   },
   pause: ()=> {
@@ -89,7 +91,7 @@ function onEnd() {
 }
 function onError(e:any) {
   logger.error(`audio:onError: ${e}`)
-  // playerViewModel.tryReAuth()
+  connectionManager.recover()
 }
 function onMouseMove() {
   // cursorConcealer.onMouseMove()

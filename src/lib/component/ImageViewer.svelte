@@ -13,7 +13,7 @@
   let hideCursor = $derived(cursorConcealer.hideCursor&&playerViewModel.playing)
 
   $effect(() => {
-    if (playerViewModel.autoPlay) {
+    if (playerViewModel.requestPlay) {
       playerViewModel.playing = true
       let timer = new TimingSwitch(settings.slideShowInterval * 1000, () => {
         onended()

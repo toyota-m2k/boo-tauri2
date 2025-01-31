@@ -34,7 +34,7 @@
 
   let fullscreen = false
   async function onWindowSizeChanged() {
-    logger.info(`SizeChanged: w=${window.innerWidth}}`)
+    // logger.info(`SizeChanged: w=${window.innerWidth}`)
 
     // fullscreenchangeイベントが発生しないので、画面サイズで判定する
     // https://stackoverflow.com/questions/22662128/how-to-detect-when-a-fullscreen-event-happens-on-f11-key-press

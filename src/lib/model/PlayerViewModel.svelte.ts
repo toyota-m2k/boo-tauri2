@@ -1,6 +1,5 @@
 import {viewModel} from "$lib/model/ViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
-import {launch} from "$lib/utils/Utils";
 import {settings} from "$lib/model/Settings.svelte";
 
 export type FitMode = "fit" | "fill" | "original"
@@ -48,32 +47,21 @@ class PlayerViewModel implements IPlayerCommands {
     } else "100%"
   })
 
-  videoSource = $derived(this.isVideo ? viewModel.mediaUrl(viewModel.currentItem) : undefined)
-  audioSource = $derived(this.isAudio ? viewModel.mediaUrl(viewModel.currentItem) : undefined)
-  imageSource = $derived(this.isImage ? viewModel.mediaUrl(viewModel.currentItem) : undefined)
-  avSource = $derived(this.videoSource || this.audioSource)
+  videoSource = $derived(this.isVideo ? viewModel.mediaUrl(viewModel.currentItem, viewModel.token) : undefined)
+  audioSource = $derived(this.isAudio ? viewModel.mediaUrl(viewModel.currentItem, viewModel.token) : undefined)
+  imageSource = $derived(this.isImage ? viewModel.mediaUrl(viewModel.currentItem, viewModel.token) : undefined)
 
   duration:number = $state(0)
   currentPosition = $state(0)
   safeDuration = $derived(this.duration>=0 ? this.duration : 0)
   safeCurrentPosition = $derived(this.currentPosition>=0 ? this.currentPosition : 0)
   muted = $state(false)
-  autoPlay = $state(true)
-  playing = $state(false)
+  requestPlay = $state(true)    // 再生リクエスト
+  playing = $state(false)       // 実際の再生状態
   sliderSeeking = $state(false)
   initialSeekPosition = $state(0)
   pinControlPanel = $state(false)
   repeatPlay = $state(false)    // valid only for video/audio
-
-  async reAuthIfNeeded():Promise<Boolean> {
-    return await viewModel.refreshAuth()
-  }
-
-  tryReAuth() {
-    launch( async ()=> {
-      await this.reAuthIfNeeded()
-    })
-  }
 
   private playerCommands:IPlayerCommands|undefined = undefined
 
@@ -88,12 +76,12 @@ class PlayerViewModel implements IPlayerCommands {
 
   play() {
     logger.debug("play")
-    this.autoPlay = true
+    this.requestPlay = true
     this.playerCommands?.play()
   }
   pause() {
     logger.debug("pause")
-    this.autoPlay = false
+    this.requestPlay = false
     this.playerCommands?.pause()
   }
   togglePlay() {

@@ -7,12 +7,13 @@
   import {delay, launch} from "$lib/utils/Utils";
   import {chaptersViewModel} from "$lib/model/ChaptersViewModel.svelte";
   import {CursorConcealer} from "$lib/model/CursorConcealer.svelte";
+  import {connectionManager} from "$lib/model/ConnectionManager";
 
   let { onended, ...rest }: { onended: () => void } = $props()
   let player = $state<HTMLVideoElement>() as HTMLVideoElement;
   let cursorConcealer = new CursorConcealer()
   let hideCursor = $derived(cursorConcealer.hideCursor&&playerViewModel.playing)
-  let playRequested = playerViewModel.autoPlay
+  let playRequested = playerViewModel.requestPlay
   let playerCommands:IPlayerCommands = {
     nextChapter: ()=>{
       chaptersViewModel.nextChapter()
@@ -23,22 +24,24 @@
     play: ()=>{
       logger.debug("VideoPlayer:play")
       playRequested = true
-      let count = 0
+      // let count = 0
       launch(async ()=>{
-        while(count<10&&playRequested) {
-          try {
-            const pos = playerViewModel.currentPosition
-            if(await playerViewModel.reAuthIfNeeded()) {
-              playerViewModel.initialSeekPosition = pos
-            }
-            await player.play()
-            return
-          } catch (e) {
-            logger.error(`play: ${e}`)
-            await delay(200)
-            count++
-          }
-        }
+        await player.play()
+
+        // while(count<10&&playRequested) {
+        //   try {
+        //     const pos = playerViewModel.currentPosition
+        //     if(await playerViewModel.reAuthIfNeeded()) {
+        //       playerViewModel.initialSeekPosition = pos
+        //     }
+        //     await player.play()
+        //     return
+        //   } catch (e) {
+        //     logger.error(`play: ${e}`)
+        //     await delay(200)
+        //     count++
+        //   }
+        // }
       })
     },
     pause: ()=> {
@@ -103,7 +106,7 @@
   }
   function onError(e:any) {
     logger.error(`video:onError: ${e}`)
-    playerViewModel.tryReAuth()
+    connectionManager.recover()
   }
 </script>
 

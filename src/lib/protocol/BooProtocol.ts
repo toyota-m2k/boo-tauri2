@@ -32,16 +32,16 @@ class BooProtocolImpl implements IBooProtocol {
     this.authInfo.reset()
   }
 
-  async setup(hostInfo: IHostInfo): Promise<boolean> {
+  async setup(hostInfo: IHostInfo): Promise<ICapabilities|undefined> {
     try {
       this.reset()
       this.hostPort = hostInfo
       this.capabilities = await this.getCapabilities()
       this.challenge = this.capabilities?.challenge
-      return this.capabilities !== undefined
+      return this.capabilities
     } catch (e: any) {
       logger.exception(e.toString(), `cannot setup for ${hostInfo.host}:${hostInfo.port}`)
-      return false
+      return undefined
     }
   }
 
@@ -160,27 +160,31 @@ class BooProtocolImpl implements IBooProtocol {
   }
 
   /**
-   * @return true: token refreshed, false: token not refreshed
+   * @return true: connected, false: not connected
    */
-  async noop(): Promise<boolean> {
+  async touch(): Promise<boolean> {
     if(this.capabilities?.authentication) {
       try {
-        const orgToken = this.authInfo.token
         return await this.withAuthToken(async (token?: string) => {
           const url = this.baseUri + 'auth/' + (token ?? '')
           const r = await fetchWithTimeout(url, 3000)
-          if((await (await this.handleResponseRaw(r)).text()).toLowerCase() === 'ok') {
-            return orgToken !== this.authInfo.token
-          } else {
-            return false
-          }
+          await this.handleResponseRaw(r)
+          return true
         })
       } catch (e) {
         logger.error(`re-auth failed: ${e}`)
         return false
       }
     } else {
-      return false
+      try {
+        const url = this.baseUri + 'nop'
+        const r = await fetchWithTimeout(url, 3000)
+        await this.handleResponseRaw(r)
+        return true
+      } catch (e) {
+        logger.error(`nop failed: ${e}`)
+        return false
+      }
     }
   }
 
@@ -215,14 +219,19 @@ class BooProtocolImpl implements IBooProtocol {
   }
 
   async chapters(mediaId: string): Promise<IChapterList> {
-    const url = this.baseUri + `chapter?id=${mediaId}`
-    return await this.handleResponse<IChapterList>(await fetch(url))
+    if(!this.capabilities?.chapter) {
+      const url = this.baseUri + `chapter?id=${mediaId}`
+      return await this.handleResponse<IChapterList>(await fetch(url))
+    } else {
+      return {chapters: [], id: mediaId}
+    }
   }
 
-  getItemUrl(mediaItem: IMediaItem): string {
+  getItemUrl(mediaItem: IMediaItem, token:string|undefined): string {
     let auth = ``
-    if (this.needAuth && this.authInfo.token) {
-      auth = `&auth=${this.authInfo.token}`
+    if (this.needAuth) {
+      if(!token) return ''
+      auth = `&auth=${token}`
     }
     switch (mediaItem.type as string) {
       case 'jpg':

@@ -115,8 +115,8 @@ export interface IBooProtocol {
   authInfo: IAuthInfo
   capabilities: ICapabilities | undefined
 
-  setup(hostInfo: IHostInfo): Promise<boolean>
-  noop(): Promise<boolean>
+  setup(hostInfo: IHostInfo): Promise<ICapabilities|undefined>
+  touch(): Promise<boolean>
 
   list(req: IListRequest): Promise<IMediaList>
 
@@ -124,7 +124,7 @@ export interface IBooProtocol {
 
   checkUpdate(currentList:IMediaList): Promise<boolean>
 
-  getItemUrl(mediaItem: IMediaItem): string
+  getItemUrl(mediaItem: IMediaItem, token:string|undefined): string
 
   getCurrent(): Promise<string> // return current media id
   setCurrent(mediaId: string): Promise<void>
