@@ -61,22 +61,22 @@
   })
 
   function onPlay() {
-    logger.info("onPlay")
+    logger.info("video:onPlay")
     playerViewModel.playing = true;
   }
   function onPause() {
-    logger.info("onPause")
+    logger.info("video:onPause")
     if(playerViewModel.isVideo) {
       playerViewModel.playing = false;
     }
   }
   function onLoadStart() {
-    logger.info("onLoadStart")
+    logger.info("video:onLoadStart")
     playerViewModel.currentPosition = 0
     playerViewModel.duration = 0
   }
   function onLoadedMetaData() {
-    logger.info("onLoadedMetaData")
+    logger.info("video:onLoadedMetaData")
 
     // Durationはバインドしないで、onloadedmetadataで設定する。
     // そうしないと、ランタイムに、
@@ -85,7 +85,7 @@
     playerViewModel.duration = player?.duration || 0;
   }
   function onLoaded() {
-    logger.info("onLoaded")
+    logger.info("video:onLoaded")
     const pos = playerViewModel.initialSeekPosition
     if(pos>0) {
       playerViewModel.initialSeekPosition = 0
@@ -93,7 +93,7 @@
     }
   }
   function onEnd() {
-    logger.info("onEnd")
+    logger.info("video:onEnd")
     if(playerViewModel.repeatPlay && !playerViewModel.sliderSeeking) {
       playerViewModel.currentPosition = 0
       player.play()
@@ -102,13 +102,13 @@
     }
   }
   function onError(e:any) {
-    logger.error(`onError: ${e}`)
+    logger.error(`video:onError: ${e}`)
     playerViewModel.tryReAuth()
   }
 </script>
 
 {#if playerViewModel.isVideo}
-  <ZoomView onclick={()=>playerViewModel.togglePlay()}>
+  <ZoomView>
     <video
       class="media-view"
       class:cursor-none={hideCursor}
@@ -117,7 +117,7 @@
       class:fill={playerViewModel.fitMode==="fill"}
       class:original={playerViewModel.fitMode==="original"}
       bind:this={player}
-      src={playerViewModel.avSource}
+      src={playerViewModel.videoSource}
       bind:videoWidth={playerViewModel.videoWidth}
       bind:videoHeight={playerViewModel.videoHeight}
       style:width={playerViewModel.playerDisplayHeight}

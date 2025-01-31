@@ -8,6 +8,8 @@
   import ImageViewer from "$lib/component/ImageViewer.svelte";
   import {TimingSwitch} from "$lib/utils/TimingSwitch";
   import {logger} from "$lib/model/DebugLog.svelte";
+  import AudioPlayer from "$lib/component/AudioPlayer.svelte";
+  import ZoomView from "$lib/primitive/ZoomView.svelte";
 
   function onended() {
     if(!playerViewModel.sliderSeeking) {
@@ -42,9 +44,12 @@
   }
 </script>
 
-<div class="media-player w-full h-full relative" bind:clientWidth={playerViewModel.playerWidth} bind:clientHeight={playerViewModel.playerHeight}>
+<div class="media-player w-full h-full relative" bind:clientWidth={playerViewModel.playerWidth} bind:clientHeight={playerViewModel.playerHeight}
+     onclick={()=>playerViewModel.togglePlay()} role="none">
   {#if playerViewModel.isVideo}
     <VideoPlayer {onended}/>
+  {:else if playerViewModel.isAudio}
+    <AudioPlayer {onended}/>
   {:else if playerViewModel.isImage}
     <ImageViewer {onended}/>
   {/if}

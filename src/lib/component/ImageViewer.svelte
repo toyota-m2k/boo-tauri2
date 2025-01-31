@@ -35,7 +35,7 @@
 </script>
 
 {#if playerViewModel.isImage}
-  <ZoomView onclick={()=>playerViewModel.togglePlay()}>
+  <ZoomView>
     <img
       bind:this={viewer}
       class="media-view"
