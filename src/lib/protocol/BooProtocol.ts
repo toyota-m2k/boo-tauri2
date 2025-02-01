@@ -85,6 +85,8 @@ class BooProtocolImpl implements IBooProtocol {
       body: authentication.createPassPhrase(password, challenge)
     })
     if (!r.ok) {
+      const json = await r.json()
+      this.challenge = json["challenge"] as string
       this.authInfo.failed()
       return false
     }

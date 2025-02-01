@@ -92,7 +92,7 @@ class ViewModel {
     } else if (settings.loopPlay && this.mediaList.list.length > 0) {
       this.currentItem = this.mediaList.list[0]
     }
-    this.checkUpdateIfNeed()
+    // this.checkUpdateIfNeed()
   }
 
   next() {
@@ -106,7 +106,7 @@ class ViewModel {
     } else if(settings.loopPlay && this.mediaList.list.length>0) {
       this.currentItem = this.mediaList.list[0]
     }
-    this.checkUpdateIfNeed()
+    // this.checkUpdateIfNeed()
   }
 
   onFullScreen: ((fullscreen:boolean)=>void)|undefined = undefined
@@ -207,6 +207,7 @@ class ViewModel {
         logger.info(`onTerminating`)
         this.saveCurrentMediaInfo()
         await tauriShortcutMediator.terminate()
+        connectionManager.stop()
         return true
       })
     } catch(e) {
@@ -288,29 +289,29 @@ class ViewModel {
 
   reloadPlayList() {
     logger.info("reloadPlayList")
+    this.previousHostInfo = settings.currentHost
     this.onHostChanged(settings.currentHost)
   }
 
-  checkUpdateIfNeed() {
+  async checkUpdateIfNeed() {
     if(this.boo.capabilities?.diff) {
       // リストの自動更新をサポートしている
       // logger.info("checking update")
-      launch(async () => {
-        if (await this.boo.checkUpdate(this.rawMediaList)) {
-          logger.info("checkUpdate-->need to update")
-          this.reloadPlayList()
-        }
-      })
+      if (await this.boo.checkUpdate(this.rawMediaList)) {
+        logger.info("checkUpdate-->need to update")
+        this.reloadPlayList()
+      }
     }
   }
-  refreshAuthIfNeed() {
+  async refreshAuthIfNeed() {
     if(this.boo.capabilities?.authentication) {
-      launch(async () => {
-        await this.boo.touch()
-      })
+      await this.tryConnect()
     }
   }
   async tryConnect(): Promise<boolean> {
+    if (playerViewModel.isAV) {
+      playerViewModel.initialSeekPosition = playerViewModel.currentPosition
+    }
     return await this.boo.touch()
   }
 

@@ -42,6 +42,10 @@
       controlPanelTimingSwitch.start()
     }
   }
+  // コントロールパネルをクリックしたときに再生・停止がトグルしてしまうのを防ぐ
+  function onPanelClick(e:MouseEvent) {
+    e.stopPropagation()
+  }
 </script>
 
 <div class="media-player w-full h-full relative" bind:clientWidth={playerViewModel.playerWidth} bind:clientHeight={playerViewModel.playerHeight}
@@ -66,7 +70,7 @@
          role="none">
       <div class="w-full flex flex-col">
         <div class="w-full h-4 flex control-panel-gradient"></div>
-        <div class="control-panel w-full flex-1 p-2">
+        <div class="control-panel w-full flex-1 p-2" onclick="{onPanelClick}" role="none">
           <MediaControlPanel/>
         </div>
       </div>

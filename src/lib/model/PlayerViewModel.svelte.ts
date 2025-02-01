@@ -1,6 +1,8 @@
 import {viewModel} from "$lib/model/ViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {settings} from "$lib/model/Settings.svelte";
+import {launch} from "$lib/utils/Utils";
+import {connectionManager} from "$lib/model/ConnectionManager";
 
 export type FitMode = "fit" | "fill" | "original"
 
@@ -56,8 +58,8 @@ class PlayerViewModel implements IPlayerCommands {
   safeDuration = $derived(this.duration>=0 ? this.duration : 0)
   safeCurrentPosition = $derived(this.currentPosition>=0 ? this.currentPosition : 0)
   muted = $state(false)
-  requestPlay = $state(true)    // 再生リクエスト
-  playing = $state(false)       // 実際の再生状態
+  playRequested = $state(true)    // 再生が要求されているかどうか
+  playing = $state(false)         // 実際の再生状態
   sliderSeeking = $state(false)
   initialSeekPosition = $state(0)
   pinControlPanel = $state(false)
@@ -76,13 +78,18 @@ class PlayerViewModel implements IPlayerCommands {
 
   play() {
     logger.debug("play")
-    this.requestPlay = true
-    this.playerCommands?.play()
+    this.playRequested = true
+    launch(async ()=>{
+      await viewModel.refreshAuthIfNeed()
+      this.playerCommands?.play()
+      connectionManager.resume()
+    })
   }
   pause() {
     logger.debug("pause")
-    this.requestPlay = false
+    this.playRequested = false
     this.playerCommands?.pause()
+    connectionManager.pause()
   }
   togglePlay() {
     logger.debug("togglePlay")

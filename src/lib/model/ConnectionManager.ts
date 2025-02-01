@@ -2,6 +2,7 @@ import type {IHostInfo} from "$lib/model/ModelDef";
 import type {ICapabilities} from "$lib/protocol/IBooProtocol";
 import {viewModel} from "$lib/model/ViewModel.svelte";
 import {delay, launch} from "$lib/utils/Utils";
+import {logger} from "$lib/model/DebugLog.svelte";
 
 interface IConnectionManager {
   start(host:IHostInfo,capabilities:ICapabilities): void
@@ -23,31 +24,31 @@ class ConnectionManager implements IConnectionManager {
   private capabilities: ICapabilities | undefined = undefined
   private get supportsDiff() { return this.capabilities?.diff === true }
   private get needsAuth() { return this.capabilities?.authentication === true }
+  private watchInterval = 5*60*1000 // 5 minutes
 
   private watchingTimer = 0
   recovering: AbortController|undefined = undefined
 
   start(host:IHostInfo,capabilities:ICapabilities) {
+    logger.info(`ConnectionManager.start(${host.host}:${host.port})`)
     this.currentHost = host
     this.capabilities = capabilities
     this.watch()
   }
   stop() {
-    this.pause()
+    logger.info(`ConnectionManager.stop()`)
+    this.reset()
     this.currentHost = undefined
     this.capabilities = undefined
   }
+
   pause() {
-    if(this.watchingTimer>0) {
-      clearInterval(this.watchingTimer)
-      this.watchingTimer = 0
-    }
-    if(this.recovering) {
-      this.recovering.abort()
-      this.recovering = undefined
-    }
+    logger.info("ConnectionManager.pause()")
+    this.reset()
   }
+
   resume() {
+    logger.info("ConnectionManager.resume()")
     if(this.currentHost) {
       this.recover()
     }
@@ -55,8 +56,14 @@ class ConnectionManager implements IConnectionManager {
 
   recover() {
     if(this.recovering) {
+      logger.info("ConnectionManager.recover() already recovering")
       return
     }
+    if(!this.currentHost) {
+      logger.info("ConnectionManager.recover() no currentHost")
+      return
+    }
+    logger.info("ConnectionManager.recover()")
     if(this.watchingTimer>0) {
       clearInterval(this.watchingTimer)
       this.watchingTimer = 0
@@ -70,6 +77,7 @@ class ConnectionManager implements IConnectionManager {
           await delay(interval, abortController.signal)
           interval = Math.min(interval * 2, 5_000)   // exponential backoff
         }
+        logger.info("ConnectionManager.recover() connected")
         this.watch()
       } catch(_) {
         // maybe aborted
@@ -79,6 +87,17 @@ class ConnectionManager implements IConnectionManager {
     })
   }
 
+  private reset() {
+    if(this.watchingTimer>0) {
+      clearInterval(this.watchingTimer)
+      this.watchingTimer = 0
+    }
+    if(this.recovering) {
+      this.recovering.abort()
+      this.recovering = undefined
+    }
+  }
+
   private watch() {
     if(this.watchingTimer>0) {
       clearInterval(this.watchingTimer)
@@ -86,13 +105,17 @@ class ConnectionManager implements IConnectionManager {
     }
     if(this.supportsDiff||this.needsAuth) {
       this.watchingTimer = setInterval(() => {
-        if(this.supportsDiff) {
-          viewModel.checkUpdateIfNeed()
-        }
-        if(this.needsAuth) {
-          viewModel.refreshAuthIfNeed()
-        }
-      }, 5*60*1000) // 5 minutes
+        launch(async ()=> {
+          if (this.supportsDiff) {
+            logger.info("ConnectionManager.watch() checkUpdateIfNeed")
+            await viewModel.checkUpdateIfNeed()
+          }
+          if (this.needsAuth) {
+            logger.info("ConnectionManager.watch() refreshAuthIfNeed")
+            await viewModel.refreshAuthIfNeed()
+          }
+        })
+      }, this.watchInterval) // 5 minutes
     }
   }
 }
