@@ -221,7 +221,7 @@ class BooProtocolImpl implements IBooProtocol {
   }
 
   async chapters(mediaId: string): Promise<IChapterList> {
-    if(!this.capabilities?.chapter) {
+    if(this.capabilities?.chapter) {
       const url = this.baseUri + `chapter?id=${mediaId}`
       return await this.handleResponse<IChapterList>(await fetch(url))
     } else {

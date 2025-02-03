@@ -60,7 +60,7 @@
       </tbody>
     </table>
   {:else}
-    <div>No media found</div>
+    <div class="text-surface-on">No media found</div>
   {/if}
 
 </div>

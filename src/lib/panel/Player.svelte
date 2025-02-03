@@ -18,7 +18,7 @@
   }
 
   let mouseOnControlPanel = $state(false)
-  let showControlPanel = $derived(!!viewModel.currentItem && (mouseOnControlPanel||playerViewModel.pinControlPanel||!playerViewModel.playing))
+  let showControlPanel = $derived(!!viewModel.currentItem && (mouseOnControlPanel||playerViewModel.pinControlPanel||!playerViewModel.playRequested))
   let controlPanelTimingSwitch = new TimingSwitch(2000, ()=>{
     mouseOnControlPanel = false
   })
