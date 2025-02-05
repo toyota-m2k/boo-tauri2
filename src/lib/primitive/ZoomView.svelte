@@ -92,10 +92,7 @@
         draggingInfo.isDragging = false
       },
     })
-    gestureRecognizer.attach(container)
-    return ()=> {
-      gestureRecognizer.detach(container)
-    }
+    return gestureRecognizer.attach(container)
   })
 </script>
 
