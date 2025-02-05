@@ -12,6 +12,11 @@
   }
   const title:string = (tauriObject.isAvailable && tauriObject.appVersion) ? "Settings - v"+ tauriObject.appVersion : "Settings"
 
+  $effect(()=>{
+    if(!settings.useCategory) {
+      viewModel.setCategory(false, undefined)
+    }
+  })
 </script>
 
 <Dialog {title} action={(reason)=>{if(reason==="close"||reason==="negative") show=false }}>
@@ -56,6 +61,10 @@
       <div class="flex flex-grow items-center mt-4">
         <input type="checkbox" bind:checked={settings.isDarkMode} class="w-5 h-5 text-surface-on focus:ring-accent" />
         <label class="ml-2" for="darkMode">Dark Mode</label>
+      </div>
+      <div class="flex flex-grow items-center mt-4">
+        <input type="checkbox" bind:checked={settings.useCategory} class="w-5 h-5 text-surface-on focus:ring-accent" />
+        <label class="ml-2" for="darkMode">Enable Category</label>
       </div>
       <div class="flex flex-grow items-center mt-2">
         <input type="checkbox" bind:checked={settings.enableDebugLog} class="w-5 h-5 text-surface-on focus:ring-accent" />
