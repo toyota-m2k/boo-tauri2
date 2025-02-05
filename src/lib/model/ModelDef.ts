@@ -31,6 +31,7 @@ export interface IPlayStateOnHost {
   currentMediaPosition: number,
   sortKey: SortKey,
   descending: boolean,
+  category?: string,
 }
 
 export type ColorVariation = 'default' | 'orange' | 'melon' | 'cherry' | 'grape' | 'carrot' | 'blueberry' | 'soda'

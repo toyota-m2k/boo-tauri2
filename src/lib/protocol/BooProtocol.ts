@@ -4,14 +4,14 @@ import {
   emptyCapabilities,
   type IAuthToken,
   type IBooProtocol,
-  type ICapabilities, type ICategory, type ICategoryList,
+  type ICapabilities, type ICategoryList,
   type IChapterList, type ICheckResult, type IDResponse,
   type IListRequest, type IMark, type IMediaItem,
   type IMediaList, type IRatingList, type IReputation, type MediaType
 } from './IBooProtocol'
 import {fetchWithTimeout} from "../utils/Utils";
 import {logger} from "../model/DebugLog.svelte";
-import type {IHostInfo, IHostPort} from "$lib/model/ModelDef";
+import type {IHostInfo} from "$lib/model/ModelDef";
 import {createAuthInfo, type IAuthInfo} from "$lib/protocol/AuthInfo.svelte";
 
 class BooProtocolImpl implements IBooProtocol {

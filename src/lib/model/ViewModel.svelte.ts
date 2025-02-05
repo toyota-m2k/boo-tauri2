@@ -72,9 +72,9 @@ class ViewModel {
     return {list, date: this.rawMediaList.date}
   })
 
-  scrollToCurrentItem: ((item:string|undefined)=>void)|undefined = undefined
+  scrollToItem: ((item:string|undefined)=>void)|undefined = undefined
   ensureCurrentItemVisible() {
-    this.scrollToCurrentItem?.(this.currentItem?.id)
+    this.scrollToItem?.(this.currentItem?.id)
   }
 
   currentItem = $state<IMediaItem|undefined>(undefined)
@@ -141,6 +141,8 @@ class ViewModel {
   supportChapter = $state(false)
   supportCategory = $state(false)
   categories: string[] = $state([])
+  enableCategory = $state(false)
+  currentCategory = $state<string|undefined>(undefined)
   loading = $derived(this.isBusy||!this.isPrepared)
   get token() { return this.boo.authInfo.token }
 
@@ -255,6 +257,10 @@ class ViewModel {
       // 情報更新前にクリア
       this.rawMediaList = emptyMediaList()
       this.currentItem = undefined
+      this.supportCategory = false
+      this.supportChapter = false
+      this.enableCategory = false
+      this.categories = []
       sortViewModel.reset()
 
       this.isBusy = true
@@ -281,6 +287,7 @@ class ViewModel {
             this.currentItem = item ?? this.mediaList.list[0]
             this.supportChapter = this.boo.capabilities?.chapter ?? false
             this.supportCategory = this.boo.capabilities?.category ?? false
+            this.categories = this.boo.categories
             playerViewModel.play()
           }
         } finally {
@@ -288,6 +295,37 @@ class ViewModel {
         }
       })
     })
+  }
+
+  async setCategory(enable:boolean, category: string|undefined) {
+    if(!this.supportCategory||!this.categories||!this.categories[0]) return
+    const originalItem = this.currentItem
+    const position = playerViewModel.currentPosition
+    if (enable) {
+      this.currentCategory = category ?? this.currentCategory ?? this.categories[0]
+      this.enableCategory = true
+    } else {
+      this.enableCategory = false
+    }
+    let request = this.listRequest
+    if(this.enableCategory && this.currentCategory) {
+      request = {sourceType:0, type:"all", category: this.currentCategory}
+    }
+    this.rawMediaList = await this.boo.list(request)
+
+    // 前回の再生位置を復元
+    let item: IMediaItem | undefined = undefined
+    if(originalItem) {
+      item = this.mediaList.list.find((item) => item.id === originalItem.id)
+    }
+    if(item) {
+      playerViewModel.initialSeekPosition = position
+      this.currentItem = item
+    } else {
+      playerViewModel.initialSeekPosition = 0
+      this.currentItem = this.mediaList.list[0]
+    }
+    this.ensureCurrentItemVisible()
   }
 
   reloadPlayList() {
