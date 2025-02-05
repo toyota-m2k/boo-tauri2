@@ -139,6 +139,8 @@ class ViewModel {
 
   isPrepared = $state(false)
   supportChapter = $state(false)
+  supportCategory = $state(false)
+  categories: string[] = $state([])
   loading = $derived(this.isBusy||!this.isPrepared)
   get token() { return this.boo.authInfo.token }
 
@@ -258,8 +260,8 @@ class ViewModel {
       this.isBusy = true
       launch(async () => {
         try {
-          let capabilities = await this.boo.setup(hostPort)
-          if (capabilities) {
+          if (await this.boo.setup(hostPort)) {
+            const capabilities = this.boo.capabilities
             connectionManager.start(hostPort, capabilities)
             const playState = settings.getPlayStateOnHost(hostPort)
             this.videoSupported = this.boo.isSupported("v")
@@ -278,6 +280,7 @@ class ViewModel {
             }
             this.currentItem = item ?? this.mediaList.list[0]
             this.supportChapter = this.boo.capabilities?.chapter ?? false
+            this.supportCategory = this.boo.capabilities?.category ?? false
             playerViewModel.play()
           }
         } finally {

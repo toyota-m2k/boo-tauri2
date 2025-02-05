@@ -1,12 +1,13 @@
 import {authentication} from "./Authentication"
 import {BooError} from "../model/BooError";
-import type {
-  IAuthToken,
-  IBooProtocol,
-  ICapabilities, ICategory,
-  IChapterList, ICheckResult, IDResponse,
-  IListRequest, IMark, IMediaItem,
-  IMediaList, IRatingList, IReputation, MediaType
+import {
+  emptyCapabilities,
+  type IAuthToken,
+  type IBooProtocol,
+  type ICapabilities, type ICategory, type ICategoryList,
+  type IChapterList, type ICheckResult, type IDResponse,
+  type IListRequest, type IMark, type IMediaItem,
+  type IMediaList, type IRatingList, type IReputation, type MediaType
 } from './IBooProtocol'
 import {fetchWithTimeout} from "../utils/Utils";
 import {logger} from "../model/DebugLog.svelte";
@@ -18,30 +19,33 @@ class BooProtocolImpl implements IBooProtocol {
   private challenge: string | undefined
   private secret: string | undefined
 
-  capabilities: ICapabilities | undefined
+  capabilities: ICapabilities = emptyCapabilities
   authInfo: IAuthInfo = createAuthInfo()
+  categories: string[] = []
 
   constructor(private readonly requirePassword: (target:string|undefined) => Promise<string|undefined>) {
   }
 
   private reset() {
-    this.capabilities = undefined
+    this.capabilities = emptyCapabilities
     this.hostPort = undefined
     this.challenge = undefined
     this.secret = undefined
     this.authInfo.reset()
+    this.categories = []
   }
 
-  async setup(hostInfo: IHostInfo): Promise<ICapabilities|undefined> {
+  async setup(hostInfo: IHostInfo): Promise<boolean> {
     try {
       this.reset()
       this.hostPort = hostInfo
       this.capabilities = await this.getCapabilities()
       this.challenge = this.capabilities?.challenge
-      return this.capabilities
+      this.categories = await this.getCategories()
+      return true
     } catch (e: any) {
       logger.exception(e.toString(), `cannot setup for ${hostInfo.host}:${hostInfo.port}`)
-      return undefined
+      return false
     }
   }
 
@@ -302,12 +306,16 @@ class BooProtocolImpl implements IBooProtocol {
     })
   }
 
-  async categories(): Promise<ICategory[]> {
+  private async getCategories(): Promise<string[]> {
     if (!this.capabilities?.category) {
       return []
     }
     const url = this.baseUri + 'categories'
-    return await this.handleResponse<ICategory[]>(await fetch(url))
+    // const cats = (await this.handleResponse<ICategoryList>(await fetch(url)))?.categories
+    // if(!cats) return []
+    // const catsLabels = cats.sort((a, b) => a.sort - b.sort).map(c => c.label)
+    // return catsLabels
+    return (await this.handleResponse<ICategoryList>(await fetch(url)))?.categories?.sort((a, b) => a.sort - b.sort)?.map(c => c.label) ?? []
   }
 
   async marks(): Promise<IMark[]> {
