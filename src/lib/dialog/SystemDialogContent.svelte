@@ -24,17 +24,17 @@
   <div class="flex flex-col justify-center">
     <div class="flex items-center mt-2 gap-1">
       <span>Slide Show Interval</span>
-      <div class="flex justify-end flex-grow items-center gap-2 pr-4">
+      <div class="flex justify-end grow items-center gap-2 pr-4">
         <input type="number" min="1" max="3600" bind:value={settings.slideShowInterval} placeholder="Slide Show Interval" class="w-1/6 h-7" />
         <span>second(s)</span>
       </div>
     </div>
     <div>
-      <div class="flex flex-grow items-center mt-2">
+      <div class="flex grow items-center mt-2">
         <input type="checkbox" bind:checked={settings.loopPlay} class="w-5 h-5 text-surface-on focus:ring-accent" />
         <label class="ml-2" for="loopPlay">Loop Play</label>
       </div>
-      <div class="flex flex-grow items-center mt-2">
+      <div class="flex grow items-center mt-2">
         <input type="checkbox" bind:checked={settings.autoRotation} class="w-5 h-5 text-surface-on focus:ring-accent" />
         <label class="ml-2" for="autoRotation">Auto Rotation to fit player</label>
       </div>
@@ -58,22 +58,22 @@
       {/each}
     </div>
     <div>
-      <div class="flex flex-grow items-center mt-4">
+      <div class="flex grow items-center mt-4">
         <input type="checkbox" bind:checked={settings.isDarkMode} class="w-5 h-5 text-surface-on focus:ring-accent" />
         <label class="ml-2" for="darkMode">Dark Mode</label>
       </div>
-      <div class="flex flex-grow items-center mt-4">
+      <div class="flex grow items-center mt-4">
         <input type="checkbox" bind:checked={settings.useCategory} class="w-5 h-5 text-surface-on focus:ring-accent" />
         <label class="ml-2" for="darkMode">Enable Category</label>
       </div>
-      <div class="flex flex-grow items-center mt-2">
+      <div class="flex grow items-center mt-2">
         <input type="checkbox" bind:checked={settings.enableDebugLog} class="w-5 h-5 text-surface-on focus:ring-accent" />
         <label class="ml-2" for="darkMode">Show Debug Log</label>
       </div>
     </div>
   <!--  <div class="flex items-center justify-start mt-2 gap-1">-->
   <!--    <span>Color Variation</span>-->
-  <!--    <div class="flex justify-end flex-grow items-center pr-4">-->
+  <!--    <div class="flex justify-end grow items-center pr-4">-->
   <!--      <button class=" secondary_button w-44 h-7">{colorVariation.toUpperCase()}<ChevronDownOutline class="w-6 h-6 ms-2 text-secondary-on" /></button>-->
   <!--      <Dropdown class="p-3 space-y-3">-->
   <!--        {#each colorVariations as c (c)}-->
@@ -86,7 +86,7 @@
   <!--  </div>-->
   <!--  <div class="flex items-center justify-start mt-2 gap-1">-->
   <!--    <span>Dark Mode</span>-->
-  <!--    <div class="flex justify-end flex-grow items-center pr-4">-->
+  <!--    <div class="flex justify-end grow items-center pr-4">-->
   <!--      <ButtonGroup>-->
   <!--        <Button size="xs" color="dark" class="h-7" checked={!isDarkMode} on:click={()=>{setDarkMode(false)}}>-->
   <!--          LIGHT-->

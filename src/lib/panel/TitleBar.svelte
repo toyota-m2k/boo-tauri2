@@ -24,12 +24,12 @@
 </script>
 
 <div class="panel w-full h-full flex items-center bg-primary text-primary-on overflow-visible">
-  <IconButton path={ICON_MENU} onclick={menu} class="h-10 w-10 p-1 ml-2 rounded hover:bg-secondary hover:text-secondary-on"/>
+  <IconButton path={ICON_MENU} onclick={menu} class="h-10 w-10 p-1 ml-2 rounded-sm hover:bg-secondary hover:text-secondary-on"/>
   <Viewbox text={title} class="flex-1 ml-2 mr-2"/>
   {#if viewModel.supportCategory && settings.useCategory}
-    <input type="checkbox" checked="{viewModel.enableCategory}" onchange={onCategoryEnabled} class="h-6 w-6 my-2 mr-1 rounded hover:bg-secondary hover:text-secondary-on"/>
+    <input type="checkbox" checked="{viewModel.enableCategory}" onchange={onCategoryEnabled} class="h-6 w-6 my-2 mr-2 rounded-sm hover:bg-secondary hover:text-secondary-on"/>
     <div class="flex-col relative h-8 w-32 my-3 mr-4">
-      <button class="h-8 w-32 px-2 rounded border border-secondary-on hover:bg-secondary hover:text-secondary-on" onclick={onChangingCategory}>
+      <button class="h-8 w-32 px-2 rounded-sm border border-secondary-on hover:bg-secondary hover:text-secondary-on" onclick={onChangingCategory}>
         <Viewbox text={(viewModel.enableCategory && viewModel.currentCategory) ? viewModel.currentCategory : "ALL"}>
         </Viewbox>
       </button>
@@ -40,8 +40,8 @@
       {/if}
     </div>
     {/if}
-  <IconButton path={ICON_CLOUD} onclick={()=>{dialogViewModel.openHostDialog()}} class="h-10 w-10 p-1 my-2 mr-2 rounded hover:bg-secondary hover:text-secondary-on"/>
-  <IconButton path={ICON_COG} onclick={()=>{dialogViewModel.openSystemDialog()}} class="h-10 w-10 p-1 my-2 mr-2 rounded hover:bg-secondary hover:text-secondary-on"/>
+  <IconButton path={ICON_CLOUD} onclick={()=>{dialogViewModel.openHostDialog()}} class="h-10 w-10 p-1 my-2 mr-2 rounded-sm hover:bg-secondary hover:text-secondary-on"/>
+  <IconButton path={ICON_COG} onclick={()=>{dialogViewModel.openSystemDialog()}} class="h-10 w-10 p-1 my-2 mr-2 rounded-sm hover:bg-secondary hover:text-secondary-on"/>
 </div>
 
 <style>

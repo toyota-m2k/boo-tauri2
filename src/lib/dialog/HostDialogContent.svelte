@@ -81,13 +81,13 @@
                 <div class="text-xs text-gray-on-alt">{host.host}:{host.port}</div>
               </div>
             </div>
-            <IconButton class="p-1 w-8 h-8 rounded text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>editHost(e,host)} path={ICON_EDIT}/>
-            <IconButton class="p-1 w-8 h-8 rounded text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>deleteHost(e,host)} path={ICON_TRASH}/>
+            <IconButton class="p-1 w-8 h-8 rounded-sm text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>editHost(e,host)} path={ICON_EDIT}/>
+            <IconButton class="p-1 w-8 h-8 rounded-sm text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>deleteHost(e,host)} path={ICON_TRASH}/>
           </div>
         {/each}
       </div>
       <div class="flex flex-row-reverse w-4/5">
-        <IconButton class="p-1 w-6 h-6 rounded text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>addHost(e)} path={ICON_PLUS}/>
+        <IconButton class="p-1 w-6 h-6 rounded-sm text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>addHost(e)} path={ICON_PLUS}/>
         <div class="mr-2">Hosts</div>
       </div>
     {:else}

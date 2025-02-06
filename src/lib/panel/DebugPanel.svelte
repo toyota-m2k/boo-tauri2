@@ -24,7 +24,7 @@
       {/each}
     </div>
   </div>
-  <IconButton path={ICON_TRASH} class="absolute w-10 h-10 bottom-0 right-5 p-1 m-2 rounded hover:bg-secondary hover:text-secondary-on" onclick={()=>logger.clear()}/>
+  <IconButton path={ICON_TRASH} class="absolute w-10 h-10 bottom-0 right-5 p-1 m-2 rounded-sm hover:bg-secondary hover:text-secondary-on" onclick={()=>logger.clear()}/>
 </div>
 
 <style>

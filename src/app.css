@@ -1,3 +1,63 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* tailwindcss-v3 時代に tailwind.config.js で設定していたものが migrator によって、ここに移動された */
+
+/* @custom-variant がエラー表示されるのはintelliJのバグっぽい */
+/* さらに、この行はあってもなくても変わらなかったのでコメントアウト */
+/*@custom-variant dark (&:is(.dark *));*/
+
+@theme {
+  --color-primary: var(--color-primary);
+
+  --color-primary-on: var(--color-primary-on);
+  --color-primary-on-alt: var(--color-primary-on-alt);
+
+  --color-primary-variant: var(--color-primary-variant);
+  --color-primary-variant-on: var(--color-primary-variant-on);
+
+  --color-secondary: var(--color-secondary);
+
+  --color-secondary-on: var(--color-secondary-on);
+  --color-secondary-on-alt: var(--color-secondary-on-alt);
+
+  --color-secondary-variant: var(--color-secondary-variant);
+  --color-secondary-variant-on: var(--color-secondary-variant-on);
+
+  --color-accent: var(--color-accent);
+  --color-accent-on: var(--color-accent-on);
+
+  --color-background: var(--color-background);
+  --color-background-on: var(--color-background-on);
+
+  --color-surface: var(--color-surface);
+  --color-surface-secondary: var(--color-surface-secondary);
+
+  --color-surface-on: var(--color-surface-on);
+  --color-surface-on-alt: var(--color-surface-on-alt);
+
+  --color-error: var(--color-error);
+  --color-error-on: var(--color-error-on);
+
+  --color-gray: var(--color-gray);
+
+  --color-gray-on: var(--color-gray-on);
+  --color-gray-on-alt: var(--color-gray-on-alt);
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
