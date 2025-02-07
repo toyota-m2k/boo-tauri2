@@ -11,6 +11,7 @@
   import AudioPlayer from "$lib/component/AudioPlayer.svelte";
   import ZoomView from "$lib/primitive/ZoomView.svelte";
   import {chaptersViewModel} from "$lib/model/ChaptersViewModel.svelte";
+  import {untrack} from "svelte";
 
   function onended() {
     if(!playerViewModel.sliderSeeking) {
@@ -50,11 +51,24 @@
 
   // 無効チャプターのスキップ
   $effect(()=>{
-    if (viewModel.supportChapter && playerViewModel.isAV && playerViewModel.playing && !playerViewModel.sliderSeeking) {
-      if(!chaptersViewModel.isValidAt(playerViewModel.currentPosition)) {
-        chaptersViewModel.nextChapter()
+    let label = ""
+    if (viewModel.supportChapter && playerViewModel.isAV) {
+      const chapter = chaptersViewModel.getChapterAt(playerViewModel.currentPosition)
+      if(chapter) {
+        if(playerViewModel.playing && !playerViewModel.sliderSeeking) {
+          if(chapter.skip) {
+            chaptersViewModel.nextChapter()
+            return
+          }
+        }
       }
+      label = chapter?.label ?? ""
     }
+    untrack(()=> {
+      if (chaptersViewModel.currentChapterLabel !== label) {
+        chaptersViewModel.currentChapterLabel = label
+      }
+    })
   })
 </script>
 
@@ -66,6 +80,16 @@
     <AudioPlayer {onended}/>
   {:else if playerViewModel.isImage}
     <ImageViewer {onended}/>
+  {/if}
+  {#if playerViewModel.isAV}
+    <div class="absolute top-0 left-0 right-0 h-[56px] bg-transparent"
+         onmouseenter={onMouseEnterToPanel}
+         role="none"></div>
+  {/if}
+  {#if chaptersViewModel.currentChapterLabel!==""}
+    <div class="absolute top-0 left-0 bg-background/50 text-accent">
+      {chaptersViewModel.currentChapterLabel}
+    </div>
   {/if}
 
   <!-- マウスオーバーで、コントロールパネルを出し入れする仕掛け -->

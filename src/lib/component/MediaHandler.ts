@@ -14,6 +14,7 @@ export class MediaHandler {
   private get isMyType() {
     return this.mediaType === viewModel.currentItem?.media
   }
+  private playPromise:Promise<void>|undefined
   private playerCommands:IPlayerCommands = {
     nextChapter: ()=>{
       chaptersViewModel.nextChapter()
@@ -23,13 +24,16 @@ export class MediaHandler {
     },
     play: ()=>{
       logger.debug(`${this.mediaType}:play`)
-      launch(async ()=>{
-        await this.player.play()
-      })
+      if(!this.playPromise) {
+        this.playPromise = this.player.play()
+      }
     },
     pause: ()=> {
       logger.debug(`${this.mediaType}:pause`)
-      this.player.pause()
+      this.playPromise?.then(()=> {
+        this.player.pause()
+        this.playPromise = undefined
+      })
     }
   }
 
@@ -41,15 +45,11 @@ export class MediaHandler {
   }
   onPlay() {
     logger.info(`${this.mediaType}:onPlay`)
-    if(this.isMyType) {
-      playerViewModel.playing = true
-    }
+    playerViewModel.playing = true
   }
   onPause() {
     logger.info(`${this.mediaType}:onPause`)
-    if(this.isMyType) {
-      playerViewModel.playing = false
-    }
+    playerViewModel.playing = false
   }
   onLoadStart() {
     logger.info(`${this.mediaType}:onLoadStart`)
@@ -57,7 +57,7 @@ export class MediaHandler {
     playerViewModel.duration = 0
   }
   onLoadedMetaData() {
-    logger.info("onLoadedMetaData")
+    logger.info(`${this.mediaType}:onLoadedMetaData`)
 
     // Durationはバインドしないで、onloadedmetadataで設定する。
     // そうしないと、ランタイムに、
@@ -67,6 +67,7 @@ export class MediaHandler {
   }
   onLoaded() {
     logger.info(`${this.mediaType}:onLoaded`)
+    this.playPromise = undefined
     const pos = playerViewModel.initialSeekPosition
     if(pos>0) {
       playerViewModel.initialSeekPosition = 0
@@ -77,7 +78,7 @@ export class MediaHandler {
     }
   }
   onEnd() {
-    logger.info(`audio:onEnd`)
+    logger.info(`${this.mediaType}:onEnd`)
     if(playerViewModel.repeatPlay && !playerViewModel.sliderSeeking) {
       playerViewModel.currentPosition = 0
       launch(()=>this.player.play())
@@ -86,7 +87,7 @@ export class MediaHandler {
     }
   }
   onError(e:any) {
-    logger.error(`audio:onError: ${e}`)
+    logger.error(`${this.mediaType}:onError: ${e}`)
     connectionManager.recover()
   }
 

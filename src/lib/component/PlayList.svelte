@@ -3,6 +3,7 @@
   import {formatSize, formatTime} from "$lib/utils/Utils";
   import {onMount, tick} from "svelte";
   import {sortViewModel} from "$lib/model/SortViewModel.svelte";
+  import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 
   let currentId = $derived(viewModel.currentItem?.id)
 

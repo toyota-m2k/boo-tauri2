@@ -350,9 +350,9 @@ class ViewModel {
     }
   }
   async tryConnect(): Promise<boolean> {
-    if (playerViewModel.isAV) {
-      playerViewModel.initialSeekPosition = playerViewModel.currentPosition
-    }
+    // if (playerViewModel.isAV) {
+    //   playerViewModel.initialSeekPosition = playerViewModel.currentPosition
+    // }
     return await this.boo.touch()
   }
 
