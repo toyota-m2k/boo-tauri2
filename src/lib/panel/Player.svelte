@@ -10,6 +10,7 @@
   import {logger} from "$lib/model/DebugLog.svelte";
   import AudioPlayer from "$lib/component/AudioPlayer.svelte";
   import ZoomView from "$lib/primitive/ZoomView.svelte";
+  import {chaptersViewModel} from "$lib/model/ChaptersViewModel.svelte";
 
   function onended() {
     if(!playerViewModel.sliderSeeking) {
@@ -46,6 +47,15 @@
   function onPanelClick(e:MouseEvent) {
     e.stopPropagation()
   }
+
+  // 無効チャプターのスキップ
+  $effect(()=>{
+    if (viewModel.supportChapter && playerViewModel.isAV && playerViewModel.playing && !playerViewModel.sliderSeeking) {
+      if(!chaptersViewModel.isValidAt(playerViewModel.currentPosition)) {
+        chaptersViewModel.nextChapter()
+      }
+    }
+  })
 </script>
 
 <div class="media-player w-full h-full relative" bind:clientWidth={playerViewModel.playerWidth} bind:clientHeight={playerViewModel.playerHeight}

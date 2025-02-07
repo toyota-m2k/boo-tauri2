@@ -9,6 +9,7 @@
   import {formatTime} from "$lib/utils/Utils";
   import {settings} from "$lib/model/Settings.svelte";
   import type {ColorVariation} from "$lib/model/ModelDef";
+  import {viewModel} from "$lib/model/ViewModel.svelte";
 
   let slider = $state<HTMLInputElement>() as HTMLInputElement
 
