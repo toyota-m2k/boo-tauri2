@@ -7,6 +7,8 @@
   import {isEqualHostPort} from "$lib/model/ModelDef.js";
   import Dialog from "$lib/dialog/Dialog.svelte";
   import {tauriObject} from "$lib/tauri/TauriObject";
+  import {onDestroy, onMount} from "svelte";
+  import {logger} from "$lib/model/DebugLog.svelte";
 
   let { show=$bindable() }:{show:boolean} = $props()
   let editingHost = $state(false)
@@ -61,6 +63,13 @@
     settings.currentHost = host
     show = false
   }
+  onMount(()=>{
+    logger.info("HostDialogContent:mount")
+    return ()=>{logger.info("HostDialogContent:unmount")}
+  })
+  onDestroy(()=> {
+    logger.info("HostDialogContent:destroy")
+  })
 </script>
 
 <Dialog {title} action={(reason)=>{if(reason==="close"||reason==="negative"){show=false}}}>

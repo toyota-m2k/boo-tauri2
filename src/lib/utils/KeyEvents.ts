@@ -161,9 +161,11 @@ class KeyEvents implements IKeyEvents {
 export const globalKeyEvents : IKeyEvents = new KeyEvents()
 
 export function switchKeyEventCaster(subEvents: IKeyEvents) : () => void {
+  logger.debug("switchKeyEventCaster: subEvents activated.")
   globalKeyEvents.deactivate()
   subEvents.activate()
   return () => {
+    logger.debug("switchKeyEventCaster: subEvents deactivated.")
     subEvents.deactivate()
     globalKeyEvents.activate()
   }

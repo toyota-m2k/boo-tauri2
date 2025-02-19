@@ -46,6 +46,7 @@
 
   onMount(()=>{
     input.focus()
+    logger.info("PasswordDialogContent:mount")
     // const dlgKeyEvents = createKeyEvents()
     //   .register(keyFor({key:"Enter", asCode:true}), ()=>onOK())
     //   .register(keyFor({key:"Escape", asCode:true}), ()=>onCancel())

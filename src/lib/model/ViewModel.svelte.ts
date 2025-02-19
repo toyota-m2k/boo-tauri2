@@ -183,7 +183,7 @@ class ViewModel {
   private async registerTauriShortcut() {
     if(!tauriObject.isAvailable) return
     logger.debug("registerTauriShortcut")
-    await tauriShortcutMediator.initialize(true, async (tauriShortcut) => {
+    tauriShortcutMediator.initialize(true, async (tauriShortcut) => {
       await tauriShortcut
         .add([
             keyFor({key: "Escape", asCode: false}),
@@ -199,13 +199,13 @@ class ViewModel {
     // })
     if(!tauriObject.isAvailable) return
     try {
-      await tauriEvent.onFocus(async (e) => {
+      await tauriEvent.onFocus(() => {
         logger.info(`onFocus`)
-        await tauriShortcutMediator.onFocus()
+        tauriShortcutMediator.onFocus()
       })
-      await tauriEvent.onBlur(async (e) => {
+      await tauriEvent.onBlur(() => {
         logger.info(`onBlur`)
-        await tauriShortcutMediator.onBlur()
+        tauriShortcutMediator.onBlur()
       })
       await tauriEvent.onTerminating(async () => {
         logger.info(`onTerminating`)
@@ -219,12 +219,12 @@ class ViewModel {
     }
   }
 
-  async switchKeyMapOnDialog(subEvents:IKeyEvents) {
-    await tauriShortcutMediator.disable()
+  switchKeyMapOnDialog(subEvents:IKeyEvents) {
     const revert = switchKeyEventCaster(subEvents)
-    return async () => {
+    tauriShortcutMediator.disable()
+    return () => {
       revert()
-      await tauriShortcutMediator.enable()
+      tauriShortcutMediator.enable()
     }
   }
 

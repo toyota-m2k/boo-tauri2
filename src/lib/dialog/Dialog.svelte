@@ -18,7 +18,7 @@
 
   let {title, action, onClosed, positive, negative, children}:Props = $props()
 
-  let dispose: Promise<()=>Promise<void>>|undefined = undefined
+  // let dispose: (()=>void)|undefined = undefined
 
   // $inspect(positive?.disabled).with((type,value)=>logger.debug(`Dialog:positive.disabled=${value}`))
 
@@ -27,18 +27,11 @@
       .register(keyFor({key: "Escape", asCode: false}), ()=>{action("negative"); return true})
       .register(keyFor({key: "Enter", asCode: false}), ()=>{action("positive"); return true})
 
-    dispose = viewModel.switchKeyMapOnDialog(keyMap)
-    // // viewModel.switchKeyMapOnDialog()
-    // logger.debug("Dialog: onMount")
-    // return ()=>{
-    //   logger.debug("Dialog: onUnmount")
-    // }
-  })
-  onDestroy(()=>{
-    dispose?.then(fn=>{
-      fn()
+    const dispose = viewModel.switchKeyMapOnDialog(keyMap)
+    return ()=>{
+      dispose()
       onClosed?.()
-    })
+    }
   })
 
   function preventDefault(e:Event) {

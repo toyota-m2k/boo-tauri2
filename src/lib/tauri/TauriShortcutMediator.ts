@@ -1,6 +1,7 @@
 import {type ITauriShortcut, tauriShortcut} from "$lib/tauri/TauriShortcut";
 import {tauriObject} from "$lib/tauri/TauriObject";
 import {logger} from "$lib/model/DebugLog.svelte";
+import {launch} from "$lib/utils/Utils";
 
 /**
  * TauriShortcutは、フォーカスがあるときだけ登録されるようにする。
@@ -12,46 +13,65 @@ class TauriShortcutMediator {
   private hasFocus = true
   private enabled = true
   private activated = false
+  private tryAgain = false
+  private busy = false
 
-  async initialize(activate:boolean, fn:(ts:ITauriShortcut) => Promise<void>) {
+  initialize(activate:boolean, fn:(ts:ITauriShortcut) => Promise<void>) {
     this.scInitializer = fn
-    await this.mediate()
+    this.mediate()
   }
   async terminate() {
     await tauriShortcut.removeAll()
-    this.scInitializer = (ts:ITauriShortcut) => { return Promise.resolve() }
+    this.scInitializer = () => { return Promise.resolve() }
   }
-  async enable() {
+  enable() {
     this.enabled = true
-    await this.mediate()
+    this.mediate()
   }
-  async disable() {
+  disable() {
     this.enabled = false
-    await this.mediate()
+    this.mediate()
   }
-  async onBlur() {
+  onBlur() {
     this.hasFocus = false
-    await this.mediate()
+    this.mediate()
   }
-  async onFocus() {
+  onFocus() {
     this.hasFocus = true
-    await this.mediate()
+    this.mediate()
   }
-  private async mediate() {
+  private mediate() {
     if(!tauriObject.isAvailable) return
-    if(this.hasFocus && this.enabled) {
-      if(!this.activated) {
-        logger.info("TauriShortcutMediator: activate")
-        this.activated = true
-        await this.scInitializer(tauriShortcut)
-      }
-    } else {
-      if(this.activated) {
-        logger.info("TauriShortcutMediator: deactivate")
-        this.activated = false
-        await tauriShortcut.removeAll()
-      }
+    if(this.busy) {
+      logger.info("TauriShortcutMediator: busy")
+      this.tryAgain = true
+      return
     }
+    this.busy = true
+    launch(async () => {
+      try {
+        if (this.hasFocus && this.enabled) {
+          if (!this.activated) {
+            logger.info("TauriShortcutMediator: activate")
+            this.activated = true
+            await this.scInitializer(tauriShortcut)
+          }
+        } else {
+          if (this.activated) {
+            logger.info("TauriShortcutMediator: deactivate")
+            this.activated = false
+            await tauriShortcut.removeAll()
+          }
+        }
+      } finally {
+        this.busy = false
+        if (this.tryAgain) {
+          logger.info("TauriShortcutMediator: will try again")
+          this.tryAgain = false
+          this.mediate()
+        }
+      }
+    })
   }
 }
 
