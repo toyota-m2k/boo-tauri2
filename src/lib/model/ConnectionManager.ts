@@ -3,6 +3,7 @@ import type {ICapabilities} from "$lib/protocol/IBooProtocol";
 import {viewModel} from "$lib/model/ViewModel.svelte";
 import {delay, launch} from "$lib/utils/Utils";
 import {logger} from "$lib/model/DebugLog.svelte";
+import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 
 interface IConnectionManager {
   start(host:IHostInfo,capabilities:ICapabilities): void
@@ -112,7 +113,13 @@ class ConnectionManager implements IConnectionManager {
           }
           if (this.needsAuth) {
             logger.info("ConnectionManager.watch() refreshAuthIfNeed")
+            const currentToken = viewModel.token
+            playerViewModel.initialSeekPosition = playerViewModel.currentPosition
             await viewModel.refreshAuthIfNeed()
+            if (currentToken === viewModel.token) {
+              logger.info("ConnectionManager.watch() token not changed")
+              playerViewModel.initialSeekPosition = 0
+            }
           }
         })
       }, this.watchInterval) // 5 minutes

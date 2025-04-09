@@ -61,7 +61,7 @@ class PlayerViewModel implements IPlayerCommands {
   playRequested = $state(true)    // 再生が要求されているかどうか
   playing = $state(false)         // 実際の再生状態
   sliderSeeking = $state(false)
-  initialSeekPosition = $state(0)
+  initialSeekPosition = 0
   pinControlPanel = $state(false)
   repeatPlay = $state(false)    // valid only for video/audio
 
