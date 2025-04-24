@@ -73,11 +73,11 @@ function changeType(type:string) {
 
 <div class="w-full pt-1 pb-2 flex flex-col justify-center items-center bg-primary text-primary-on">
   <div class="w-full flex flex-row justify-center items-center">
-    <IconButton path={ICON_RELOAD} class="w-7 h-7 p-0.5 mr-1 text-secondary hover:bg-secondary hover:text-secondary-on rounded" onclick={()=>viewModel.reloadPlayList()}/>
+    <IconButton path={ICON_RELOAD} class="w-7 h-7 p-0.5 mr-1 text-secondary hover:bg-secondary hover:text-secondary-on rounded-sm" onclick={()=>viewModel.reloadPlayList()}/>
     <div class="max-w-[180px] overflow-hidden">
       {hostName}
     </div>
-    <IconButton path={sortIcon} class="flex w-7 h-7 p-0.5 ml-1 text-secondary hover:bg-secondary hover:text-secondary-on rounded" onclick={toggleSortOrder} oncontextmenu={sortSettings} />
+    <IconButton path={sortIcon} class="flex w-7 h-7 p-0.5 ml-1 text-secondary hover:bg-secondary hover:text-secondary-on rounded-sm" onclick={toggleSortOrder} oncontextmenu={sortSettings} />
   </div>
   <div class="w-full flex flex-col justify-center items-center">
     {#if typeSelectable}

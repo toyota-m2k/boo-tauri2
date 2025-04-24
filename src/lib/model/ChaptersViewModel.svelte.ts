@@ -12,10 +12,14 @@ interface IChaptersViewModel {
   nextChapter():void
   prevChapter():void
   gotoChapter(chapter:IChapter):void
+  isValidAt(pos:number):boolean
+  getChapterAt(pos:number):IChapter|undefined
+  currentChapterLabel:string
 }
 
 class ChaptersViewModel implements IChaptersViewModel {
   chapterList:IChapterList|undefined = $state()
+  currentChapterLabel:string = $state("")
 
   chapters:IChapter[] = $derived(this.chapterList?.chapters ?? [])
   disabledRanges:IRange[] = $derived.by(()=>{
@@ -60,6 +64,21 @@ class ChaptersViewModel implements IChaptersViewModel {
       // return pos > c.position
       return c.position-pos < -1 // 丸め誤差 1msを考慮
     }))
+  }
+  isValidAt(pos:number):boolean {
+    pos *= 1000 // ms
+    return !this.disabledRanges.some(r=>r.start<=pos && pos<r.end)
+  }
+  getChapterAt(pos:number):IChapter|undefined {
+    pos *= 1000 // ms
+    var found:IChapter|undefined = undefined
+    for(const c of this.chapters) {
+      if(pos < c.position) {
+        break
+      }
+      found = c
+    }
+    return found
   }
 }
 

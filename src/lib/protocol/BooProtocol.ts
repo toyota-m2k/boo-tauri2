@@ -1,16 +1,17 @@
 import {authentication} from "./Authentication"
 import {BooError} from "../model/BooError";
-import type {
-  IAuthToken,
-  IBooProtocol,
-  ICapabilities, ICategory,
-  IChapterList, ICheckResult, IDResponse,
-  IListRequest, IMark, IMediaItem,
-  IMediaList, IRatingList, IReputation, MediaType
+import {
+  emptyCapabilities,
+  type IAuthToken,
+  type IBooProtocol,
+  type ICapabilities, type ICategoryList,
+  type IChapterList, type ICheckResult, type IDResponse,
+  type IListRequest, type IMark, type IMediaItem,
+  type IMediaList, type IRatingList, type IReputation, type MediaType
 } from './IBooProtocol'
 import {fetchWithTimeout} from "../utils/Utils";
 import {logger} from "../model/DebugLog.svelte";
-import type {IHostInfo, IHostPort} from "$lib/model/ModelDef";
+import type {IHostInfo} from "$lib/model/ModelDef";
 import {createAuthInfo, type IAuthInfo} from "$lib/protocol/AuthInfo.svelte";
 
 class BooProtocolImpl implements IBooProtocol {
@@ -18,18 +19,20 @@ class BooProtocolImpl implements IBooProtocol {
   private challenge: string | undefined
   private secret: string | undefined
 
-  capabilities: ICapabilities | undefined
+  capabilities: ICapabilities = emptyCapabilities
   authInfo: IAuthInfo = createAuthInfo()
+  categories: string[] = []
 
   constructor(private readonly requirePassword: (target:string|undefined) => Promise<string|undefined>) {
   }
 
   private reset() {
-    this.capabilities = undefined
+    this.capabilities = emptyCapabilities
     this.hostPort = undefined
     this.challenge = undefined
     this.secret = undefined
     this.authInfo.reset()
+    this.categories = []
   }
 
   async setup(hostInfo: IHostInfo): Promise<boolean> {
@@ -38,7 +41,8 @@ class BooProtocolImpl implements IBooProtocol {
       this.hostPort = hostInfo
       this.capabilities = await this.getCapabilities()
       this.challenge = this.capabilities?.challenge
-      return this.capabilities !== undefined
+      this.categories = await this.getCategories()
+      return true
     } catch (e: any) {
       logger.exception(e.toString(), `cannot setup for ${hostInfo.host}:${hostInfo.port}`)
       return false
@@ -85,6 +89,8 @@ class BooProtocolImpl implements IBooProtocol {
       body: authentication.createPassPhrase(password, challenge)
     })
     if (!r.ok) {
+      const json = await r.json()
+      this.challenge = json["challenge"] as string
       this.authInfo.failed()
       return false
     }
@@ -160,27 +166,31 @@ class BooProtocolImpl implements IBooProtocol {
   }
 
   /**
-   * @return true: token refreshed, false: token not refreshed
+   * @return true: connected, false: not connected
    */
-  async noop(): Promise<boolean> {
+  async touch(): Promise<boolean> {
     if(this.capabilities?.authentication) {
       try {
-        const orgToken = this.authInfo.token
         return await this.withAuthToken(async (token?: string) => {
           const url = this.baseUri + 'auth/' + (token ?? '')
           const r = await fetchWithTimeout(url, 3000)
-          if((await (await this.handleResponseRaw(r)).text()).toLowerCase() === 'ok') {
-            return orgToken !== this.authInfo.token
-          } else {
-            return false
-          }
+          await this.handleResponseRaw(r)
+          return true
         })
       } catch (e) {
         logger.error(`re-auth failed: ${e}`)
         return false
       }
     } else {
-      return false
+      try {
+        const url = this.baseUri + 'nop'
+        const r = await fetchWithTimeout(url, 3000)
+        await this.handleResponseRaw(r)
+        return true
+      } catch (e) {
+        logger.error(`nop failed: ${e}`)
+        return false
+      }
     }
   }
 
@@ -215,14 +225,19 @@ class BooProtocolImpl implements IBooProtocol {
   }
 
   async chapters(mediaId: string): Promise<IChapterList> {
-    const url = this.baseUri + `chapter?id=${mediaId}`
-    return await this.handleResponse<IChapterList>(await fetch(url))
+    if(this.capabilities?.chapter) {
+      const url = this.baseUri + `chapter?id=${mediaId}`
+      return await this.handleResponse<IChapterList>(await fetch(url))
+    } else {
+      return {chapters: [], id: mediaId}
+    }
   }
 
-  getItemUrl(mediaItem: IMediaItem): string {
+  getItemUrl(mediaItem: IMediaItem, token:string|undefined): string {
     let auth = ``
-    if (this.needAuth && this.authInfo.token) {
-      auth = `&auth=${this.authInfo.token}`
+    if (this.needAuth) {
+      if(!token) return ''
+      auth = `&auth=${token}`
     }
     switch (mediaItem.type as string) {
       case 'jpg':
@@ -291,12 +306,16 @@ class BooProtocolImpl implements IBooProtocol {
     })
   }
 
-  async categories(): Promise<ICategory[]> {
+  private async getCategories(): Promise<string[]> {
     if (!this.capabilities?.category) {
       return []
     }
     const url = this.baseUri + 'categories'
-    return await this.handleResponse<ICategory[]>(await fetch(url))
+    // const cats = (await this.handleResponse<ICategoryList>(await fetch(url)))?.categories
+    // if(!cats) return []
+    // const catsLabels = cats.sort((a, b) => a.sort - b.sort).map(c => c.label)
+    // return catsLabels
+    return (await this.handleResponse<ICategoryList>(await fetch(url)))?.categories?.sort((a, b) => a.sort - b.sort)?.map(c => c.label) ?? []
   }
 
   async marks(): Promise<IMark[]> {

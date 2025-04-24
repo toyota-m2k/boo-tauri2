@@ -13,7 +13,7 @@
   let hideCursor = $derived(cursorConcealer.hideCursor&&playerViewModel.playing)
 
   $effect(() => {
-    if (playerViewModel.autoPlay) {
+    if (playerViewModel.playRequested) {
       playerViewModel.playing = true
       let timer = new TimingSwitch(settings.slideShowInterval * 1000, () => {
         onended()
@@ -35,7 +35,7 @@
 </script>
 
 {#if playerViewModel.isImage}
-  <ZoomView onclick={()=>playerViewModel.togglePlay()}>
+  <ZoomView>
     <img
       bind:this={viewer}
       class="media-view"

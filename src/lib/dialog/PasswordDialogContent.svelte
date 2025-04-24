@@ -46,6 +46,7 @@
 
   onMount(()=>{
     input.focus()
+    logger.info("PasswordDialogContent:mount")
     // const dlgKeyEvents = createKeyEvents()
     //   .register(keyFor({key:"Enter", asCode:true}), ()=>onOK())
     //   .register(keyFor({key:"Escape", asCode:true}), ()=>onCancel())
@@ -63,7 +64,7 @@
   {#snippet children()}
     <div class="flex flex-col justify-center">
       <div>{passwordViewModel.target}</div>
-      <input bind:this={input} type="password" bind:value={password} class="w-full p-2 border border-gray rounded" placeholder="Password"/>
+      <input bind:this={input} type="password" bind:value={password} class="w-full p-2 border border-gray rounded-sm" placeholder="Password"/>
     </div>
   {/snippet}
 </Dialog>

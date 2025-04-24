@@ -21,6 +21,7 @@ const KEY_IS_DARK_MODE = 'isDarkMode'
 const KEY_ENABLE_DEBUG_LOG = 'enableDebugLog'
 const KEY_LOOP_PLAY = 'loopPlay'
 const KEY_AUTO_ROTATION = 'autoRotation'
+const KEY_USE_CATEGORY = 'useCategory'
 
 class Settings implements ISettings {
   private _preferences = new Preferences()
@@ -33,6 +34,7 @@ class Settings implements ISettings {
   private _enableDebugLog = $state<boolean>(false)
   private _loopPlay = $state<boolean>(true)
   private _autoRotation = $state<boolean>(false)
+  private _useCategory = $state<boolean>(false)
 
   get hostInfoList(): IHostInfoList {
     return this._hostInfoList
@@ -108,7 +110,14 @@ class Settings implements ISettings {
     this._autoRotation = autoRotation
     launch(async()=>await this._preferences.set(KEY_AUTO_ROTATION, autoRotation))
   }
-
+  get useCategory(): boolean {
+    return this._useCategory
+  }
+  set useCategory(useCategory: boolean) {
+    if(this._useCategory === useCategory) return
+    this._useCategory = useCategory
+    launch(async()=>await this._preferences.set(KEY_USE_CATEGORY, useCategory))
+  }
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void {
     if (!mediaId) return
     targetHost = targetHost || this.currentHost
@@ -193,6 +202,7 @@ class Settings implements ISettings {
     this._enableDebugLog = await this._preferences.get(KEY_ENABLE_DEBUG_LOG) ?? false
     this._loopPlay = await this._preferences.get(KEY_LOOP_PLAY) ?? true
     this._autoRotation = await this._preferences.get(KEY_AUTO_ROTATION) ?? false
+    this._useCategory = await this._preferences.get(KEY_USE_CATEGORY) ?? true
   }
 }
 

@@ -7,6 +7,8 @@
   import {isEqualHostPort} from "$lib/model/ModelDef.js";
   import Dialog from "$lib/dialog/Dialog.svelte";
   import {tauriObject} from "$lib/tauri/TauriObject";
+  import {onDestroy, onMount} from "svelte";
+  import {logger} from "$lib/model/DebugLog.svelte";
 
   let { show=$bindable() }:{show:boolean} = $props()
   let editingHost = $state(false)
@@ -61,6 +63,13 @@
     settings.currentHost = host
     show = false
   }
+  onMount(()=>{
+    logger.info("HostDialogContent:mount")
+    return ()=>{logger.info("HostDialogContent:unmount")}
+  })
+  onDestroy(()=> {
+    logger.info("HostDialogContent:destroy")
+  })
 </script>
 
 <Dialog {title} action={(reason)=>{if(reason==="close"||reason==="negative"){show=false}}}>
@@ -81,13 +90,13 @@
                 <div class="text-xs text-gray-on-alt">{host.host}:{host.port}</div>
               </div>
             </div>
-            <IconButton class="p-1 w-8 h-8 rounded text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>editHost(e,host)} path={ICON_EDIT}/>
-            <IconButton class="p-1 w-8 h-8 rounded text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>deleteHost(e,host)} path={ICON_TRASH}/>
+            <IconButton class="p-1 w-8 h-8 rounded-sm text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>editHost(e,host)} path={ICON_EDIT}/>
+            <IconButton class="p-1 w-8 h-8 rounded-sm text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>deleteHost(e,host)} path={ICON_TRASH}/>
           </div>
         {/each}
       </div>
       <div class="flex flex-row-reverse w-4/5">
-        <IconButton class="p-1 w-6 h-6 rounded text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>addHost(e)} path={ICON_PLUS}/>
+        <IconButton class="p-1 w-6 h-6 rounded-sm text-secondary hover:bg-secondary hover:text-secondary-on" onclick={(e)=>addHost(e)} path={ICON_PLUS}/>
         <div class="mr-2">Hosts</div>
       </div>
     {:else}

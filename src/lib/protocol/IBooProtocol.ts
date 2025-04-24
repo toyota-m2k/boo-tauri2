@@ -11,7 +11,6 @@ export type ListFilter = "all" | "photo" | "video" | "audio"
 export type PlayMode = "single"|"repeat"|"sequential"
 
 export interface ICapabilities {
-  cmd: string
   serverName: string
   version: number
   root: string
@@ -27,6 +26,24 @@ export interface ICapabilities {
   authentication: boolean
   challenge: string | undefined
   types: string | undefined
+}
+
+export const emptyCapabilities = {
+  serverName: "",
+  version: 0,
+  root: "",
+  category: false,
+  rating: false,
+  mark: false,
+  chapter: false,
+  reputation: 0,
+  diff: false,
+  sync: false,
+  acceptRequest: false,
+  hasView: false,
+  authentication: false,
+  challenge: undefined,
+  types: undefined,
 }
 
 export interface IAuthToken {
@@ -92,6 +109,10 @@ export interface ICategory {
   color: number,
   svg: string,
 }
+export interface ICategoryList {
+  categories: ICategory[],
+  unchecked?: string
+}
 
 
 export interface IMark {
@@ -113,10 +134,11 @@ export interface IRatingList {
 
 export interface IBooProtocol {
   authInfo: IAuthInfo
-  capabilities: ICapabilities | undefined
+  capabilities: ICapabilities
+  categories: string[]
 
   setup(hostInfo: IHostInfo): Promise<boolean>
-  noop(): Promise<boolean>
+  touch(): Promise<boolean>
 
   list(req: IListRequest): Promise<IMediaList>
 
@@ -124,7 +146,7 @@ export interface IBooProtocol {
 
   checkUpdate(currentList:IMediaList): Promise<boolean>
 
-  getItemUrl(mediaItem: IMediaItem): string
+  getItemUrl(mediaItem: IMediaItem, token:string|undefined): string
 
   getCurrent(): Promise<string> // return current media id
   setCurrent(mediaId: string): Promise<void>
@@ -132,8 +154,6 @@ export interface IBooProtocol {
   getReputation(mediaId: string): Promise<IReputation>
 
   setReputation(req: IReputation): Promise<void>
-
-  categories(): Promise<ICategory[]>
 
   marks(): Promise<IMark[]>
 

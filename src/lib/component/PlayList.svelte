@@ -1,19 +1,20 @@
 <script lang="ts">
-  import {emptyMediaList} from "$lib/protocol/IBooProtocol";
   import {viewModel} from "$lib/model/ViewModel.svelte";
   import {formatSize, formatTime} from "$lib/utils/Utils";
-  import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
-  import {onMount} from "svelte";
+  import {onMount, tick} from "svelte";
   import {sortViewModel} from "$lib/model/SortViewModel.svelte";
+  import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 
   let currentId = $derived(viewModel.currentItem?.id)
 
   function ensureVisible(itemId:string|undefined) {
     if(itemId) {
-      const el = document.getElementById(itemId)
-      if(el) {
-        el.scrollIntoView({block: "nearest", inline: "nearest", behavior: "smooth"})
-      }
+      tick().then(()=>{
+        const el = document.getElementById(itemId)
+        if(el) {
+          el.scrollIntoView({block: "nearest", inline: "nearest", behavior: "smooth"})
+        }
+      })
     }
   }
 
@@ -28,9 +29,9 @@
   }
 
   onMount(()=>{
-    viewModel.scrollToCurrentItem = ensureVisible
+    viewModel.scrollToItem = ensureVisible
     return ()=>{
-      viewModel.scrollToCurrentItem = undefined
+      viewModel.scrollToItem = undefined
     }
   })
 </script>
@@ -60,7 +61,7 @@
       </tbody>
     </table>
   {:else}
-    <div>No media found</div>
+    <div class="text-surface-on">No media found</div>
   {/if}
 
 </div>

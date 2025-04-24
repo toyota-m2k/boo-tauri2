@@ -8,6 +8,10 @@
   import ImageViewer from "$lib/component/ImageViewer.svelte";
   import {TimingSwitch} from "$lib/utils/TimingSwitch";
   import {logger} from "$lib/model/DebugLog.svelte";
+  import AudioPlayer from "$lib/component/AudioPlayer.svelte";
+  import ZoomView from "$lib/primitive/ZoomView.svelte";
+  import {chaptersViewModel} from "$lib/model/ChaptersViewModel.svelte";
+  import {untrack} from "svelte";
 
   function onended() {
     if(!playerViewModel.sliderSeeking) {
@@ -16,7 +20,7 @@
   }
 
   let mouseOnControlPanel = $state(false)
-  let showControlPanel = $derived(!!viewModel.currentItem && (mouseOnControlPanel||playerViewModel.pinControlPanel||!playerViewModel.playing))
+  let showControlPanel = $derived(!!viewModel.currentItem && (mouseOnControlPanel||playerViewModel.pinControlPanel||!playerViewModel.playRequested))
   let controlPanelTimingSwitch = new TimingSwitch(2000, ()=>{
     mouseOnControlPanel = false
   })
@@ -40,13 +44,52 @@
       controlPanelTimingSwitch.start()
     }
   }
+  // コントロールパネルをクリックしたときに再生・停止がトグルしてしまうのを防ぐ
+  function onPanelClick(e:MouseEvent) {
+    e.stopPropagation()
+  }
+
+  // 無効チャプターのスキップ
+  $effect(()=>{
+    let label = ""
+    if (viewModel.supportChapter && playerViewModel.isAV) {
+      const chapter = chaptersViewModel.getChapterAt(playerViewModel.currentPosition)
+      if(chapter) {
+        if(playerViewModel.playing && !playerViewModel.sliderSeeking) {
+          if(chapter.skip) {
+            chaptersViewModel.nextChapter()
+            return
+          }
+        }
+      }
+      label = chapter?.label ?? ""
+    }
+    untrack(()=> {
+      if (chaptersViewModel.currentChapterLabel !== label) {
+        chaptersViewModel.currentChapterLabel = label
+      }
+    })
+  })
 </script>
 
-<div class="media-player w-full h-full relative" bind:clientWidth={playerViewModel.playerWidth} bind:clientHeight={playerViewModel.playerHeight}>
+<div class="media-player w-full h-full relative" bind:clientWidth={playerViewModel.playerWidth} bind:clientHeight={playerViewModel.playerHeight}
+     onclick={()=>playerViewModel.togglePlay()} role="none">
   {#if playerViewModel.isVideo}
     <VideoPlayer {onended}/>
+  {:else if playerViewModel.isAudio}
+    <AudioPlayer {onended}/>
   {:else if playerViewModel.isImage}
     <ImageViewer {onended}/>
+  {/if}
+  {#if playerViewModel.isAV}
+    <div class="absolute top-0 left-0 right-0 h-[56px] bg-transparent"
+         onmouseenter={onMouseEnterToPanel}
+         role="none"></div>
+  {/if}
+  {#if chaptersViewModel.currentChapterLabel!==""}
+    <div class="absolute top-0 left-0 bg-background/50 text-accent">
+      {chaptersViewModel.currentChapterLabel}
+    </div>
   {/if}
 
   <!-- マウスオーバーで、コントロールパネルを出し入れする仕掛け -->
@@ -61,7 +104,7 @@
          role="none">
       <div class="w-full flex flex-col">
         <div class="w-full h-4 flex control-panel-gradient"></div>
-        <div class="control-panel w-full flex-1 p-2">
+        <div class="control-panel w-full flex-1 p-2" onclick="{onPanelClick}" role="none">
           <MediaControlPanel/>
         </div>
       </div>

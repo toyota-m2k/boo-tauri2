@@ -3,8 +3,9 @@ class DialogViewModel {
   showHostDialog = $state(false)
   showPasswordDialog = $state(false)
   showSortDialog = $state(false)
+  showCategoryMenu = $state(false)    // ダイアログではないが、ダイアログと同じ扱いで。
 
-  isActive = $derived(this.showSystemDialog || this.showHostDialog || this.showPasswordDialog || this.showSortDialog)
+  isActive = $derived(this.showSystemDialog || this.showHostDialog || this.showPasswordDialog || this.showSortDialog || this.showCategoryMenu)
 
   openSystemDialog() {
     this.showSystemDialog = true
@@ -20,6 +21,7 @@ class DialogViewModel {
     this.showHostDialog = false
     this.showPasswordDialog = false
     this.showSortDialog = false
+    this.showCategoryMenu = false
   }
 }
 

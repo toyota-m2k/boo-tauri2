@@ -21,19 +21,40 @@ export class GestureRecognizer {
     return false
   });
 
-    attach(element:HTMLElement) {
-    element.addEventListener("mousedown", this.onMouseDown.bind(this))
-    element.addEventListener("mouseup", this.nMouseUp.bind(this))
-    element.addEventListener("mousemove", this.onMouseMove.bind(this))
-    element.addEventListener("mouseleave", this.onMouseLeave.bind(this))
-  }
-  detach(element:HTMLElement) {
-    element.removeEventListener("mousedown", this.onMouseDown.bind(this))
-    element.removeEventListener("mouseup", this.nMouseUp.bind(this))
-    element.removeEventListener("mousemove", this.onMouseMove.bind(this))
-    element.removeEventListener("mouseleave", this.onMouseLeave.bind(this))
+  attach(element:HTMLElement) {
+    const boundOnMouseDown = this.onMouseDown.bind(this)
+    const boundOnMouseUp = this.onMouseUp.bind(this)
+    const boundOnMouseMove = this.onMouseMove.bind(this)
+    const boundOnMouseLeave = this.onMouseLeave.bind(this)
+    const boundOnClick = this.onClick.bind(this)
+
+    element.addEventListener("mousedown", boundOnMouseDown)
+    element.addEventListener("mouseup", boundOnMouseUp)
+    element.addEventListener("mousemove", boundOnMouseMove)
+    element.addEventListener("mouseleave", boundOnMouseLeave)
+    element.addEventListener("click", boundOnClick)
+
+    return ()=>{
+      element.removeEventListener("mousedown", boundOnMouseDown)
+      element.removeEventListener("mouseup", boundOnMouseUp)
+      element.removeEventListener("mousemove", boundOnMouseMove)
+      element.removeEventListener("mouseleave", boundOnMouseLeave)
+      element.removeEventListener("click", boundOnClick)
+    }
   }
 
+  private dragEnd = false
+  /**
+   * dragging end したときの onClick を無視するため
+   * @param e
+   */
+  onClick(e:Event) {
+    if(this.dragEnd) {
+      this.dragEnd = false
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
 
   onMouseDown(e:MouseEvent) {
     this.mouseDownEvent = e
@@ -50,7 +71,7 @@ export class GestureRecognizer {
     }
   }
 
-  nMouseUp(e:MouseEvent) {
+  onMouseUp(e:MouseEvent) {
     this.isPressed = false
     switch(this.state) {
       case "clicked":
@@ -70,6 +91,7 @@ export class GestureRecognizer {
         break
       case "dragging":
         this.state = "none"
+        this.dragEnd = true
         this.callbacks.onDragEnd?.(e,this.mouseDownEvent!)
         logger.debug("GestureRecognizer: drag end")
         break

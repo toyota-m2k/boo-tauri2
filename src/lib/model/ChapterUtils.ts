@@ -145,6 +145,7 @@ export function getEnabledRanges(chapters:IChapter[], trimming?: IRange) :IRange
     return enabledRangesWithTrimming(chapters, trimming)
   }
 }
+
 export function getDisabledRanges(chapters:IChapter[], trimming?: IRange): IRange[] {
   const result: IRange[] = []
   let checking = 0

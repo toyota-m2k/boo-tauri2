@@ -34,7 +34,7 @@
 
   let fullscreen = false
   async function onWindowSizeChanged() {
-    logger.info(`SizeChanged: w=${window.innerWidth}}`)
+    // logger.info(`SizeChanged: w=${window.innerWidth}`)
 
     // fullscreenchangeイベントが発生しないので、画面サイズで判定する
     // https://stackoverflow.com/questions/22662128/how-to-detect-when-a-fullscreen-event-happens-on-f11-key-press
@@ -163,7 +163,7 @@
 
   <!-- ダイアログ -->
   {#if dialogViewModel.isActive}
-  <div role="none" onmousedown={()=>dialogViewModel.closeAll()} transition:fade class="absolute top-0 bottom-0 right-0 left-0 h-full w-full bg-black bg-opacity-70 flex items-center justify-center">
+  <div role="none" onmousedown={()=>dialogViewModel.closeAll()} transition:fade class="absolute top-0 bottom-0 right-0 left-0 h-full w-full bg-black/70 flex items-center justify-center">
     {#if dialogViewModel.showHostDialog}
     <HostDialogContent bind:show={dialogViewModel.showHostDialog}/>
     {:else if dialogViewModel.showSystemDialog}
@@ -181,5 +181,3 @@
   </div>
 </main>
 
-<style lang="scss">
-</style>

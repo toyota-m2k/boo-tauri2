@@ -1,17 +1,23 @@
-import type {IHostInfo, IHostPort, SortKey} from "$lib/model/ModelDef";
-import {emptyMediaList, type IListRequest, type IMediaItem, type IMediaList} from "$lib/protocol/IBooProtocol";
+import type {IHostInfo, IHostPort} from "$lib/model/ModelDef";
+import {
+  emptyMediaList,
+  type IListRequest,
+  type IMediaItem,
+  type IMediaList
+} from "$lib/protocol/IBooProtocol";
 import {createBooProtocol} from "$lib/protocol/BooProtocol";
 import {settings} from "$lib/model/Settings.svelte";
 import {globalKeyEvents, type IKeyEvents, keyFor, switchKeyEventCaster} from "$lib/utils/KeyEvents";
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {tauriEvent} from "$lib/tauri/TauriEvent";
-import {delay, launch} from "$lib/utils/Utils";
+import {launch} from "$lib/utils/Utils";
 import {untrack} from "svelte";
 import {tauriObject} from "$lib/tauri/TauriObject";
 import {tauriShortcutMediator} from "$lib/tauri/TauriShortcutMediator";
 import {passwordViewModel} from "$lib/model/PasswordViewModel.svelte";
 import {sortViewModel} from "$lib/model/SortViewModel.svelte";
+import {connectionManager} from "$lib/model/ConnectionManager";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -66,9 +72,9 @@ class ViewModel {
     return {list, date: this.rawMediaList.date}
   })
 
-  scrollToCurrentItem: ((item:string|undefined)=>void)|undefined = undefined
+  scrollToItem: ((item:string|undefined)=>void)|undefined = undefined
   ensureCurrentItemVisible() {
-    this.scrollToCurrentItem?.(this.currentItem?.id)
+    this.scrollToItem?.(this.currentItem?.id)
   }
 
   currentItem = $state<IMediaItem|undefined>(undefined)
@@ -86,7 +92,7 @@ class ViewModel {
     } else if (settings.loopPlay && this.mediaList.list.length > 0) {
       this.currentItem = this.mediaList.list[0]
     }
-    this.checkUpdateIfNeed()
+    // this.checkUpdateIfNeed()
   }
 
   next() {
@@ -100,7 +106,7 @@ class ViewModel {
     } else if(settings.loopPlay && this.mediaList.list.length>0) {
       this.currentItem = this.mediaList.list[0]
     }
-    this.checkUpdateIfNeed()
+    // this.checkUpdateIfNeed()
   }
 
   onFullScreen: ((fullscreen:boolean)=>void)|undefined = undefined
@@ -133,7 +139,12 @@ class ViewModel {
 
   isPrepared = $state(false)
   supportChapter = $state(false)
+  supportCategory = $state(false)
+  categories: string[] = $state([])
+  enableCategory = $state(false)
+  currentCategory = $state<string|undefined>(undefined)
   loading = $derived(this.isBusy||!this.isPrepared)
+  get token() { return this.boo.authInfo.token }
 
   async prepareSettings() {
     if(this.isPrepared) return
@@ -172,7 +183,7 @@ class ViewModel {
   private async registerTauriShortcut() {
     if(!tauriObject.isAvailable) return
     logger.debug("registerTauriShortcut")
-    await tauriShortcutMediator.initialize(true, async (tauriShortcut) => {
+    tauriShortcutMediator.initialize(true, async (tauriShortcut) => {
       await tauriShortcut
         .add([
             keyFor({key: "Escape", asCode: false}),
@@ -188,18 +199,19 @@ class ViewModel {
     // })
     if(!tauriObject.isAvailable) return
     try {
-      await tauriEvent.onFocus(async (e) => {
+      await tauriEvent.onFocus(() => {
         logger.info(`onFocus`)
-        await tauriShortcutMediator.onFocus()
+        tauriShortcutMediator.onFocus()
       })
-      await tauriEvent.onBlur(async (e) => {
+      await tauriEvent.onBlur(() => {
         logger.info(`onBlur`)
-        await tauriShortcutMediator.onBlur()
+        tauriShortcutMediator.onBlur()
       })
       await tauriEvent.onTerminating(async () => {
         logger.info(`onTerminating`)
         this.saveCurrentMediaInfo()
         await tauriShortcutMediator.terminate()
+        connectionManager.stop()
         return true
       })
     } catch(e) {
@@ -207,12 +219,12 @@ class ViewModel {
     }
   }
 
-  async switchKeyMapOnDialog(subEvents:IKeyEvents) {
-    await tauriShortcutMediator.disable()
+  switchKeyMapOnDialog(subEvents:IKeyEvents) {
     const revert = switchKeyEventCaster(subEvents)
-    return async () => {
+    tauriShortcutMediator.disable()
+    return () => {
       revert()
-      await tauriShortcutMediator.enable()
+      tauriShortcutMediator.enable()
     }
   }
 
@@ -233,6 +245,8 @@ class ViewModel {
       const hostPort = newHost
       if (!hostPort) return
 
+      connectionManager.stop()
+
       // 現在の再生情報を記憶
       playerViewModel.pause()
       if (this.previousHostInfo) {
@@ -243,12 +257,18 @@ class ViewModel {
       // 情報更新前にクリア
       this.rawMediaList = emptyMediaList()
       this.currentItem = undefined
+      this.supportCategory = false
+      this.supportChapter = false
+      this.enableCategory = false
+      this.categories = []
       sortViewModel.reset()
 
       this.isBusy = true
       launch(async () => {
         try {
           if (await this.boo.setup(hostPort)) {
+            const capabilities = this.boo.capabilities
+            connectionManager.start(hostPort, capabilities)
             const playState = settings.getPlayStateOnHost(hostPort)
             this.videoSupported = this.boo.isSupported("v")
             this.audioSupported = this.boo.isSupported("a")
@@ -266,6 +286,8 @@ class ViewModel {
             }
             this.currentItem = item ?? this.mediaList.list[0]
             this.supportChapter = this.boo.capabilities?.chapter ?? false
+            this.supportCategory = this.boo.capabilities?.category ?? false
+            this.categories = this.boo.categories
             playerViewModel.play()
           }
         } finally {
@@ -275,31 +297,77 @@ class ViewModel {
     })
   }
 
+  async setCategory(enable:boolean, category: string|undefined) {
+    if(!this.supportCategory||!this.categories||!this.categories[0]) return
+    const originalItem = this.currentItem
+    const position = playerViewModel.currentPosition
+    if (enable) {
+      this.currentCategory = category ?? this.currentCategory ?? this.categories[0]
+      this.enableCategory = true
+    } else {
+      this.enableCategory = false
+    }
+    let request = this.listRequest
+    if(this.enableCategory && this.currentCategory) {
+      request = {sourceType:0, type:"all", category: this.currentCategory}
+    }
+    this.rawMediaList = await this.boo.list(request)
+
+    // 前回の再生位置を復元
+    let item: IMediaItem | undefined = undefined
+    if(originalItem) {
+      item = this.mediaList.list.find((item) => item.id === originalItem.id)
+    }
+    if(item) {
+      playerViewModel.initialSeekPosition = position
+      this.currentItem = item
+    } else {
+      playerViewModel.initialSeekPosition = 0
+      this.currentItem = this.mediaList.list[0]
+    }
+    this.ensureCurrentItemVisible()
+  }
+
   reloadPlayList() {
     logger.info("reloadPlayList")
+    this.previousHostInfo = settings.currentHost
     this.onHostChanged(settings.currentHost)
   }
 
-  checkUpdateIfNeed() {
+  async checkUpdateIfNeed() {
     if(this.boo.capabilities?.diff) {
       // リストの自動更新をサポートしている
-      logger.info("checking update")
-      launch(async () => {
-        if (await this.boo.checkUpdate(this.rawMediaList)) {
-          logger.info("checkUpdate-->need to update")
-          this.reloadPlayList()
-        }
-      })
+      // logger.info("checking update")
+      if (await this.boo.checkUpdate(this.rawMediaList)) {
+        logger.info("checkUpdate-->need to update")
+        this.reloadPlayList()
+      }
     }
   }
-
-  mediaUrl(mediaItem: IMediaItem|undefined): string|undefined {
-    if(!mediaItem) return undefined
-    return this.boo.getItemUrl(mediaItem)
+  async refreshAuthIfNeed() {
+    if(this.boo.capabilities?.authentication) {
+      const currentToken = this.token
+      playerViewModel.initialSeekPosition = playerViewModel.currentPosition
+      await this.tryConnect()
+      if (currentToken === this.token) {
+        logger.info("refreshAuthIfNeed(): token not changed")
+        playerViewModel.initialSeekPosition = 0
+      } else {
+        logger.info("refreshAuthIfNeed(): token changed")
+      }
+    }
+  }
+  async tryConnect(): Promise<boolean> {
+    // if (playerViewModel.isAV) {
+    //   playerViewModel.initialSeekPosition = playerViewModel.currentPosition
+    // }
+    return await this.boo.touch()
   }
 
-  async refreshAuth(): Promise<boolean> {
-    return await this.boo.noop()
+
+  mediaUrl(mediaItem: IMediaItem|undefined, token:string|undefined): string|undefined {
+    if(!mediaItem) return undefined
+    return this.boo.getItemUrl(mediaItem, token)
   }
 
   mediaScale: number = $state(1)
