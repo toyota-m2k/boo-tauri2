@@ -113,13 +113,7 @@ class ConnectionManager implements IConnectionManager {
           }
           if (this.needsAuth) {
             logger.info("ConnectionManager.watch() refreshAuthIfNeed")
-            const currentToken = viewModel.token
-            playerViewModel.initialSeekPosition = playerViewModel.currentPosition
             await viewModel.refreshAuthIfNeed()
-            if (currentToken === viewModel.token) {
-              logger.info("ConnectionManager.watch() token not changed")
-              playerViewModel.initialSeekPosition = 0
-            }
           }
         })
       }, this.watchInterval) // 5 minutes

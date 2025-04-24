@@ -4,6 +4,7 @@
   import {onMount} from "svelte";
   import {CursorConcealer} from "$lib/model/CursorConcealer.svelte";
   import {MediaHandler} from "$lib/component/MediaHandler";
+  import {logger} from "$lib/model/DebugLog.svelte";
 
   let { onended, ...rest }: { onended: () => void } = $props()
   let player = $state<HTMLVideoElement>() as HTMLVideoElement;
@@ -15,6 +16,31 @@
   onMount(()=>{
     return mediaHandler.onMount()
   })
+
+  function onError(e:any) {
+    mediaHandler.onError(e)
+    const error = player.error
+    if(error) {
+      let reason = ""
+      switch(error.code) {
+        case MediaError.MEDIA_ERR_ABORTED:
+          reason = "aborted by user";
+          break;
+        case MediaError.MEDIA_ERR_NETWORK:
+          reason = "network error";
+          break;
+        case MediaError.MEDIA_ERR_DECODE:
+          reason = "decode error";
+          break;
+        case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          reason = "media not supported";
+          break;
+        default:
+          reason = "unknown error";
+      }
+      logger.error(`video error: ${reason} (${error.code}) ${error.message}`);
+    }
+  }
 
 </script>
 
@@ -41,7 +67,7 @@
       onloadstart={()=>mediaHandler.onLoadStart()}
       onloadedmetadata={()=>mediaHandler.onLoadedMetaData()}
       onloadeddata={()=>mediaHandler.onLoaded()}
-      onerror={(e)=>mediaHandler.onError(e)}
+      onerror={(e)=>onError(e)}
       onended={()=>mediaHandler.onEnd()}
       onmousemove={()=>cursorConcealer.onMouseMove()}
 

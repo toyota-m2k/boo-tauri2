@@ -87,7 +87,7 @@ export class MediaHandler {
     }
   }
   onError(e:any) {
-    logger.error(`${this.mediaType}:onError: ${e}`)
+    logger.error(`${this.mediaType}:onError`)
     connectionManager.recover()
   }
 

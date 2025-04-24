@@ -346,7 +346,15 @@ class ViewModel {
   }
   async refreshAuthIfNeed() {
     if(this.boo.capabilities?.authentication) {
+      const currentToken = this.token
+      playerViewModel.initialSeekPosition = playerViewModel.currentPosition
       await this.tryConnect()
+      if (currentToken === this.token) {
+        logger.info("refreshAuthIfNeed(): token not changed")
+        playerViewModel.initialSeekPosition = 0
+      } else {
+        logger.info("refreshAuthIfNeed(): token changed")
+      }
     }
   }
   async tryConnect(): Promise<boolean> {
