@@ -18,6 +18,7 @@ import {tauriShortcutMediator} from "$lib/tauri/TauriShortcutMediator";
 import {passwordViewModel} from "$lib/model/PasswordViewModel.svelte";
 import {sortViewModel} from "$lib/model/SortViewModel.svelte";
 import {connectionManager} from "$lib/model/ConnectionManager";
+import {wakeLocker} from "$lib/utils/WakeLocker";
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -88,10 +89,16 @@ class ViewModel {
         this.currentItem = this.mediaList.list[index - 1]
       } else if (settings.loopPlay && this.mediaList.list.length > 0) {
         this.currentItem = this.mediaList.list[this.mediaList.list.length - 1]  // ループ再生なら最後に戻る
+      } else {
+        return
       }
     } else if (settings.loopPlay && this.mediaList.list.length > 0) {
       this.currentItem = this.mediaList.list[0]
     }
+    if(playerViewModel.playRequested) {
+      wakeLocker.lock()
+    }
+
     // this.checkUpdateIfNeed()
   }
 
@@ -102,11 +109,15 @@ class ViewModel {
         this.currentItem = this.mediaList.list[index+1]
       } else if(settings.loopPlay && this.mediaList.list.length>0) {
         this.currentItem = this.mediaList.list[0] // ループ再生なら最初に戻る
+      } else {
+        return
       }
     } else if(settings.loopPlay && this.mediaList.list.length>0) {
       this.currentItem = this.mediaList.list[0]
     }
-    // this.checkUpdateIfNeed()
+    if(playerViewModel.playRequested) {
+      wakeLocker.lock()
+    }
   }
 
   onFullScreen: ((fullscreen:boolean)=>void)|undefined = undefined

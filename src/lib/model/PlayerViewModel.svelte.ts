@@ -3,6 +3,7 @@ import {logger} from "$lib/model/DebugLog.svelte";
 import {settings} from "$lib/model/Settings.svelte";
 import {launch} from "$lib/utils/Utils";
 import {connectionManager} from "$lib/model/ConnectionManager";
+import {wakeLocker} from "$lib/utils/WakeLocker";
 
 export type FitMode = "fit" | "fill" | "original"
 
@@ -79,6 +80,7 @@ class PlayerViewModel implements IPlayerCommands {
   play() {
     logger.debug("play")
     this.playRequested = true
+    wakeLocker.lock()
     launch(async ()=>{
       await viewModel.refreshAuthIfNeed()
       this.playerCommands?.play()
@@ -106,7 +108,6 @@ class PlayerViewModel implements IPlayerCommands {
   prevChapter() {
     this.playerCommands?.prevChapter()
   }
-
 }
 
 export const playerViewModel = new PlayerViewModel()
