@@ -83,6 +83,8 @@ export function emptyMediaList():IMediaList {
 
 export interface ICheckResult {
   update: string,
+  list: IMediaItem[]|undefined,
+  date: number|undefined,    // last modified
 }
 
 export interface IChapter {

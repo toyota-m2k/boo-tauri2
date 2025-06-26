@@ -13,6 +13,7 @@ import {fetchWithTimeout} from "../utils/Utils";
 import {logger} from "../model/DebugLog.svelte";
 import type {IHostInfo} from "$lib/model/ModelDef";
 import {createAuthInfo, type IAuthInfo} from "$lib/protocol/AuthInfo.svelte";
+import {updateList} from "$lib/model/UpdateList.svelte";
 
 class BooProtocolImpl implements IBooProtocol {
   private hostPort: IHostInfo | undefined
@@ -258,7 +259,11 @@ class BooProtocolImpl implements IBooProtocol {
     }
     const url = this.baseUri + `check?date=${currentList.date}`
     try {
+      logger.debug(`checking update: ${currentList.date}`)
       const r = await this.handleResponse<ICheckResult>(await fetch(url))
+      if (r.list !== undefined && r.list.length > 0) {
+        updateList.addItems(r.list)
+      }
       return r.update === '1'
     } catch (e) {
       logger.error(`failed to check update: ${e}`)

@@ -15,6 +15,8 @@
   import {env} from "$lib/utils/Env";
   import {dialogViewModel} from "$lib/dialog/DialogViewModel.svelte";
   import SortDialogContent from "$lib/dialog/SortDialogContent.svelte";
+  import {updateList} from "$lib/model/UpdateList.svelte";
+  import UpdateListPanel from "$lib/panel/UpdateListPanel.svelte";
 
   // import { invoke } from "@tauri-apps/api/core";
   // let name = $state("");
@@ -154,6 +156,13 @@
     </div>
   {/if}
 
+  <!-- 更新通知 -->
+  {#if updateList.hasUpdates}
+    <div class="bg-accent rounded text-accent-on absolute bottom-5 right-5 p-2 flex items-center justify-between z-50">
+      <UpdateListPanel/>
+    </div>
+  {/if}
+
   <!-- busy表示 -->
   {#if viewModel.loading}
     <div transition:fade class="loading absolute top-0 bottom-0 left-0 right-0 h-full w-full flex items-center justify-center bg-gray text-gray-on">
@@ -176,8 +185,8 @@
   </div>
   {/if}
 
-  <div class="debug-panel hidden">
-    <DebugPanel/>
-  </div>
+<!--  <div class="debug-panel hidden">-->
+<!--    <DebugPanel/>-->
+<!--  </div>-->
 </main>
 
