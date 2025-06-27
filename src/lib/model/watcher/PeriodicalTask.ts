@@ -1,5 +1,6 @@
 import type {IHostInfo} from "$lib/model/ModelDef"
 import type {ICapabilities} from "$lib/protocol/IBooProtocol"
+import {logger} from "$lib/model/DebugLog.svelte"
 
 export abstract class PeriodicalTask {
   protected interval: number
@@ -15,7 +16,16 @@ export abstract class PeriodicalTask {
 
   protected abstract periodicalTask(): Promise<void>
 
+  private cancelTimer() {
+    if (this.watchingTimer) {
+      clearTimeout(this.watchingTimer)
+      this.watchingTimer = 0
+    }
+  }
   private async repeatTask() {
+    logger.debug("PeriodicalTask: executing repeatTask")
+    if (!this.watchingTimer) return  // もうタイマーがキャンセルされている
+    let nextInterval = this.interval
     if(!this.taskBusy && this.taskSuppressed <= 0) {
       this.taskBusy = true
       try {
@@ -25,10 +35,16 @@ export abstract class PeriodicalTask {
       } finally {
         this.taskBusy = false
       }
-      this.watchingTimer = setTimeout(this.repeatTask.bind(this), this.interval)
     } else {
-      this.watchingTimer = setTimeout(this.repeatTask.bind(this), this.initialInterval)
+      nextInterval = this.initialInterval
     }
+    if (!this.watchingTimer) {
+      logger.info("PeriodicalTask: Timer has been cancelled, stopping task.")
+      return  // タイマーがキャンセルされている場合は終了
+    }
+    // タイマーがまだ有効な場合は、次のタスクをスケジュールする
+    logger.debug(`PeriodicalTask: scheduling next task in ${nextInterval} ms`)
+    this.watchingTimer = setTimeout(this.repeatTask.bind(this), nextInterval)
   }
 
   protected startWatch(): void {
@@ -37,10 +53,7 @@ export abstract class PeriodicalTask {
   }
 
   protected stopWatch() {
-    if (this.watchingTimer) {
-      clearTimeout(this.watchingTimer)
-      this.watchingTimer = 0
-    }
+    this.cancelTimer()
     this.taskSuppressed = 0
   }
 
@@ -52,10 +65,7 @@ export abstract class PeriodicalTask {
   }
 
   public touch(nextInterval:number= this.interval): void {
-    if (this.watchingTimer) {
-      clearTimeout(this.watchingTimer)
-      this.watchingTimer = 0
-    }
+    this.cancelTimer()
     this.watchingTimer = setTimeout(this.repeatTask.bind(this),nextInterval)
   }
 }

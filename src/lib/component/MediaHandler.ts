@@ -26,6 +26,10 @@ export class MediaHandler {
       logger.debug(`${this.mediaType}:play`)
       if(!this.playPromise) {
         this.playPromise = this.player.play()
+        this.playPromise.catch((error)=>{
+          logger.exception(error, "cannot play media")
+          this.playPromise = undefined
+        })
       }
     },
     pause: ()=> {

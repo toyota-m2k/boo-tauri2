@@ -80,17 +80,18 @@ class PlayerViewModel implements IPlayerCommands {
   play() {
     logger.debug("play")
     this.playRequested = true
-    wakeLocker.lock()
     launch(async ()=>{
       await viewModel.refreshAuthIfNeed()
       this.playerCommands?.play()
       connectionManager.touch()
     })
+    wakeLocker.lock()
   }
   pause() {
     logger.debug("pause")
     this.playRequested = false
     this.playerCommands?.pause()
+    wakeLocker.unlock()
     // connectionManager.pause()
   }
   togglePlay() {
