@@ -11,6 +11,10 @@ export async function delay(msec: number, signal?: AbortSignal): Promise<void> {
   const promise = new Promise((resolve, reject) => {
     let timeout: number | undefined = undefined
     if (signal !== undefined) {
+      if (signal.aborted) {
+        reject(signal.reason)
+        return
+      }
       abortListener = () => {
         if (timeout !== undefined) {
           clearTimeout(timeout)

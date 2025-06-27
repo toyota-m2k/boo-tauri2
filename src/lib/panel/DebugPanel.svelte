@@ -20,7 +20,7 @@
   <div bind:this={container} class="w-full h-full overflow-y-auto">
     <div>
       {#each logger.messages as m (m.id)}
-        <div class="{m.level}">{m.message}</div>
+        <div class="{m.level}">{m.date.toLocaleDateString()} {m.date.toLocaleTimeString()} {m.message}</div>
       {/each}
     </div>
   </div>

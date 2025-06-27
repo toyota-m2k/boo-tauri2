@@ -2,9 +2,9 @@ import {type IPlayerCommands, playerViewModel} from "$lib/model/PlayerViewModel.
 import {chaptersViewModel} from "$lib/model/ChaptersViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {launch} from "$lib/utils/Utils";
-import {connectionManager} from "$lib/model/ConnectionManager";
 import type {MediaType} from "$lib/protocol/IBooProtocol";
 import {viewModel} from "$lib/model/ViewModel.svelte";
+import {connectionManager} from "$lib/model/watcher/ConnectionManager"
 
 export class MediaHandler {
   constructor(private mediaType:MediaType, private getPlayer:()=>HTMLMediaElement, private onended:()=>void) {}

@@ -5,6 +5,7 @@ interface IDebugMessage {
     id: number
     level: DevMessageLevel
     message: string
+    date: Date
 }
 interface IDebugLog {
     push: (message: string, level:DevMessageLevel) => void
@@ -29,7 +30,7 @@ class DebugLog implements IDebugLog {
             case "error": console.error(message); break
         }
         if(!settings.enableDebugLog) return
-        this.messages.push({id: this.nextId++, level, message})
+        this.messages.push({id: this.nextId++, level, message, date:new Date()})
     }
     debug(message: string) { this.push(message, "debug") }
     info(message: string) { this.push(message, "info") }

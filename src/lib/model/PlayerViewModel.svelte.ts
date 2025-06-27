@@ -2,8 +2,8 @@ import {viewModel} from "$lib/model/ViewModel.svelte";
 import {logger} from "$lib/model/DebugLog.svelte";
 import {settings} from "$lib/model/Settings.svelte";
 import {launch} from "$lib/utils/Utils";
-import {connectionManager} from "$lib/model/ConnectionManager";
 import {wakeLocker} from "$lib/utils/WakeLocker";
+import {connectionManager} from "$lib/model/watcher/ConnectionManager"
 
 export type FitMode = "fit" | "fill" | "original"
 
@@ -84,14 +84,14 @@ class PlayerViewModel implements IPlayerCommands {
     launch(async ()=>{
       await viewModel.refreshAuthIfNeed()
       this.playerCommands?.play()
-      connectionManager.resume()
+      connectionManager.touch()
     })
   }
   pause() {
     logger.debug("pause")
     this.playRequested = false
     this.playerCommands?.pause()
-    connectionManager.pause()
+    // connectionManager.pause()
   }
   togglePlay() {
     logger.debug("togglePlay")

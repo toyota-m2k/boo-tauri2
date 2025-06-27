@@ -17,8 +17,9 @@ import {tauriObject} from "$lib/tauri/TauriObject";
 import {tauriShortcutMediator} from "$lib/tauri/TauriShortcutMediator";
 import {passwordViewModel} from "$lib/model/PasswordViewModel.svelte";
 import {sortViewModel} from "$lib/model/SortViewModel.svelte";
-import {connectionManager} from "$lib/model/ConnectionManager";
 import {wakeLocker} from "$lib/utils/WakeLocker";
+import {connectionManager} from "$lib/model/watcher/ConnectionManager"
+import {newArrivalWatcher} from "$lib/model/watcher/NewArrivalWatcher"
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -223,6 +224,7 @@ class ViewModel {
         this.saveCurrentMediaInfo()
         await tauriShortcutMediator.terminate()
         connectionManager.stop()
+        newArrivalWatcher.stop()
         return true
       })
     } catch(e) {
@@ -257,6 +259,7 @@ class ViewModel {
       if (!hostPort) return
 
       connectionManager.stop()
+      newArrivalWatcher.stop()
 
       // 現在の再生情報を記憶
       playerViewModel.pause()
@@ -280,6 +283,7 @@ class ViewModel {
           if (await this.boo.setup(hostPort)) {
             const capabilities = this.boo.capabilities
             connectionManager.start(hostPort, capabilities)
+            newArrivalWatcher.start(hostPort, capabilities)
             const playState = settings.getPlayStateOnHost(hostPort)
             this.videoSupported = this.boo.isSupported("v")
             this.audioSupported = this.boo.isSupported("a")
@@ -355,17 +359,20 @@ class ViewModel {
       }
     }
   }
-  async refreshAuthIfNeed() {
+  async refreshAuthIfNeed():Promise<boolean> {
     if(this.boo.capabilities?.authentication) {
       const currentToken = this.token
       playerViewModel.initialSeekPosition = playerViewModel.currentPosition
-      await this.tryConnect()
+      const r = await this.tryConnect()
       if (currentToken === this.token) {
         logger.info("refreshAuthIfNeed(): token not changed")
         playerViewModel.initialSeekPosition = 0
       } else {
         logger.info("refreshAuthIfNeed(): token changed")
       }
+      return r
+    } else {
+      return true
     }
   }
   async tryConnect(): Promise<boolean> {
