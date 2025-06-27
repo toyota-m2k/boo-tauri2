@@ -4,6 +4,7 @@ import type {ICapabilities} from "$lib/protocol/IBooProtocol"
 import {viewModel} from "$lib/model/ViewModel.svelte"
 import {logger} from "$lib/model/DebugLog.svelte"
 import {delay, launch} from "$lib/utils/Utils"
+import {playerViewModel} from "$lib/model/PlayerViewModel.svelte"
 
 export interface IConnectionManager {
   start(target:IHostInfo, capabilities:ICapabilities): void
@@ -66,12 +67,19 @@ class ConnectionManager extends PeriodicalTask implements IConnectionManager {
         if (await viewModel.tryConnect()) {
           return  // connected
         }
+        const playing = playerViewModel.playRequested
+        if (playing) {
+          playerViewModel.pause() // Pause the player if not connected
+        }
         let backoff = 500
         while (!abortController.signal.aborted && !await viewModel.tryConnect()) {
           await delay(backoff, abortController.signal)
           backoff = Math.min(backoff * 2, 5_000)   // exponential backoff
         }
         logger.info("ConnectionManager.recover() connected")
+        if (playing) {
+          playerViewModel.play() // Resume the player if it was playing
+        }
       } catch(_) {
         // maybe aborted
       } finally {
