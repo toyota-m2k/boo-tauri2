@@ -25,6 +25,9 @@ class ConnectionManager implements IConnectionManager {
   private capabilities: ICapabilities | undefined = undefined
   private get supportsDiff() { return this.capabilities?.diff === true }
   private get needsAuth() { return this.capabilities?.authentication === true }
+
+  // 再生開始から10秒後に初回のwatch動作を行い、その後は、5分に1回、watch動作を行う
+  private initialWatchInterval = 10*1000 // 10 seconds
   private watchInterval = 5*60*1000 // 5 minutes
 
   private watchingTimer = 0
@@ -34,7 +37,7 @@ class ConnectionManager implements IConnectionManager {
     logger.info(`ConnectionManager.start(${host.host}:${host.port})`)
     this.currentHost = host
     this.capabilities = capabilities
-    this.watch()
+    this.watch(this.watchInterval)
   }
   stop() {
     logger.info(`ConnectionManager.stop()`)
@@ -79,7 +82,7 @@ class ConnectionManager implements IConnectionManager {
           interval = Math.min(interval * 2, 5_000)   // exponential backoff
         }
         logger.info("ConnectionManager.recover() connected")
-        this.watch()
+        this.watch(this.initialWatchInterval) // 初回は10秒後にwatchを開始
       } catch(_) {
         // maybe aborted
       } finally {
@@ -99,24 +102,37 @@ class ConnectionManager implements IConnectionManager {
     }
   }
 
-  private watch() {
+  private taskBusy:boolean = false
+  private taskSuppressed:boolean = false
+  private periodicTask = async () => {
+    if (this.taskBusy) {
+      return
+    }
+    this.taskBusy = true
+    try {
+      if (this.supportsDiff && !this.taskSuppressed) {
+        logger.info("ConnectionManager.watch() checkUpdateIfNeed")
+        await viewModel.checkUpdateIfNeed()
+      }
+      if (this.needsAuth && !this.taskSuppressed) {
+        logger.info("ConnectionManager.watch() refreshAuthIfNeed")
+        await viewModel.refreshAuthIfNeed()
+      }
+    } finally {
+      this.taskBusy = false
+      this.watchingTimer = setInterval(async () => {
+        await this.periodicTask()
+      }, this.watchInterval) // 5 minutes
+    }
+  }
+
+  private watch(initialInterval:number) {
     if(this.watchingTimer>0) {
       clearInterval(this.watchingTimer)
       this.watchingTimer = 0
     }
     if(this.supportsDiff||this.needsAuth) {
-      this.watchingTimer = setInterval(() => {
-        launch(async ()=> {
-          if (this.supportsDiff) {
-            logger.info("ConnectionManager.watch() checkUpdateIfNeed")
-            await viewModel.checkUpdateIfNeed()
-          }
-          if (this.needsAuth) {
-            logger.info("ConnectionManager.watch() refreshAuthIfNeed")
-            await viewModel.refreshAuthIfNeed()
-          }
-        })
-      }, this.watchInterval) // 5 minutes
+      this.watchingTimer = setInterval(this.periodicTask, initialInterval) // 10 seconds
     }
   }
 }

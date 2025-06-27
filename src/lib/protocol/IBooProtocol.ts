@@ -142,11 +142,11 @@ export interface IBooProtocol {
   setup(hostInfo: IHostInfo): Promise<boolean>
   touch(): Promise<boolean>
 
-  list(req: IListRequest): Promise<IMediaList>
+  list(req: IListRequest, checkUpdate:boolean): Promise<IMediaList>
 
   chapters(mediaId: string): Promise<IChapterList>
 
-  checkUpdate(currentList:IMediaList): Promise<boolean>
+  checkUpdate(since:number): Promise<boolean>
 
   getItemUrl(mediaItem: IMediaItem, token:string|undefined): string
 

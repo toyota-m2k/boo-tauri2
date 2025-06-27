@@ -14,6 +14,7 @@ import {logger} from "../model/DebugLog.svelte";
 import type {IHostInfo} from "$lib/model/ModelDef";
 import {createAuthInfo, type IAuthInfo} from "$lib/protocol/AuthInfo.svelte";
 import {updateList} from "$lib/model/UpdateList.svelte";
+import {settings} from "$lib/model/Settings.svelte";
 
 class BooProtocolImpl implements IBooProtocol {
   private hostPort: IHostInfo | undefined
@@ -195,7 +196,10 @@ class BooProtocolImpl implements IBooProtocol {
     }
   }
 
-  async list(req: IListRequest): Promise<IMediaList> {
+  async list(req: IListRequest, checkUpdate:boolean): Promise<IMediaList> {
+    if (checkUpdate) {
+      await this.checkUpdate(settings.currentPlayListDate)
+    }
     return await this.withAuthToken(async (token?: string) => {
       const query = new URLSearchParams()
       if (token) {
@@ -221,7 +225,9 @@ class BooProtocolImpl implements IBooProtocol {
       }
 
       const url = this.baseUri + 'list?' + query.toString()
-      return await this.handleResponse<IMediaList>(await fetch(url))
+      const result = await this.handleResponse<IMediaList>(await fetch(url))
+      settings.currentPlayListDate = result.date
+      return result
     })
   }
 
@@ -250,21 +256,26 @@ class BooProtocolImpl implements IBooProtocol {
     }
   }
 
-  async checkUpdate(currentList:IMediaList): Promise<boolean> {
+  async checkUpdate(listDate:number|undefined): Promise<boolean> {
     if (!this.capabilities?.diff) {
       return false  // not supported --> チェック不要
     }
-    if(!currentList.date) {
+    if(!listDate) {
       return false
     }
-    const url = this.baseUri + `check?date=${currentList.date}`
+    const url = this.baseUri + `check?date=${listDate}`
     try {
-      logger.debug(`checking update: ${currentList.date}`)
+      logger.debug(`checking update: ${listDate}`)
       const r = await this.handleResponse<ICheckResult>(await fetch(url))
+      if( r.update === '0' ) {
+        return false // no update
+      }
+      logger.debug(`checkUpdate: found new list: ${r.date}`)
       if (r.list !== undefined && r.list.length > 0) {
+        logger.debug(`checkUpdate: new list count: ${r.list.length} (${r.date})`)
         updateList.addItems(r.list)
       }
-      return r.update === '1'
+      return true
     } catch (e) {
       logger.error(`failed to check update: ${e}`)
       return false

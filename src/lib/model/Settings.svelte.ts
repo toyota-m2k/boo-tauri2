@@ -1,10 +1,10 @@
-import type {
-  ColorVariation,
-  IHostInfo,
-  IHostInfoList,
-  IHostPort,
-  IPlayStateOnHost,
-  ISettings, SortKey
+import {
+  type ColorVariation, defaultPlayStateOnHost,
+  type IHostInfo,
+  type IHostInfoList,
+  type IHostPort,
+  type IPlayStateOnHost,
+  type ISettings, type SortKey
 } from "$lib/model/ModelDef";
 import {HostInfoList} from "$lib/model/HostInfoList.svelte";
 import type {PlayMode} from "$lib/protocol/IBooProtocol";
@@ -123,27 +123,44 @@ class Settings implements ISettings {
     targetHost = targetHost || this.currentHost
     if (!targetHost) return
     const key = `${targetHost.host}@${targetHost.port}`
-    const current = this._hostInfoList.playStateOnHosts[key]
-    this._hostInfoList.playStateOnHosts[key] = {
-      currentMediaId: mediaId,
-      currentMediaPosition: position,
-      sortKey: current?.sortKey ?? 'server',
-      descending: current?.descending ?? false
-    }
+    const current = this._hostInfoList.playStateOnHosts[key] ?? {...defaultPlayStateOnHost}
+    current.currentMediaId = mediaId
+    current.currentMediaPosition = position
+    this._hostInfoList.playStateOnHosts[key] = current
     launch(()=>this._preferences.set(KEY_PLAY_STATE_ON_HOSTS, this._hostInfoList.playStateOnHosts))
+  }
+
+  private updateCurrentPlayListDate(date: number, targetHost?: IHostPort|undefined):void {
+    targetHost = targetHost || this.currentHost
+    if (!targetHost) return
+    const key = `${targetHost.host}@${targetHost.port}`
+    const current = this._hostInfoList.playStateOnHosts[key] ?? {...defaultPlayStateOnHost}
+    current.playListDate = date
+    this._hostInfoList.playStateOnHosts[key] = current
+    launch(()=>this._preferences.set(KEY_PLAY_STATE_ON_HOSTS, this._hostInfoList.playStateOnHosts))
+  }
+
+  get currentPlayListDate(): number|undefined {
+    const targetHost = this.currentHost
+    if (!targetHost) return undefined
+    const key = `${targetHost.host}@${targetHost.port}`
+    const current = this._hostInfoList.playStateOnHosts[key]
+    return current ? current.playListDate : undefined
+  }
+
+  set currentPlayListDate(date: number|undefined) {
+    if(!date) return
+    this.updateCurrentPlayListDate(date, this.currentHost)
   }
 
   updateSortInfo(sortKey:SortKey, descending:boolean, targetHost?: IHostPort|undefined):void {
     targetHost = targetHost || this.currentHost
     if (!targetHost) return
     const key = `${targetHost.host}@${targetHost.port}`
-    const current = this._hostInfoList.playStateOnHosts[key]
-    this._hostInfoList.playStateOnHosts[key] = {
-      currentMediaId: current?.currentMediaId ?? '',
-      currentMediaPosition: current?.currentMediaPosition ?? 0,
-      sortKey,
-      descending
-    }
+    const current = this._hostInfoList.playStateOnHosts[key] ?? {...defaultPlayStateOnHost}
+    current.sortKey = sortKey
+    current.descending = descending
+    this._hostInfoList.playStateOnHosts[key] = current
     launch(()=>this._preferences.set(KEY_PLAY_STATE_ON_HOSTS, this._hostInfoList.playStateOnHosts))
   }
 

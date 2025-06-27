@@ -32,6 +32,14 @@ export interface IPlayStateOnHost {
   sortKey: SortKey,
   descending: boolean,
   category?: string,
+  playListDate?: number | undefined
+}
+
+export const defaultPlayStateOnHost: IPlayStateOnHost = {
+  currentMediaId: '',
+  currentMediaPosition: 0,
+  sortKey: 'server',
+  descending: false,
 }
 
 export type ColorVariation = 'default' | 'orange' | 'melon' | 'cherry' | 'grape' | 'carrot' | 'blueberry' | 'soda'
@@ -47,6 +55,8 @@ export interface ISettings {
   loopPlay: boolean
   autoRotation: boolean
   useCategory: boolean
+  currentPlayListDate: number | undefined
+
   getPlayStateOnHost(hostInfo: IHostPort): IPlayStateOnHost|undefined
   updateCurrentMediaInfo(mediaId: string|undefined, position: number, targetHost?: IHostPort|undefined):void
   updateSortInfo(sortKey:SortKey, descending:boolean, targetHost?: IHostPort|undefined):void

@@ -120,7 +120,7 @@
 
   $effect(() => {
     //logger.info(`onEffect: ${$state.snapshot(settings.currentHost?.displayName ?? "no host")}`)
-    viewModel.onHostChanged(settings.currentHost)
+    viewModel.onHostChanged(settings.currentHost, false)
   })
 </script>
 

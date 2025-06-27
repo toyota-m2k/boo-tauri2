@@ -243,7 +243,7 @@ class ViewModel {
   // sortKey: SortKey = $state("server")
   // descending: boolean = $state(false)
 
-  onHostChanged(newHost:IHostInfo|undefined) {
+  onHostChanged(newHost:IHostInfo|undefined, autoReload:boolean) {
     // $effect()から呼ばれるが、このメソッド内で参照している$state/$derived、
     //  - this.mediaList
     //  - playState.currentMediaId
@@ -285,7 +285,7 @@ class ViewModel {
             this.audioSupported = this.boo.isSupported("a")
             this.photoSupported = this.boo.isSupported("p")
             sortViewModel.load(playState)
-            this.rawMediaList = await this.boo.list(this.listRequest)
+            this.rawMediaList = await this.boo.list(this.listRequest, !autoReload)
 
             // 前回の再生位置を復元
             let item: IMediaItem | undefined = undefined
@@ -322,7 +322,7 @@ class ViewModel {
     if(this.enableCategory && this.currentCategory) {
       request = {sourceType:0, type:"all", category: this.currentCategory}
     }
-    this.rawMediaList = await this.boo.list(request)
+    this.rawMediaList = await this.boo.list(request, true)
 
     // 前回の再生位置を復元
     let item: IMediaItem | undefined = undefined
@@ -339,19 +339,19 @@ class ViewModel {
     this.ensureCurrentItemVisible()
   }
 
-  reloadPlayList() {
+  reloadPlayList(autoReload:boolean = false) {
     logger.info("reloadPlayList")
     this.previousHostInfo = settings.currentHost
-    this.onHostChanged(settings.currentHost)
+    this.onHostChanged(settings.currentHost, autoReload)
   }
 
   async checkUpdateIfNeed() {
     if(this.boo.capabilities?.diff) {
       // リストの自動更新をサポートしている
       // logger.info("checking update")
-      if (await this.boo.checkUpdate(this.rawMediaList)) {
+      if (await this.boo.checkUpdate(this.rawMediaList.date)) {
         logger.info("checkUpdate-->need to update")
-        this.reloadPlayList()
+        this.reloadPlayList(true)
       }
     }
   }
