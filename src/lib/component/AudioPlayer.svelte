@@ -5,7 +5,7 @@
   let { onended, ...rest }: { onended: () => void } = $props()
   let player = $state<HTMLAudioElement>() as HTMLAudioElement;
 
-  let mediaHandler = new MediaHandler("a", ()=>player, onended)
+  let mediaHandler = new MediaHandler("a", ()=>player, ()=>onended())
   onMount(()=>{
     return mediaHandler.onMount()
   })

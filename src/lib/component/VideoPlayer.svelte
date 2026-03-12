@@ -11,7 +11,7 @@
   let cursorConcealer = new CursorConcealer()
   let hideCursor = $derived(cursorConcealer.hideCursor&&playerViewModel.playing)
 
-  let mediaHandler = new MediaHandler("v", ()=>player, onended)
+  let mediaHandler = new MediaHandler("v", ()=>player, ()=>onended())
 
   onMount(()=>{
     return mediaHandler.onMount()
