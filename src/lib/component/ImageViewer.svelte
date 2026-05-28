@@ -29,7 +29,7 @@
     }
   })
 
-  $inspect(playerViewModel.imageSource, playerViewModel.imageWidth, playerViewModel.imageHeight).with(()=>{
+  $effect(() => {
     logger.info(`imageSource=${playerViewModel.imageSource}, imageWidth=${playerViewModel.imageWidth}, imageHeight=${playerViewModel.imageHeight}`)
   })
 </script>
