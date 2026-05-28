@@ -1,4 +1,5 @@
 import {settings} from "$lib/model/Settings.svelte";
+import {untrack} from "svelte";
 
 type DevMessageLevel = "debug" | "info" | "warn" | "error"
 interface IDebugMessage {
@@ -29,8 +30,13 @@ class DebugLog implements IDebugLog {
             case "warn": console.warn(message); break
             case "error": console.error(message); break
         }
-        if(!settings.enableDebugLog) return
-        this.messages.push({id: this.nextId++, level, message, date:new Date()})
+        // $state の読み書きを reactive context の外で行う。これがないと、
+        // reactive context（$effect 等）から logger.* を呼んだとき、自分自身が
+        // 依存する messages を変更してしまい無限ループになる。
+        untrack(() => {
+            if (!settings.enableDebugLog) return
+            this.messages.push({id: this.nextId++, level, message, date: new Date()})
+        })
     }
     debug(message: string) { this.push(message, "debug") }
     info(message: string) { this.push(message, "info") }
