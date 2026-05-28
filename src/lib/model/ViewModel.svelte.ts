@@ -221,10 +221,27 @@ class ViewModel {
       })
       await tauriEvent.onTerminating(async () => {
         logger.info(`onTerminating`)
-        this.saveCurrentMediaInfo()
-        await tauriShortcutMediator.terminate()
-        connectionManager.stop()
-        newArrivalWatcher.stop()
+        // 1つのクリーンアップが失敗しても残りを実行し、最終的に true を返して閉じる。
+        try {
+          this.saveCurrentMediaInfo()
+        } catch(e) {
+          logger.warn(`onTerminating: saveCurrentMediaInfo failed: ${e}`)
+        }
+        try {
+          await tauriShortcutMediator.terminate()
+        } catch(e) {
+          logger.warn(`onTerminating: tauriShortcutMediator.terminate failed: ${e}`)
+        }
+        try {
+          connectionManager.stop()
+        } catch(e) {
+          logger.warn(`onTerminating: connectionManager.stop failed: ${e}`)
+        }
+        try {
+          newArrivalWatcher.stop()
+        } catch(e) {
+          logger.warn(`onTerminating: newArrivalWatcher.stop failed: ${e}`)
+        }
         return true
       })
     } catch(e) {
