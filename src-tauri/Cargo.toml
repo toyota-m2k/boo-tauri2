@@ -1,5 +1,9 @@
 [package]
 name = "bootauri2"
+# このバージョン番号は package.json の version を単一の真実として
+# `npm version` 実行時に scripts/sync-version.mjs が自動同期する。
+# 直接編集する場合は package.json と Cargo.lock の bootauri2 エントリも
+# 同じバージョンに揃えること（さもないと cargo / tauri build が不整合になる）。
 version = "0.13.4"
 description = "Boo Player with Tauri2"
 authors = ["io.github.toyota32k"]
