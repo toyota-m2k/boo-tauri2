@@ -9,7 +9,7 @@ class TauriStore implements IKVS {
   }
   async load() {
     try {
-      this._store = await load('settings.json', {autoSave: true});
+      this._store = await load('settings.json', {autoSave: true, defaults: {}});
       return !!this._store
     } catch {
       return false
