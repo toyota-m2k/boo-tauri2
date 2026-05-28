@@ -14,13 +14,19 @@
  *     そのファイルを読みに行く。
  *
  * 運用フロー:
- *   $ npm version 0.14.0  （または patch / minor / major）
+ *   $ npm --ignore-scripts=false version 0.14.0   （または patch / minor / major）
  *   1. npm が package.json の version を書き換える
  *   2. package.json の "scripts.version" 経由でこのスクリプトが起動
  *   3. Cargo.toml と Cargo.lock を package.json の version に同期
- *   4. 同期したファイルを git add (npm の "scripts.version" 側で実施)
+ *   4. 同期したファイルを git add （"scripts.version" 側のコマンドで実施）
  *   5. npm が「(new version)」コミットと v0.14.0 タグを作る
  *      → 1〜4 で書き換えた全ファイルが1つのコミットに収まる
+ *
+ * 重要: .npmrc に `ignore-scripts=true` を入れているため、`npm version` の
+ * lifecycle hook (preversion/version/postversion) はそのままだと走らない。
+ * 上記コマンド例の `--ignore-scripts=false` で 1 回限りそれを無効化する。
+ * これを忘れると package.json だけ書き換わり Cargo.toml/lock が古いまま
+ * コミットされる事故になる（0.13.5 への bump 時に一度発生した）。
  *
  * 直接 Cargo.toml / Cargo.lock を編集してもよいが、その場合は手動で
  * package.json と一致させること。CI 等で食い違いを検知したい場合は

@@ -1,10 +1,12 @@
 [package]
 name = "bootauri2"
 # このバージョン番号は package.json の version を単一の真実として
-# `npm version` 実行時に scripts/sync-version.mjs が自動同期する。
+# `npm --ignore-scripts=false version <new>` 実行時に
+# scripts/sync-version.mjs が自動同期する（.npmrc の ignore-scripts=true で
+# lifecycle hook がデフォルト無効化されているため、bump 時だけフラグで上書き）。
 # 直接編集する場合は package.json と Cargo.lock の bootauri2 エントリも
 # 同じバージョンに揃えること（さもないと cargo / tauri build が不整合になる）。
-version = "0.13.4"
+version = "0.13.5"
 description = "Boo Player with Tauri2"
 authors = ["io.github.toyota32k"]
 edition = "2021"
