@@ -34,19 +34,6 @@ export default defineConfig(async ():Promise<UserConfig> => {
         ignored: ["**/src-tauri/**"],
       },
     },
-    // https://stackoverflow.com/questions/78997907/the-legacy-js-api-is-deprecated-and-will-be-removed-in-dart-sass-2-0-0
-    css: {
-      // postcss: {
-      //   plugins: [
-      //     tailwindcss,
-      //     autoprefixer
-      //   ]
-      // },
-      preprocessorOptions: {
-        scss: {
-          api: 'modern-compiler' // or "modern"
-        }
-      }
-    }
+    // sass の modern compiler API は Vite 8 で既定。preprocessorOptions の指定不要。
   }
 });
