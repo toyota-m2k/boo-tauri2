@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 7+ の WebView は既定でシステム CA のみを信頼する。
+    自己署名サーバ証明書のルートをユーザーがインストール済みでも、
+    このファイルで「user」trust-anchor を有効にしないと WebView は拒否する。
+
+    Step 2 でフィンガープリントピンニングを Rust 側に集約したら、
+    HTTPS 通信は WebView を経由しなくなるため、本ファイルは不要になる可能性あり。
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
