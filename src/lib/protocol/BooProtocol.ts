@@ -64,8 +64,9 @@ class BooProtocolImpl implements IBooProtocol {
     if (this.hostPort === undefined) {
       throw new Error('hostInfo is not initialized')
     }
+    const scheme = this.hostPort.useSSL ? 'https' : 'http'
     // noinspection HttpUrlsUsage
-    return `http://${this.hostPort.host}:${this.hostPort.port}/`
+    return `${scheme}://${this.hostPort.host}:${this.hostPort.port}/`
   }
 
   get needAuth(): boolean {

@@ -46,6 +46,20 @@ export class HostInfoList implements IHostInfoList {
     }
   }
 
+  replace(oldHost: IHostInfo, newHost: IHostInfo): boolean {
+    const index = this.list.indexOf(oldHost)
+    if(index < 0) return false
+    this.list[index] = newHost
+    const oldKey = `${oldHost.host}@${oldHost.port}`
+    const newKey = `${newHost.host}@${newHost.port}`
+    if(oldKey !== newKey && this.playStateOnHosts[oldKey]) {
+      this.playStateOnHosts[newKey] = this.playStateOnHosts[oldKey]
+      delete this.playStateOnHosts[oldKey]
+    }
+    this.modified = true
+    return true
+  }
+
   set(list: IHostInfo[]): void {
     this.list = list
     this.modified = true
