@@ -148,10 +148,14 @@ async fn proxy_handler(
         up_req = up_req.body(body_bytes.to_vec());
     }
 
-    let upstream = up_req
-        .send()
-        .await
-        .map_err(|_| StatusCode::BAD_GATEWAY)?;
+    let upstream = up_req.send().await.map_err(|e| {
+        // 上流接続失敗は珍しいので警告として残す (URL や err 型はそのまま出す)
+        eprintln!(
+            "media_proxy: upstream send failed url={} err={}",
+            upstream_url, e
+        );
+        StatusCode::BAD_GATEWAY
+    })?;
 
     let status = upstream.status();
     let mut builder = Response::builder()

@@ -311,10 +311,13 @@ class BooProtocolImpl implements IBooProtocol {
       ? `photo?id=${mediaItem.id}${auth}`
       : `video?id=${mediaItem.id}${auth}`
 
-    // メディアは Step 2 統一ルーティング: HTTP/HTTPS 問わず常にローカル proxy 経由。
-    // proxy が未準備 (Tauri 非対応環境など) では直接 baseUri にフォールバック。
-    const proxified = tauriMediaProxy.proxify(path)
-    if (proxified) return proxified
+    // メディアは API と同じ選択的ルーティング: useSSL && fingerprint && Tauri available のときだけ
+    // pinning 必要 (かつ Rust 側で検証可能) なので proxy 経由。それ以外は WebView の HTTPS スタックに
+    // 直接任せる (HTTP は素通り、HTTPS は OS にインストール済みの user CA で WebView が検証)。
+    if (this.useRustHttp()) {
+      const proxified = tauriMediaProxy.proxify(path)
+      if (proxified) return proxified
+    }
     return this.baseUri + path
   }
 
