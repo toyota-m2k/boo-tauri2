@@ -6,7 +6,7 @@ name = "bootauri2"
 # lifecycle hook がデフォルト無効化されているため、bump 時だけフラグで上書き）。
 # 直接編集する場合は package.json と Cargo.lock の bootauri2 エントリも
 # 同じバージョンに揃えること（さもないと cargo / tauri build が不整合になる）。
-version = "0.13.6"
+version = "0.14.0"
 description = "Boo Player with Tauri2"
 authors = ["io.github.toyota32k"]
 edition = "2021"

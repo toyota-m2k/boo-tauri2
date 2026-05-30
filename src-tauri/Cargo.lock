@@ -144,7 +144,7 @@ dependencies = [
 
 [[package]]
 name = "bootauri2"
-version = "0.13.6"
+version = "0.14.0"
 dependencies = [
  "if-addrs",
  "mdns-sd",
