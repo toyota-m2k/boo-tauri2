@@ -11,6 +11,10 @@ export function isEqualHostPort(a: IHostPort|undefined, b: IHostPort|undefined):
 
 export interface IHostInfo extends IHostPort {
   displayName: string
+  useSSL?: boolean
+  fingerprint?: string
+  serviceName?: string
+  hostname?: string
 }
 
 export interface IHostInfoList {
@@ -20,6 +24,7 @@ export interface IHostInfoList {
   add(hostInfo: IHostInfo): void
   remove(hostInfo: IHostInfo): void
   update(hostInfo: IHostInfo, displayName:string): void
+  replace(oldHost: IHostInfo, newHost: IHostInfo): boolean
   set(list: IHostInfo[]): void
   findByHostPort(hostPort: IHostPort|undefined): IHostInfo|undefined
 }

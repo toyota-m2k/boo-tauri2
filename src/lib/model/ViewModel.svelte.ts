@@ -20,6 +20,7 @@ import {sortViewModel} from "$lib/model/SortViewModel.svelte";
 import {wakeLocker} from "$lib/utils/WakeLocker";
 import {connectionManager} from "$lib/model/watcher/ConnectionManager"
 import {newArrivalWatcher} from "$lib/model/watcher/NewArrivalWatcher"
+import {activeHostTracker} from "$lib/model/ActiveHostTracker.svelte"
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -163,6 +164,7 @@ class ViewModel {
     await settings.load()
     this.initKeyMap()
     await this.initTauri()
+    activeHostTracker.start()
     this.isPrepared = true
   }
 

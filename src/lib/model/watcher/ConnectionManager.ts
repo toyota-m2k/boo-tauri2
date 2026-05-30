@@ -5,6 +5,7 @@ import {viewModel} from "$lib/model/ViewModel.svelte"
 import {logger} from "$lib/model/DebugLog.svelte"
 import {delay, launch} from "$lib/utils/Utils"
 import {playerViewModel} from "$lib/model/PlayerViewModel.svelte"
+import {activeHostTracker} from "$lib/model/ActiveHostTracker.svelte"
 
 export interface IConnectionManager {
   start(target:IHostInfo, capabilities:ICapabilities): void
@@ -73,6 +74,11 @@ class ConnectionManager extends PeriodicalTask implements IConnectionManager {
         }
         let backoff = 500
         while (!abortController.signal.aborted && !await viewModel.tryConnect()) {
+          // IPアドレスが変わっている可能性があるので、mDNS で再解決を試みる
+          if (await activeHostTracker.refreshHostAddress()) {
+            logger.info("ConnectionManager.recover(): host address refreshed via mDNS")
+            if (await viewModel.tryConnect()) break
+          }
           await delay(backoff, abortController.signal)
           backoff = Math.min(backoff * 2, 5_000)   // exponential backoff
         }

@@ -6,7 +6,7 @@ name = "bootauri2"
 # lifecycle hook がデフォルト無効化されているため、bump 時だけフラグで上書き）。
 # 直接編集する場合は package.json と Cargo.lock の bootauri2 エントリも
 # 同じバージョンに揃えること（さもないと cargo / tauri build が不整合になる）。
-version = "0.13.6"
+version = "0.14.0"
 description = "Boo Player with Tauri2"
 authors = ["io.github.toyota32k"]
 edition = "2021"
@@ -29,7 +29,12 @@ tauri-plugin-shell = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-store = "2"
+mdns-sd = "0.20"
+if-addrs = "0.15"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-global-shortcut = "2"
+
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+tauri-plugin-barcode-scanner = "2"
 

@@ -1,3 +1,5 @@
+mod mdns;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -6,17 +8,28 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-   let mut builder = tauri::Builder::default();
+    let mut builder = tauri::Builder::default();
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
         // global shortcut プラグインは、android / ios ではサポートされない
         builder = builder.plugin(tauri_plugin_global_shortcut::Builder::new().build());
     }
+    #[cfg(mobile)]
+    {
+        // barcode-scanner プラグインは mobile (Android / iOS) 専用
+        builder = builder.plugin(tauri_plugin_barcode_scanner::init());
+    }
 
     builder
+        .manage(mdns::MdnsState::default())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            mdns::mdns_discover_start,
+            mdns::mdns_discover_stop,
+            mdns::mdns_resolve_once,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
