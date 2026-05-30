@@ -71,6 +71,16 @@ android {
     buildFeatures {
         buildConfig = true
     }
+    lint {
+        // AGP 8.7 / Kotlin 1.9 系の組み合わせで androidx.lifecycle の
+        // NullSafeMutableLiveDataDetector が KaCallableMemberCall クラスの
+        // バージョン不整合でクラッシュする (lintVitalAnalyzeUniversalRelease)。
+        // 当アプリは MutableLiveData を使っていないので無効化して問題なし。
+        disable.add("NullSafeMutableLiveData")
+        // 万一他の lint がクラッシュしても release ビルドを止めないように
+        // abortOnError は明示的に true のまま (= 通常の文法/リソースエラーは引き続き阻止)
+        // checkReleaseBuilds = true (default)
+    }
 }
 
 rust {
