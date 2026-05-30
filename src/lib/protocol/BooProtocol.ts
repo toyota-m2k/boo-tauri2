@@ -9,12 +9,22 @@ import {
   type IListRequest, type IMark, type IMediaItem,
   type IMediaList, type IRatingList, type IReputation, type MediaType
 } from './IBooProtocol'
-import {fetchWithTimeout} from "../utils/Utils";
+import {fetchWithTimeout, type RequestInitWithTimeout} from "../utils/Utils";
 import {logger} from "../model/DebugLog.svelte";
 import type {IHostInfo} from "$lib/model/ModelDef";
 import {createAuthInfo, type IAuthInfo} from "$lib/protocol/AuthInfo.svelte";
 import {updateList} from "$lib/model/UpdateList.svelte";
 import {settings} from "$lib/model/Settings.svelte";
+import {tauriObject} from "$lib/tauri/TauriObject";
+import {tauriMediaProxy} from "$lib/tauri/TauriMediaProxy";
+import {invoke} from "@tauri-apps/api/core";
+
+interface IRustHttpResponse {
+  status: number
+  ok: boolean
+  headers: Record<string, string>
+  body: number[]
+}
 
 class BooProtocolImpl implements IBooProtocol {
   private hostPort: IHostInfo | undefined
@@ -53,7 +63,7 @@ class BooProtocolImpl implements IBooProtocol {
 
   private async getCapabilities(): Promise<ICapabilities> {
     const url = this.baseUri + 'capability'
-    const r = await fetchWithTimeout(url, 3000)
+    const r = await this.pinnedFetch(url, {timeout: 3000})
     if (!r.ok) {
       throw new Error(`fetch failed: ${r.status}`)
     }
@@ -69,21 +79,70 @@ class BooProtocolImpl implements IBooProtocol {
     return `${scheme}://${this.hostPort.host}:${this.hostPort.port}/`
   }
 
+  /**
+   * Step 2: HTTPS pinned host (useSSL + fingerprint あり) のときは Rust 経由 (invoke) で
+   * フィンガープリント検証付き fetch を行う。それ以外は標準 fetch() を継続使用 (HTTP は WebView 直結で十分)。
+   */
+  private useRustHttp(): boolean {
+    return !!(this.hostPort?.useSSL && this.hostPort?.fingerprint && tauriObject.isAvailable)
+  }
+
+  private async pinnedFetch(url: string, init?: RequestInitWithTimeout): Promise<Response> {
+    if (this.useRustHttp()) {
+      return this.invokeFetch(url, init)
+    }
+    if (init?.timeout !== undefined) {
+      return fetchWithTimeout(url, init)
+    }
+    return fetch(url, init)
+  }
+
+  private async invokeFetch(url: string, init?: RequestInitWithTimeout): Promise<Response> {
+    const method = (init?.method ?? "GET").toUpperCase()
+    const headers: Record<string, string> = {}
+    if (init?.headers) {
+      new Headers(init.headers).forEach((v, k) => { headers[k] = v })
+    }
+    const args: {
+      url: string; method: string; headers: Record<string, string>;
+      bodyText?: string; body?: number[]; timeoutMs?: number
+    } = {url, method, headers}
+
+    if (init?.body !== undefined && init.body !== null) {
+      if (typeof init.body === "string") {
+        args.bodyText = init.body
+      } else if (init.body instanceof Uint8Array) {
+        args.body = Array.from(init.body)
+      } else if (init.body instanceof ArrayBuffer) {
+        args.body = Array.from(new Uint8Array(init.body))
+      } else {
+        args.bodyText = String(init.body)
+      }
+    }
+    if (init?.timeout !== undefined) {
+      args.timeoutMs = init.timeout
+    }
+
+    const result = await invoke<IRustHttpResponse>("boo_http_request", {args})
+    const bodyBytes = new Uint8Array(result.body)
+    return new Response(bodyBytes, {
+      status: result.status,
+      headers: new Headers(result.headers),
+    })
+  }
+
   get needAuth(): boolean {
     return this.capabilities?.authentication === true
   }
 
   private async auth(password: string): Promise<boolean> {
-    // if(!this.needAuth) {
-    //     return true // no authentication required
-    // }
     this.secret = undefined
     const challenge = await this.getChallenge(false)
     if (!challenge) {
       throw new BooError('generic', 'failed to get challenge')
     }
     const url = this.baseUri + 'auth'
-    const r = await fetch(url, {
+    const r = await this.pinnedFetch(url, {
       method: "PUT",
       cache: "no-cache",
       headers: {
@@ -107,7 +166,7 @@ class BooProtocolImpl implements IBooProtocol {
       return this.challenge
     }
     const url = this.baseUri + 'auth'
-    const r = await fetch(url)
+    const r = await this.pinnedFetch(url)
     if (!r.ok) {
       return undefined
     }
@@ -176,7 +235,7 @@ class BooProtocolImpl implements IBooProtocol {
       try {
         return await this.withAuthToken(async (token?: string) => {
           const url = this.baseUri + 'auth/' + (token ?? '')
-          const r = await fetchWithTimeout(url, 3000)
+          const r = await this.pinnedFetch(url, {timeout: 3000})
           await this.handleResponseRaw(r)
           return true
         })
@@ -187,7 +246,7 @@ class BooProtocolImpl implements IBooProtocol {
     } else {
       try {
         const url = this.baseUri + 'nop'
-        const r = await fetchWithTimeout(url, 3000)
+        const r = await this.pinnedFetch(url, {timeout: 3000})
         await this.handleResponseRaw(r)
         return true
       } catch (e) {
@@ -226,7 +285,7 @@ class BooProtocolImpl implements IBooProtocol {
       }
 
       const url = this.baseUri + 'list?' + query.toString()
-      const result = await this.handleResponse<IMediaList>(await fetch(url))
+      const result = await this.handleResponse<IMediaList>(await this.pinnedFetch(url))
       settings.currentPlayListDate = result.date
       return result
     })
@@ -235,7 +294,7 @@ class BooProtocolImpl implements IBooProtocol {
   async chapters(mediaId: string): Promise<IChapterList> {
     if(this.capabilities?.chapter) {
       const url = this.baseUri + `chapter?id=${mediaId}`
-      return await this.handleResponse<IChapterList>(await fetch(url))
+      return await this.handleResponse<IChapterList>(await this.pinnedFetch(url))
     } else {
       return {chapters: [], id: mediaId}
     }
@@ -247,14 +306,16 @@ class BooProtocolImpl implements IBooProtocol {
       if(!token) return ''
       auth = `&auth=${token}`
     }
-    switch (mediaItem.type as string) {
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-        return this.baseUri + `photo?id=${mediaItem.id}`+auth
-      default:
-        return this.baseUri + `video?id=${mediaItem.id}`+auth
-    }
+    const t = mediaItem.type as string
+    const path = (t === 'jpg' || t === 'jpeg' || t === 'png')
+      ? `photo?id=${mediaItem.id}${auth}`
+      : `video?id=${mediaItem.id}${auth}`
+
+    // メディアは Step 2 統一ルーティング: HTTP/HTTPS 問わず常にローカル proxy 経由。
+    // proxy が未準備 (Tauri 非対応環境など) では直接 baseUri にフォールバック。
+    const proxified = tauriMediaProxy.proxify(path)
+    if (proxified) return proxified
+    return this.baseUri + path
   }
 
   async checkUpdate(listDate:number|undefined): Promise<boolean> {
@@ -267,7 +328,7 @@ class BooProtocolImpl implements IBooProtocol {
     const url = this.baseUri + `check?date=${listDate}`
     try {
       logger.debug(`checking update: ${listDate}`)
-      const r = await this.handleResponse<ICheckResult>(await fetch(url))
+      const r = await this.handleResponse<ICheckResult>(await this.pinnedFetch(url))
       if( r.update === '0' ) {
         return false // no update
       }
@@ -285,12 +346,12 @@ class BooProtocolImpl implements IBooProtocol {
 
   async getCurrent(): Promise<string> {
     const url = this.baseUri + 'current'
-    return (await this.handleResponse<IDResponse>(await fetch(url))).id
+    return (await this.handleResponse<IDResponse>(await this.pinnedFetch(url))).id
   }
 
   async setCurrent(mediaId: string): Promise<void> {
     const url = this.baseUri + 'current'
-    await fetch(url, {
+    await this.pinnedFetch(url, {
       method: "PUT",
       cache: "no-cache",
       headers: {
@@ -305,7 +366,7 @@ class BooProtocolImpl implements IBooProtocol {
       return {id: mediaId}
     }
     const url = this.baseUri + `reputation?id=${mediaId}`
-    return await this.handleResponse<IReputation>(await fetch(url))
+    return await this.handleResponse<IReputation>(await this.pinnedFetch(url))
   }
 
   async setReputation(req: IReputation): Promise<void> {
@@ -313,7 +374,7 @@ class BooProtocolImpl implements IBooProtocol {
       return
     }
     const url = this.baseUri + 'reputation'
-    await fetch(url, {
+    await this.pinnedFetch(url, {
       method: "PUT",
       cache: "no-cache",
       headers: {
@@ -328,11 +389,7 @@ class BooProtocolImpl implements IBooProtocol {
       return []
     }
     const url = this.baseUri + 'categories'
-    // const cats = (await this.handleResponse<ICategoryList>(await fetch(url)))?.categories
-    // if(!cats) return []
-    // const catsLabels = cats.sort((a, b) => a.sort - b.sort).map(c => c.label)
-    // return catsLabels
-    return (await this.handleResponse<ICategoryList>(await fetch(url)))?.categories?.sort((a, b) => a.sort - b.sort)?.map(c => c.label) ?? []
+    return (await this.handleResponse<ICategoryList>(await this.pinnedFetch(url)))?.categories?.sort((a, b) => a.sort - b.sort)?.map(c => c.label) ?? []
   }
 
   async marks(): Promise<IMark[]> {
@@ -340,7 +397,7 @@ class BooProtocolImpl implements IBooProtocol {
       return []
     }
     const url = this.baseUri + 'marks'
-    return await this.handleResponse<IMark[]>(await fetch(url))
+    return await this.handleResponse<IMark[]>(await this.pinnedFetch(url))
   }
 
   async ratings(): Promise<IRatingList> {
@@ -348,7 +405,7 @@ class BooProtocolImpl implements IBooProtocol {
       return {default: 0, items: []}
     }
     const url = this.baseUri + 'ratings'
-    return await this.handleResponse<IRatingList>(await fetch(url))
+    return await this.handleResponse<IRatingList>(await this.pinnedFetch(url))
   }
 
   isSupported(type: MediaType): boolean {
