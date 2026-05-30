@@ -231,7 +231,7 @@
             {:else}
               {#each hostDiscovery.services as svc}
                 <button class="text-left p-2 hover:bg-secondary hover:text-secondary-on border-b border-gray" onclick={(e)=>selectDiscovered(e,svc)}>
-                  <div class="text-sm">{svc.hostname ?? svc.serviceName}{#if svc.useSSL}<span class="ml-2 text-xs text-accent">SSL</span>{/if}</div>
+                  <div class="text-sm">{svc.serviceName}{#if svc.useSSL}<span class="ml-2 text-xs text-accent">SSL</span>{/if}</div>
                   <div class="text-xs text-gray-on-alt">{svc.host}:{svc.port}{#if svc.app}<span class="ml-1">({svc.app})</span>{/if}</div>
                 </button>
               {/each}
