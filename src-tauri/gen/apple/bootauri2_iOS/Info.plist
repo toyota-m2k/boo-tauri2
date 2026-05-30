@@ -20,6 +20,8 @@
 	<string>0.12.4</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>BooTauri2 needs to use the camera to scan QR codes for pairing with Boo media servers.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>BooTauri2 needs to access your local network to discover and connect to Boo media servers.</string>
 	<key>UILaunchStoryboardName</key>

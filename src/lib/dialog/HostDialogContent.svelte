@@ -1,6 +1,6 @@
 <script lang="ts">
   import IconButton from "$lib/primitive/IconButton.svelte";
-  import {ICON_CHECK, ICON_EDIT, ICON_PLUS, ICON_TRASH} from "$lib/Icons";
+  import {ICON_CHECK, ICON_EDIT, ICON_PLUS, ICON_QR_CODE, ICON_TRASH} from "$lib/Icons";
   import {settings} from "$lib/model/Settings.svelte";
   import SvgIcon from "$lib/primitive/SvgIcon.svelte";
   import type {IHostInfo} from "$lib/model/ModelDef";
@@ -10,8 +10,9 @@
   import {onDestroy, onMount} from "svelte";
   import {logger} from "$lib/model/DebugLog.svelte";
   import {hostDiscovery} from "$lib/model/HostDiscovery.svelte";
-  import {tauriMdns, type IDiscoveredService} from "$lib/tauri/TauriMdns";
-  import {parsePairingUri, pairingToHostInfo} from "$lib/protocol/PairingUri";
+  import {type IDiscoveredService} from "$lib/tauri/TauriMdns";
+  import {formatPairingDisplayName, parsePairingUri, pairingToHostInfo} from "$lib/protocol/PairingUri";
+  import {Format, scan, cancel, checkPermissions, requestPermissions} from "@tauri-apps/plugin-barcode-scanner";
 
   let { show=$bindable() }:{show:boolean} = $props()
   let editingHost = $state(false)
@@ -37,8 +38,21 @@
   let newFingerprint = $state<string|undefined>(undefined)
   let newServiceName = $state<string|undefined>(undefined)
   let newHostname = $state<string|undefined>(undefined)
-  let pairingInput = $state("")
   let pairingError = $state("")
+  let isScanning = $state(false)
+
+  // QR スキャン中は WebView 背景を透明化、アプリ本体 UI は非表示化、Cancel ボタンだけ可視にする。
+  // $effect だと scan() の reject 経由でフリップする際に CSS 反映が一拍遅れることがあるため、
+  // 直接 classList 操作する helper を用意して同期的に呼ぶ。
+  function setScanning(active: boolean) {
+    isScanning = active
+    if (typeof document === "undefined") return
+    if (active) {
+      document.body.classList.add("barcode-scanner-active")
+    } else {
+      document.body.classList.remove("barcode-scanner-active")
+    }
+  }
 
   function editHost(e:MouseEvent, host:IHostInfo|undefined, addHost:boolean=false) {
     stopPropagation(e)
@@ -52,7 +66,6 @@
     newFingerprint = host?.fingerprint
     newServiceName = host?.serviceName
     newHostname = host?.hostname
-    pairingInput = ""
     pairingError = ""
     editingHost = true
   }
@@ -89,33 +102,10 @@
     show = false
   }
 
-  function selectDiscovered(e:MouseEvent, svc:IDiscoveredService) {
-    stopPropagation(e)
-    newDisplayName = svc.hostname ?? svc.serviceName
-    newHostAddress = svc.host
-    newHostPort = svc.port
-    newUseSSL = svc.useSSL ?? false
-    newFingerprint = svc.fingerprint
-    newServiceName = svc.serviceName
-    newHostname = svc.hostname
-  }
-
-  async function refreshDiscovery(e:MouseEvent) {
-    stopPropagation(e)
-    try {
-      await tauriMdns.stop()
-      await hostDiscovery.start()
-    } catch(err) {
-      logger.error(`refreshDiscovery failed: ${err}`)
-    }
-  }
-
-  function applyPairing(e:MouseEvent) {
-    stopPropagation(e)
-    pairingError = ""
-    const p = parsePairingUri(pairingInput)
+  function applyPairing(content: string) {
+    const p = parsePairingUri(content)
     if (!p) {
-      pairingError = "Invalid pairing URL"
+      pairingError = "Scanned content is not a valid pairing URL"
       return
     }
     const info = pairingToHostInfo(p)
@@ -128,12 +118,73 @@
     newHostname = info.hostname
   }
 
+  function selectDiscovered(e:MouseEvent, svc:IDiscoveredService) {
+    stopPropagation(e)
+    // mDNS Service Instance 名はサーバー側で "<serverName>@<machineName>" 形式に作られている
+    // (例: "BooTube@MY-PC")。Display name にはそのまま流用する。
+    newDisplayName = svc.serviceName
+    newHostAddress = svc.host
+    newHostPort = svc.port
+    newUseSSL = svc.useSSL ?? false
+    newFingerprint = svc.fingerprint
+    newServiceName = svc.serviceName
+    newHostname = svc.hostname
+  }
+
+  async function ensureCameraPermission(): Promise<boolean> {
+    let state = await checkPermissions()
+    if (state !== "granted") {
+      state = await requestPermissions()
+    }
+    return state === "granted"
+  }
+
+  async function scanQR(e:MouseEvent) {
+    stopPropagation(e)
+    pairingError = ""
+    try {
+      if (!(await ensureCameraPermission())) {
+        pairingError = "Camera permission was denied. Please enable it in system settings."
+        return
+      }
+      setScanning(true)
+      const result = await scan({windowed: true, formats: [Format.QRCode]})
+      const content = result?.content
+      if (!content) return // user cancelled
+      applyPairing(content)
+    } catch (err: any) {
+      const msg = err?.message ?? `${err}`
+      // ユーザーがキャンセルした場合は静かに戻る (エラー扱いしない)
+      if (/cancel/i.test(msg)) return
+      logger.error(`QR scan failed: ${err}`)
+      pairingError = `QR scan failed: ${msg}`
+    } finally {
+      setScanning(false)
+    }
+  }
+
+  async function cancelScan(e:MouseEvent) {
+    stopPropagation(e)
+    // 楽観的に UI を即時クリーンアップ (scan() の reject 経由を待たない)。
+    // これで body のクラス除去と overlay の {#if} 除去が同期的に走る。
+    setScanning(false)
+    try {
+      await cancel()
+    } catch (err) {
+      logger.error(`cancel scan failed: ${err}`)
+    }
+  }
+
   onMount(()=>{
     logger.info("HostDialogContent:mount")
     return ()=>{logger.info("HostDialogContent:unmount")}
   })
   onDestroy(()=> {
     logger.info("HostDialogContent:destroy")
+    // unmount 時に scan 用 CSS クラスが残らないように防御
+    if (typeof document !== "undefined") {
+      document.body.classList.remove("barcode-scanner-active")
+    }
   })
 </script>
 
@@ -167,10 +218,12 @@
     {:else}
       <div class="flex flex-col w-4/5">
         {#if !targetHost}
-          <!-- Discovered servers (mDNS) -->
+          <!-- Discovered servers (mDNS) + QR scan button (mobile) -->
           <div class="flex flex-row items-center mb-1">
             <div class="text-sm font-semibold flex-1">Discovered servers</div>
-            <button class="text-xs text-secondary underline" onclick={refreshDiscovery}>refresh</button>
+            {#if isMobile}
+              <IconButton class="p-1 w-7 h-7 rounded-sm text-secondary hover:bg-secondary hover:text-secondary-on" onclick={scanQR} path={ICON_QR_CODE}/>
+            {/if}
           </div>
           <div class="flex flex-col mb-3 border border-gray rounded-sm max-h-32 overflow-y-auto">
             {#if hostDiscovery.services.length === 0}
@@ -184,17 +237,8 @@
               {/each}
             {/if}
           </div>
-
-          <!-- QR pairing URL (mobile only) -->
-          {#if isMobile}
-            <div class="text-sm font-semibold mb-1">Pairing URL</div>
-            <div class="flex flex-row mb-3">
-              <input type="text" bind:value={pairingInput} placeholder="bootube://..." class="flex-1 mr-2" />
-              <button class="text-button px-2" onclick={applyPairing}>Apply</button>
-            </div>
-            {#if pairingError}
-              <div class="text-xs text-red-500 mb-2">{pairingError}</div>
-            {/if}
+          {#if pairingError}
+            <div class="text-xs text-red-500 mb-2">{pairingError}</div>
           {/if}
         {/if}
 
@@ -228,3 +272,70 @@
   </div>
   {/snippet}
 </Dialog>
+
+{#if isScanning}
+  <!-- カメラ プレビュー上のオーバーレイ。WebView 自体が透明化されており、
+       body.barcode-scanner-active のスタイルで他の UI は visibility:hidden になっている。
+       この要素 (と子) だけが visibility:visible で残る。 -->
+  <div class="barcode-scanner-overlay">
+    <div class="scanner-guide"></div>
+    <div class="scanner-instruction">Aim at the QR code</div>
+    <button class="scanner-cancel" onclick={cancelScan}>Cancel</button>
+  </div>
+{/if}
+
+<style>
+  /* QR スキャン中: WebView 背景を透明化、本体 UI 全て非表示にしてカメラだけ見せる。
+     visibility:hidden は子要素にも継承するが、子側で visible !important すれば上書きできる。 */
+  :global(html.barcode-scanner-active),
+  :global(body.barcode-scanner-active) {
+    background: transparent !important;
+  }
+  :global(body.barcode-scanner-active > *) {
+    visibility: hidden !important;
+  }
+  :global(body.barcode-scanner-active .barcode-scanner-overlay),
+  :global(body.barcode-scanner-active .barcode-scanner-overlay *) {
+    visibility: visible !important;
+  }
+
+  .barcode-scanner-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4rem 2rem;
+    pointer-events: none;
+  }
+  .scanner-guide {
+    width: 70vmin;
+    height: 70vmin;
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    border-radius: 16px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+    margin-top: 4rem;
+  }
+  .scanner-instruction {
+    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 8px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+  }
+  .scanner-cancel {
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    padding: 12px 36px;
+    border-radius: 28px;
+    font-size: 16px;
+    pointer-events: auto;
+    border: none;
+    cursor: pointer;
+  }
+  .scanner-cancel:active {
+    background: rgba(0, 0, 0, 0.9);
+  }
+</style>

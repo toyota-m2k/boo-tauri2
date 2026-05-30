@@ -45,13 +45,31 @@ export function parsePairingUri(input: string): IPairing | null {
   }
 }
 
+/**
+ * サーバー情報を取り込んだときの Display name フォーマット。
+ *   svc, name が両方あって異なる → "<svc>@<name>" (例: "BooTube@MY-PC")
+ *   どちらか一方しかない、または同値 → そのまま返す (冗長な "X@X" を避ける)
+ *
+ * サーバー側 (ytplayer / SecureArchive) は QR で name=<machineName>, svc=<serverName>
+ * を送るため、合成すると mDNS Service Instance 名と一致する。
+ */
+export function formatPairingDisplayName(svc: string | undefined, name: string | undefined): string {
+  const s = svc?.trim() ?? ""
+  const n = name?.trim() ?? ""
+  if (s && n && s !== n) return `${s}@${n}`
+  return s || n
+}
+
 export function pairingToHostInfo(p: IPairing): IHostInfo {
+  // mDNS Service Instance 名 ("<serverName>@<machineName>") との一致を保つため、
+  // serviceName フィールドにも同じ合成を入れる (ActiveHostTracker の IP 再解決のキー)。
+  const synthesized = formatPairingDisplayName(p.serviceName, p.name)
   return {
-    displayName: p.name,
+    displayName: synthesized,
     host: p.host,
     port: p.port,
     useSSL: p.useSSL,
     fingerprint: p.fingerprint,
-    serviceName: p.serviceName,
+    serviceName: synthesized || p.serviceName,
   }
 }

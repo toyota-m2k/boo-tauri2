@@ -14,6 +14,11 @@ pub fn run() {
         // global shortcut プラグインは、android / ios ではサポートされない
         builder = builder.plugin(tauri_plugin_global_shortcut::Builder::new().build());
     }
+    #[cfg(mobile)]
+    {
+        // barcode-scanner プラグインは mobile (Android / iOS) 専用
+        builder = builder.plugin(tauri_plugin_barcode_scanner::init());
+    }
 
     builder
         .manage(mdns::MdnsState::default())

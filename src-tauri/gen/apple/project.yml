@@ -40,6 +40,7 @@ targets:
       path: bootauri2_iOS/Info.plist
       properties:
         LSRequiresIPhoneOS: true
+        NSCameraUsageDescription: BooTauri2 needs to use the camera to scan QR codes for pairing with Boo media servers.
         NSLocalNetworkUsageDescription: BooTauri2 needs to access your local network to discover and connect to Boo media servers.
         UILaunchStoryboardName: LaunchScreen
         UIRequiredDeviceCapabilities: [arm64, metal]
