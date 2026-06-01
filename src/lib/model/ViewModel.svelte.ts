@@ -21,6 +21,7 @@ import {wakeLocker} from "$lib/utils/WakeLocker";
 import {connectionManager} from "$lib/model/watcher/ConnectionManager"
 import {newArrivalWatcher} from "$lib/model/watcher/NewArrivalWatcher"
 import {activeHostTracker} from "$lib/model/ActiveHostTracker.svelte"
+import {tauriMediaProxy} from "$lib/tauri/TauriMediaProxy"
 
 class ViewModel {
   private rawMediaList = $state<IMediaList>(emptyMediaList())
@@ -165,6 +166,22 @@ class ViewModel {
     this.initKeyMap()
     await this.initTauri()
     activeHostTracker.start()
+    // Step 2: media proxy 起動完了を待って proxy URL を準備、既知の pinned host を Rust 側に登録
+    await tauriMediaProxy.prepare()
+    for (const h of settings.hostInfoList.list) {
+      if (h.useSSL && h.fingerprint) {
+        await tauriMediaProxy.setPinning(`${h.host}`, h.fingerprint)
+      }
+    }
+    // 初回 onHostChanged が tauri 準備前に走って setActiveHost が no-op になるレースを補う。
+    // ここまで来れば tauriObject も proxy も準備完了しているので、現 currentHost を確実に登録する。
+    if (settings.currentHost) {
+      await tauriMediaProxy.setActiveHost({
+        host: settings.currentHost.host,
+        port: settings.currentHost.port,
+        useSSL: settings.currentHost.useSSL ?? false,
+      })
+    }
     this.isPrepared = true
   }
 
@@ -299,6 +316,17 @@ class ViewModel {
       this.isBusy = true
       launch(async () => {
         try {
+          // Step 2: メディア proxy にこのホストを渡す + pinned host なら fingerprint も Rust 側に登録。
+          // boo.setup() の HTTPS リクエストが走る前に完了させる必要があるので await する。
+          await tauriMediaProxy.setActiveHost({
+            host: hostPort.host,
+            port: hostPort.port,
+            useSSL: hostPort.useSSL ?? false,
+          })
+          if (hostPort.useSSL && hostPort.fingerprint) {
+            await tauriMediaProxy.setPinning(hostPort.host, hostPort.fingerprint)
+          }
+
           if (await this.boo.setup(hostPort)) {
             const capabilities = this.boo.capabilities
             connectionManager.start(hostPort, capabilities)

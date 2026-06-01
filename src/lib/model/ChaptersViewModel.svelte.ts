@@ -9,9 +9,9 @@ interface IChaptersViewModel {
   chapters:IChapter[]
   disabledRanges:IRange[]
   attach():void
-  nextChapter():void
-  prevChapter():void
-  gotoChapter(chapter:IChapter):void
+  nextChapter():boolean
+  prevChapter():boolean
+  gotoChapter(chapter:IChapter):boolean
   isValidAt(pos:number):boolean
   getChapterAt(pos:number):IChapter|undefined
   currentChapterLabel:string
@@ -44,23 +44,26 @@ class ChaptersViewModel implements IChaptersViewModel {
     })
   }
 
-  gotoChapter(chapter:IChapter|undefined) {
+  gotoChapter(chapter:IChapter|undefined):boolean {
     if(chapter) {
       playerViewModel.currentPosition = chapter.position/1000
+      return true
+    } else {
+      return false
     }
   }
-  nextChapter() {
+  nextChapter():boolean {
     const cl = this.chapters
     const pos = playerViewModel.currentPosition * 1000 // ms
-    this.gotoChapter(cl.find((c) => {
+    return this.gotoChapter(cl.find((c) => {
       // return pos < c.position
       return c.position-pos > 1 // 丸め誤差 1msを考慮
     }))
   }
-  prevChapter() {
+  prevChapter():boolean {
     const cl = this.chapters
     const pos = playerViewModel.currentPosition * 1000 - (playerViewModel.playing ? 500 : 0)  // ms
-    this.gotoChapter(cl?.findLast((c) => {
+    return this.gotoChapter(cl?.findLast((c) => {
       // return pos > c.position
       return c.position-pos < -1 // 丸め誤差 1msを考慮
     }))

@@ -9,7 +9,6 @@
   import {TimingSwitch} from "$lib/utils/TimingSwitch";
   import {logger} from "$lib/model/DebugLog.svelte";
   import AudioPlayer from "$lib/component/AudioPlayer.svelte";
-  import ZoomView from "$lib/primitive/ZoomView.svelte";
   import {chaptersViewModel} from "$lib/model/ChaptersViewModel.svelte";
   import {untrack} from "svelte";
 
@@ -52,12 +51,28 @@
   // 無効チャプターのスキップ
   $effect(()=>{
     let label = ""
+    let item = viewModel.currentItem
+    if (!item) return
+
     if (viewModel.supportChapter && playerViewModel.isAV) {
-      const chapter = chaptersViewModel.getChapterAt(playerViewModel.currentPosition)
-      if(chapter) {
-        if(playerViewModel.playing && !playerViewModel.sliderSeeking) {
+      const pos = playerViewModel.safeCurrentPosition
+      const chapter = chaptersViewModel.getChapterAt(pos)
+      if(playerViewModel.playing && !playerViewModel.sliderSeeking) {
+        const start = (item.start ?? 0)/1000
+        const end = (item.end ?? 0)/1000
+        if (pos < start) {
+            playerViewModel.currentPosition = start
+            return
+        }
+        if (end>0 && pos>end) {
+          onended()
+          return
+        }
+        if(chapter) {
           if(chapter.skip) {
-            chaptersViewModel.nextChapter()
+            if (!chaptersViewModel.nextChapter()) {
+              onended()
+            }
             return
           }
         }
@@ -82,7 +97,7 @@
     <ImageViewer {onended}/>
   {/if}
   {#if playerViewModel.isAV}
-    <div class="absolute top-0 left-0 right-0 h-[56px] bg-transparent"
+    <div class="absolute top-0 left-0 right-0 h-14 bg-transparent"
          onmouseenter={onMouseEnterToPanel}
          role="none"></div>
   {/if}
@@ -93,7 +108,7 @@
   {/if}
 
   <!-- マウスオーバーで、コントロールパネルを出し入れする仕掛け -->
-  <div class="absolute bottom-0 left-0 right-0 h-[56px] bg-transparent"
+  <div class="absolute bottom-0 left-0 right-0 h-14 bg-transparent"
        onmouseenter={onMouseEnterToPanel}
        role="none"></div>
 
