@@ -117,7 +117,7 @@ class TauriObject implements ITauriObject {
     logger.debug("minimize() called")
     launch(async () => {
       if(env.isMac) {
-        if (await window.isMaximized()) {
+        if (await this.isMaximized(window)) {
           logger.debug("maximized now")
           await this.unmaximize(window)
           // await window.setFullscreen(false)
